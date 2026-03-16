@@ -10,10 +10,10 @@
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 
-<body>       
+<body>
     <img src="img/img_fund.png" class="img-fund" alt="fundo">
 
-        <!--  Pagina de Login  -->
+    <!--  Pagina de Login  -->
 
     <div class="wrapper conteudo-pag" id="tela-login" style="display: block;">
         <form action="">
@@ -29,7 +29,7 @@
 
             <div class="remember-forgot">
                 <label><input type="checkbox"> Lembre-se de Mim </label>
-                
+
                 <a href="#" onclick="mostrarPagina('tela-recuperar', event)"> Esqueci minha Senha</a>
             </div>
 
@@ -43,7 +43,7 @@
         </form>
     </div>
 
-       <!-- Pagina de Cadastro  -->
+    <!-- Pagina de Cadastro  -->
 
     <div class="wrapper conteudo-pag" id="tela-cadastro" style="display: none;">
         <form action="">
@@ -51,6 +51,10 @@
 
             <div class="input-box">
                 <input type="text" placeholder="Nome de Usuario" required name="username">
+                <i class="bx bxs-user"></i>
+            </div>
+            <div class="input-box">
+                <input type="text" placeholder="Nome Completo" required name="username">
                 <i class="bx bxs-user"></i>
             </div>
             <div class="input-box">
@@ -65,6 +69,31 @@
                 <input type="password" placeholder="Confirme sua Senha" required name="password">
                 <i class="bx bxs-lock-alt"></i>
             </div>
+            <!-- Tipo do usuario -->
+            <div class="input-group-row">
+                <div class="label-with-icon">
+                    <i class='bx bxs-user-detail'></i>
+                    <label id="Cargo-text">Tipo de usuário</label>
+                </div>
+
+                <select id="Cargo" name="cargo" style="display: none;">
+                    <option value="student">Aluno</option>
+                    <option value="former-student">Ex-Aluno</option>
+                    <option value="embloyee">Funcionário</option>
+                </select>
+
+                <div class="custom-select-wrapper">
+                    <div class="custom-select-trigger">
+                        <span>Selecione...</span>
+                        <div class="arrow"></div>
+                    </div>
+                    <div class="custom-options">
+                        <span class="custom-option" data-value="student">Aluno</span>
+                        <span class="custom-option" data-value="former-student">Ex-Aluno</span>
+                        <span class="custom-option" data-value="embloyee">Funcionário</span>
+                    </div>
+                </div>
+            </div>
             <button type="submit" class="btn">Cadastrar-se</button>
 
             <div class="register-link">
@@ -74,8 +103,8 @@
             </div>
         </form>
     </div>
-    
-          <!-- Pagina de Recuperação de Senha  -->
+
+    <!-- Pagina de Recuperação de Senha  -->
 
     <div class="wrapper conteudo-pag" id="tela-recuperar" style="display: none;">
         <form action="">

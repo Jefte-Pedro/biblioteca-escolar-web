@@ -570,7 +570,7 @@ main {
 }
 
 .container-conteudo-branco-prazo {
-  background-color: #e5e5e5;
+  background-color: #f5f5f5;
   min-height: 400px;
   margin: 20px 20px 20px 20px;
   padding: 30px;
@@ -636,7 +636,7 @@ main {
   padding-left: 40px;
 }
 
-/* /* ===================================================== */
+/* ===================================================== */
 /* PAGINA DO LIVRO
 /* ===================================================== */
 
@@ -648,7 +648,7 @@ main {
   margin-bottom: 30px;
   background: none;
   border: none;
-  color: white;
+  color: #f5f5f5;
   font-size: 20px;
   cursor: pointer;
   gap: 1px;
@@ -708,13 +708,11 @@ main {
   font-weight: normal;
 }
 
-/* Container para alinhar os itens */
+
 .livro-detalhes {
   display: flex;
   align-items: center;
-  /* Centraliza verticalmente */
   gap: 15px;
-  /* Espaçamento entre o texto e o divisor */
   margin: 10px 0;
 }
 
@@ -722,19 +720,14 @@ main {
 #livro-editora {
   color: rgba(255, 255, 255, 0.9);
   font-size: 20px;
-  /* Ajustei levemente para caber melhor lado a lado */
   font-weight: normal;
   margin: 0;
-  /* Removido o margin individual para não quebrar o alinhamento */
 }
 
-/* O Divisor "Bonito" */
 .divisor {
   width: 2px;
   height: 24px;
-  /* Altura próxima à do texto */
   background-color: rgba(255, 255, 255, 0.3);
-  /* Branco suave/transparente */
   border-radius: 2px;
 }
 
@@ -1020,7 +1013,6 @@ main {
   border-radius: 5px;
   cursor: pointer;
   float: right;
-  /* Para ficar na direita como na foto */
 }
 
 .item-lista {
@@ -1047,8 +1039,8 @@ main {
 }
 
 .card-lista {
-  background-color: #f8f9fa;
-  border: 1px solid #e0e0e0;
+  background-color: #dce0e0ee;
+  border: 1px solid #838282;
   padding: 15px 20px;
   border-radius: 8px;
   margin-bottom: 10px;
@@ -1089,46 +1081,41 @@ main {
 
 .modal {
   display: none;
-  /* Começa escondido */
   position: fixed;
   z-index: 2000;
-  /* Fica por cima de tudo, até da sidebar */
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
-  /* Fundo escuro transparente */
   backdrop-filter: blur(2px);
-  /* Dá um efeito de desfoque estiloso no fundo */
 }
 
 .modal-content {
-  background-color: white;
+  background-color: #f5f5f5;
   margin: 10% auto;
-  /* Centraliza na tela */
   padding: 30px;
   width: 90%;
   max-width: 400px;
   border-radius: 12px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 5px 20px #1c5db1;
   text-align: center;
 }
 
 .modal-content h3 {
   margin-bottom: 20px;
   color: #1c5db1;
-  /* Azul da sua paleta */
 }
 
 .modal-content input {
   width: 100%;
   padding: 12px;
   margin-bottom: 20px;
-  border: 1px solid #ccc;
+  border: 1px solid #bbbbbb;
   border-radius: 8px;
   font-size: 16px;
   outline: none;
+  background-color: #f5f5f5;
 }
 
 .modal-content input:focus {
@@ -1161,3 +1148,147 @@ main {
   font-weight: bold;
 }
 
+/* ===================================================== */
+/* DARK MODE (Controlado pelo botão no JavaScript) */
+/* ===================================================== */
+
+/* Fundos principais e transição suave */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.dark {
+  background-color: #0d2a52; 
+  color: #e0e6e5;
+}
+
+/* Escurecendo o azul principal (Header, Banner) */
+body.dark .banner-superior, 
+body.dark .topo,
+body.dark .header-azul-lista {
+  background-color: #0d2a52;
+}
+
+/* Sidebar */
+body.dark .sidebar {
+  background-color: #1e1e1e;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  color: #e0e6e5;
+  transition: background-color 0.3s ease;
+}
+
+body.dark .sidebar button {
+  color: #e0e6e5;
+}
+
+body.dark .sidebar button:hover {
+  background-color: #2a2a2a;
+}
+
+body.dark .sidebar button.ativo {
+  background-color: #2a2a2a;
+  color: #ffffff;
+  border-left: 4px solid #113669;
+}
+
+/* Seções e containers que antes eram brancos/cinzas */
+body.dark .secao-branca {
+  background-color: #121212;
+}
+
+body.dark .container-conteudo-branco,
+body.dark .container-conteudo-branco-prazo,
+body.dark .container-conteudo-branco-livro {
+  background-color: #1e1e1e;
+  color: #f5f5f5;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); 
+}
+
+/* Ajustando textos escuros para ficarem claros */
+body.dark #descricao,
+body.dark #conteudo-dinamico-lista,
+body.dark #conteudo-dinamico-reservados,
+body.dark #conteudo-dinamico-lidos,
+body.dark #conteudo-dinamico-prazo,
+body.dark .minhalista,
+body.dark .botao-lista {
+  color: #f5f5f5;
+}
+
+body.dark .minhalista i,
+body.dark .botao-lista i {
+  color: #f5f5f5;
+}
+
+/* Ajustes da página do livro */
+body.dark .titulo-sessao-livro {
+  color: #f5f5f5;
+  border-bottom: 1px solid #333;
+}
+
+body.dark .texto-livro {
+  color: #d4d4d4;
+}
+
+/* Cards de Lista */
+body.dark .item-lista,
+body.dark .card-lista {
+  background: #35353567;
+  border: 1px solid   #d4d4d479;
+}
+
+body.dark .info-lista h3 {
+  color: #f5f5f5;
+}
+
+body.dark .qtd-livros {
+  color: #aaa;
+}
+
+/* Modal Criar Lista */
+body.dark .modal-content {
+  background-color: #1e1e1e;
+  color: #f5f5f5;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.8);
+}
+
+body.dark .modal-content h3 {
+  color: #60a5fa; 
+}
+
+body.dark .modal-content input {
+  background-color: #2a2a2a;
+  color: #f5f5f5;
+  border: 1px solid #555;
+}
+
+body.dark .modal-content input:focus {
+  border-color: #60a5fa;
+}
+
+body.dark .btn-cancelar {
+  background-color: #333;
+  color: #f5f5f5;
+}
+
+body.dark .btn-aba {
+    background: rgba(255, 255, 255, 0.05); 
+    border-color: #334155; 
+    color: #94a3b8; 
+}
+
+
+body.dark .btn-aba:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #60a5fa; 
+    color: #fff;
+}
+
+
+body.dark .btn-aba.active {
+    background-color: 	#4F4F4F; 
+    border-color: #60a5fa;     
+    color: #ffffff;             
+    box-shadow: 0 0 15px rgba(96, 165, 250, 0.2); 
+    font-weight: bold;
+}

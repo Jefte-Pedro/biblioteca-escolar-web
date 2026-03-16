@@ -36,6 +36,27 @@ const traducoes = {
     }
 };
 
+/* ===== SISTEMA DE TEMA (DARK MODE) ===== */
+const botaoTema = document.getElementById("alternar-tema");
+const temaSalvo = localStorage.getItem("tema");
+
+// 1. Aplica o tema imediatamente ao carregar a página
+if (temaSalvo === "dark") {
+    document.body.classList.add("dark");
+}
+
+// 2. Faz o botão funcionar e salvar a escolha do usuário
+if (botaoTema) {
+    botaoTema.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+        
+        if (document.body.classList.contains("dark")) {
+            localStorage.setItem("tema", "dark");
+        } else {
+            localStorage.setItem("tema", "light");
+        }
+    });
+}
 
 /* ===== CARREGAR HTML ===== */
 
