@@ -18,5 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('api/', include('biblioteca.urls')),
+    # path('api/', include('biblioteca.urls')),
+    path('', include('biblioteca.urls')),
+    
 ]

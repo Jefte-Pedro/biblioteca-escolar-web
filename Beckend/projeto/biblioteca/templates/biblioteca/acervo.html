@@ -1,0 +1,78 @@
+{% extends "biblioteca/base.html" %} {% load static %}
+
+{% block title %}Acervo - ERDJM{% endblock %}
+
+{% block content %}
+
+<section id="pag-lista" class="conteudo-pag" style="display: block;">
+    <div class="header-azul-lista">
+        <h2 class="titulo-secao-interna">Seu acervo</h2>
+        <p class="descricao-acervo">Gerencie suas leituras e reservas em um só lugar.</p>
+        <div class="abas-navegacao">
+            <button class="btn-aba active" onclick="mostrarPagina('pag-lista')">Minha Lista</button>
+            <button class="btn-aba" onclick="mostrarPagina('pag-reservados')">Reservados</button>
+            <button class="btn-aba" onclick="mostrarPagina('pag-lidos')">Livros Lidos</button>
+        </div>
+    </div>
+
+    <div class="container-conteudo-branco">
+        <p id="conteudo-dinamico-lidos" class="msg-vazia" style="margin-bottom: 20px;">
+            Aqui aparecerão os livros que você salvou na sua lista.
+        </p>
+        <button id="btn-abrir-modal" class="btn-suaLista" style="float: none; margin-bottom: 30px;">
+            <i class="fa-solid fa-plus"></i> Crie sua Lista
+        </button>
+        <div id="conteudo-dinamico-lista"></div>
+    </div>
+
+    <div id="modal-lista" class="modal">
+        <div class="modal-content">
+            <h3>Dar nome à lista</h3>
+            <input type="text" id="input-nome-lista" placeholder="Ex: Livros para o Enem...">
+            <div class="modal-buttons">
+                <button onclick="fecharModal()" class="btn-cancelar">Cancelar</button>
+                <button id="btn-confirmar-lista" class="btn-confirmar">Criar Lista</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section id="pag-reservados" class="conteudo-pag" style="display: none;">
+    <div class="header-azul-lista">
+        <h2 class="titulo-secao-interna">Seu acervo</h2>
+        <p class="descricao-acervo">Gerencie suas leituras e reservas em um só lugar.</p>
+        <div class="abas-navegacao">
+            <button class="btn-aba" onclick="mostrarPagina('pag-lista')">Minha Lista</button>
+            <button class="btn-aba active" onclick="mostrarPagina('pag-reservados')">Reservados</button>
+            <button class="btn-aba" onclick="mostrarPagina('pag-lidos')">Livros Lidos</button>
+        </div>
+    </div>
+
+    <div class="container-conteudo-branco">
+        <div id="conteudo-dinamico-reservados">
+            <p class="msg-vazia">Acompanhe aqui os livros que você solicitou retirada.</p>
+        </div>
+    </div>
+</section>
+
+
+<section id="pag-lidos" class="conteudo-pag" style="display: none;">
+    <div class="header-azul-lista">
+        <h2 class="titulo-secao-interna">Seu acervo</h2>
+        <p class="descricao-acervo">Gerencie suas leituras e reservas em um só lugar.</p>
+        <div class="abas-navegacao">
+            <button class="btn-aba" onclick="mostrarPagina('pag-lista')">Minha Lista</button>
+            <button class="btn-aba" onclick="mostrarPagina('pag-reservados')">Reservados</button>
+            <button class="btn-aba active" onclick="mostrarPagina('pag-lidos')">Livros Lidos</button>
+        </div>
+    </div>
+
+    <div class="container-conteudo-branco">
+        <div id="conteudo-dinamico-lidos">
+            <p class="msg-vazia">Seu histórico de leitura aparecerá aqui.</p>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

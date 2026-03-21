@@ -6,3 +6,12 @@ from .serializers import LivroSerializer
 class LivroViewset(viewsets.ModelViewSet):
     queryset = Livro.objects.all()
     serializer_class = LivroSerializer
+
+def inicio(request):
+    return render(request, 'biblioteca/inicio.html')
+
+def acervo(request):
+    return render(request, 'biblioteca/acervo.html')
+
+def prazos(request):
+    return render(request, 'biblioteca/prazo.html')

@@ -158,38 +158,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /* ===== SISTEMA DE PÁGINAS ===== */
 
-function mostrarPagina(idPagina) {
-    const paginaAtual = localStorage.getItem("paginaAtual");
+// function mostrarPagina(idPagina) {
+//     const paginaAtual = localStorage.getItem("paginaAtual");
 
-    // Só salva como anterior se realmente estivermos mudando de uma página válida
-    if (paginaAtual && paginaAtual !== idPagina) {
-        localStorage.setItem("paginaAnterior", paginaAtual);
-    }
+//     // Só salva como anterior se realmente estivermos mudando de uma página válida
+//     if (paginaAtual && paginaAtual !== idPagina) {
+//         localStorage.setItem("paginaAnterior", paginaAtual);
+//     }
 
-    localStorage.setItem("paginaAtual", idPagina);
+//     localStorage.setItem("paginaAtual", idPagina);
 
-    // Esconde todas as páginas
-    const paginas = document.querySelectorAll(".conteudo-pag");
-    paginas.forEach(p => p.style.display = "none");
+//     // Esconde todas as páginas
+//     const paginas = document.querySelectorAll(".conteudo-pag");
+//     paginas.forEach(p => p.style.display = "none");
 
-    // Mostra a página solicitada
-    const pagina = document.getElementById(idPagina);
-    if (pagina) {
-        pagina.style.display = "block";
-    }
+//     // Mostra a página solicitada
+//     const pagina = document.getElementById(idPagina);
+//     if (pagina) {
+//         pagina.style.display = "block";
+//     }
 
-    // --- SINCRONIZAÇÃO DA SIDEBAR ---
-    // Remove o "ativo" de todos os botões da lateral
-    const botoesSidebar = document.querySelectorAll(".sidebar button");
-    botoesSidebar.forEach(btn => btn.classList.remove("ativo"));
+//     // --- SINCRONIZAÇÃO DA SIDEBAR ---
+//     // Remove o "ativo" de todos os botões da lateral
+//     const botoesSidebar = document.querySelectorAll(".sidebar button");
+//     botoesSidebar.forEach(btn => btn.classList.remove("ativo"));
 
-    // Procura na sidebar qual botão tem o onclick que chama essa página específica
-    const botaoParaAtivar = document.querySelector(`.sidebar button[onclick*="'${idPagina}'"]`);
+//     // Procura na sidebar qual botão tem o onclick que chama essa página específica
+//     const botaoParaAtivar = document.querySelector(`.sidebar button[onclick*="'${idPagina}'"]`);
 
-    if (botaoParaAtivar) {
-        botaoParaAtivar.classList.add("ativo");
-    }
-}
+//     if (botaoParaAtivar) {
+//         botaoParaAtivar.classList.add("ativo");
+//     }
+// }
 
 
 /* ===== BOTÃO VOLTAR ===== */

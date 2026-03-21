@@ -1,0 +1,90 @@
+{% extends "biblioteca/base.html" %} {% load static %}
+
+{% block title %}Info_Livro - ERDJM{% endblock %}
+
+{% block content %}
+
+    <section id="pag-livro" class="conteudo-pag" style="display:none;">
+
+        <button class="back" onclick="voltarPagina()">
+            <i class="fa-solid fa-angle-left"></i> Voltar
+        </button>
+
+        <div class="info-livro">
+            <img id="livro-capa" class="capa-livro">
+
+            <div class="textos-livro">
+
+
+                <h2 id="livro-titulo">Dom Casmurro</h2>
+
+                <div class="livro-detalhes">
+                    <span id="livro-autor" onclick="">Machado de Assis</span>
+                    <span class="divisor"></span>
+                    <span id="livro-genero" onclick="">Romance</span>
+                    <span class="divisor"></span>
+                    <span id="livro-editora" onclick="">Editora Record</span>
+                </div>
+
+                <hr class="divisor-livro">
+
+                <div class="detalhes-tecnicos">
+                    <p id="livro-prateleira"></p>
+                    <p id="livro-unidades"></p>
+                    <p id="livro-codigo"></p>
+
+                </div>
+                <hr class="divisor-livro">
+
+                <div class="avaliacao-livro">
+
+                    <div class="estrelas" id="estrelas-avaliacao">
+                        <span class="estrela" data-valor="1">★</span>
+                        <span class="estrela" data-valor="2">★</span>
+                        <span class="estrela" data-valor="3">★</span>
+                        <span class="estrela" data-valor="4">★</span>
+                        <span class="estrela" data-valor="5">★</span>
+                    </div>
+
+                    <p id="media-avaliacao">0 / 5</p>
+
+                    <p class="titulo-avaliacao">Avaliação dos leitores</p>
+
+                    <span class="divisor-vertical">|</span>
+
+
+                    <div class="livro-status">
+                        <p id="livro-status"></p>
+                        <p id="livro-status-Emprestado"></p>
+                    </div>
+
+                </div>
+
+                <div class="botoes-acoes">
+                    <button class="btn-lista">
+                        <i class="fa-regular fa-heart"></i> Minha Lista
+                    </button>
+                    <button class="btn-reservar">
+                        <i class="fa-regular fa-bookmark"></i> Reservar
+                    </button>
+                    <button class="btn-lido">
+                        <i class="fa-solid fa-check"></i> Marcar como Lido
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="Conteudo-livro">
+        </div>
+
+        <div class="container-conteudo-branco-livro">
+
+            <h3 class="titulo-sessao-livro">Sinopse</h3>
+
+            <div class="texto-livro">
+                <p id="livro-sinopse">Carregando descrição do livro...</p>
+            </div>
+        </div>
+    </section>
+
+{% endblock %}

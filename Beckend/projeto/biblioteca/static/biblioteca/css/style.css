@@ -1,0 +1,1433 @@
+/* ===================================================== */
+/* RESET */
+/* ===================================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  overflow-x: hidden;
+  margin: 0;
+}
+
+body {
+  background-color: #1c5db1;
+  color: black;
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease; 
+}
+
+
+/* ===================================================== */
+/* LAYOUT BASE */
+/* ===================================================== */
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+main {
+  margin-left: 260px;
+  width: auto;
+  flex-grow: 1;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: block;
+}
+
+
+/* ===================================================== */
+/* BANNER SUPERIOR */
+/* ===================================================== */
+
+.banner-superior {
+  background-color: #1c5db1;
+  color: white;
+  width: 100%;
+  padding-bottom: 60px;
+}
+
+.secao-branca {
+  background-color: #F0F2F5;
+  width: 100%;
+  min-height: 200px;
+  position: relative;
+  z-index: 1;
+  margin-top: 20px;
+}
+
+.banner-superior,
+.secao-branca {
+  width: 100%;
+  display: block;
+}
+
+.container-abas {
+  background-color: white;
+  width: 90%;
+  max-width: 1200px;
+  margin: -30px auto 0;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+}
+
+
+/* ===================================================== */
+/* SIDEBAR */
+/* ===================================================== */
+
+.sidebar {
+  width: 260px;
+  background-color: #f5f5f5;
+  height: 100vh;
+  padding: 20px;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow-y: auto;
+  z-index: 1000;
+  transition: left 0.3s ease;
+}
+
+.sidebar i {
+  font-size: 18px;
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+.sidebar button {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 14px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.sidebar button:hover {
+  background-color: #e5e5e5;
+  border-radius: 8px;
+}
+
+.sidebar button.ativo {
+  border-left: 4px solid #1c5db1;
+  font-weight: bold;
+  background-color: #e5e5e5;
+  color: #050505;
+  border-radius: 8px;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+
+/* ===================================================== */
+/* LOGO / ESCOLA */
+/* ===================================================== */
+
+.nav-logo img {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+}
+
+.nav-Esc {
+  margin-bottom: 40px;
+}
+
+.nav-Esc h2 {
+  padding: 5px 0;
+}
+
+
+/* ===================================================== */
+/* HEADER SUPERIOR */
+/* ===================================================== */
+
+.topo {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 40px;
+  color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  ;
+  background-color: #1c5db1;
+}
+
+.acoes-topo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.acoes-topo button {
+  border: none;
+  background: transparent;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.acoes-topo button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+
+/* ===================================================== */
+/* ACESSIBILIDADE / TEMA / IDIOMA */
+/* ===================================================== */
+
+.tema,
+.acessibilidade {
+  position: relative;
+  padding-right: 20px;
+}
+
+.tema::after,
+.acessibilidade::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.tema button {
+  display: flex;
+  gap: 6px;
+  font-size: 16px;
+}
+
+.acessibilidade {
+  display: flex;
+  gap: 8px;
+}
+
+.idioma {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.idioma-container {
+  position: relative;
+}
+
+.idioma-menu {
+  position: absolute;
+  top: 170%;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.2);
+  color: black;
+  border-radius: 8px;
+  padding: 5px;
+  min-width: 150px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+  transition: 0.3s;
+}
+
+.idioma-menu.ativo {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.idioma-menu button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 6px;
+}
+
+.idioma-menu button:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+
+/* ===================================================== */
+/* BUSCA */
+/* ===================================================== */
+
+.busca,
+.sugestoes,
+.prazo,
+.minhalista,
+.descricao {
+  padding-left: 0px;
+  padding-right: 40px;
+}
+
+.busca {
+  margin: 40px 0 10px 0; /* remove laterais */
+  padding-left: 90px;   /* igual ao título */
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.busca i {
+  position: absolute;
+  left: calc(80px + 25px);
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  z-index: 2;
+}
+
+.busca input {
+  width: 800px; /* fixa ou usa max-width */
+  max-width: 100%;
+  padding: 10px 10px 10px 45px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  transition: 0.3s;
+}
+
+.busca input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.busca input:focus {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: white;
+}
+
+
+/* ===================================================== */
+/* CARDS DE LIVROS */
+/* ===================================================== */
+
+#lista-livros {
+  display: flex;
+  gap: 40px;
+  margin: 0px;
+  align-items: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+#lista-livros::-webkit-scrollbar {
+  display: none;
+}
+
+#lista-livros::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#lista-livros::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+#lista-livros:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.card-livro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s, box-shadow 0.2s;
+  flex: 0 0 200px;
+}
+
+.card-livro:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+}
+
+.capa-livro {
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.card-livro h3 {
+  margin-top: 8px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.card-livro p {
+  font-size: 13px;
+  margin: 2px 0;
+  text-align: center;
+}
+
+
+/* ===================================================== */
+/* SEÇÕES INTERNAS */
+/* ===================================================== */
+
+#descricao {
+  margin-left: 100px;
+  color: rgba(0, 0, 0);
+  font-size: 20px;
+  max-width: 800px;
+  margin-top: 10px;
+}
+
+#sugestoes {
+  color: white;
+  padding-left: 100px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 0px;
+}
+
+.titulo-secao-interna,
+.titulo-prazo {
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  margin-left: 150px;
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+
+/* ===================================================== */
+/* ABAS */
+/* ===================================================== */
+
+.aba-item {
+  flex: 1;
+  text-align: center;
+  padding: 20px;
+  border: none;
+  background: none;
+  font-weight: bold;
+  cursor: pointer;
+  color: #555;
+  border-bottom: 4px solid transparent;
+}
+
+.aba-item.ativa {
+  color: #1c5db1;
+  border-bottom: 4px solid #1c5db1;
+}
+
+
+/* ===================================================== */
+/* MINHA LISTA */
+/* ===================================================== */
+
+.minhalista {
+  color: rgb(0, 0, 0);
+  font-size: 24px;
+  font-weight: bold;
+  margin-left: 100px;
+  margin-top: 50px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  background: none;
+  border: none;
+  padding: 0;
+  padding-bottom: 2px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.minhalista:hover span {
+  text-decoration: underline;
+}
+
+.minhalista i {
+  font-size: 23px;
+  color: rgba(0, 0, 0);
+}
+
+
+/* ===================================================== */
+/* BOTÃO LISTA */
+/* ===================================================== */
+
+.botao-lista {
+  background: none;
+  border: none;
+  font-size: 30px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #222;
+  padding: 40px 0px 10px 100px; 
+  padding-left: 100;
+  margin-top: 100px;
+}
+
+.botao-lista:hover {
+  color: #535151;
+}
+
+
+/* ===================================================== */
+/* PÁGINA LISTA */
+/* ===================================================== */
+
+.header-azul-lista {
+  min-height: 250px;
+  background-color: #1c5db1;
+  color: white;
+  padding: 35px 20px;
+  text-align: center;
+  border-radius: 10px 10px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.abas-navegacao {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 400px;
+  text-align: left;
+}
+
+.btn-aba {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #e5e5e5;
+  color: #e5e5e5;
+  padding: 25px 90px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-aba.active {
+  background-color: #e5e5e5;
+  color: #1c5db1;
+  font-weight: bold;
+}
+
+
+/* ===================================================== */
+/* CONTEÚDO BRANCO */
+/* ===================================================== */
+
+.container-conteudo-branco {
+  background-color: #e5e5e5;
+  min-height: 400px;
+  margin: 20px 20px 20px 20px;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.container-conteudo-branco-prazo {
+  background-color: #e5e5e5;
+  min-height: 400px;
+  margin: 20px 20px 20px 20px;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin-top: 30px;
+}
+
+
+/* ===================================================== */
+/* TÍTULOS E DESCRIÇÕES */
+/* ===================================================== */
+
+.conteudo-pag h2 {
+  color: white;
+  padding-left: 80px;
+  margin: 0 0 10px 0;
+  margin-bottom: 10px;
+  font-weight: 500;
+  font-size: 45px;
+  display: block;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  margin-top: 0 !important;
+  padding-top: 0;
+}
+
+.descricao-acervo {
+  color: white;
+  margin: 0px 0px 50px 0px;
+  padding-left: 80px;
+  font-weight: 500;
+  font-size: 25px;
+  text-align: left;
+}
+
+.descricao-prazo {
+  color: white;
+  margin: 0px 0px 50px 0px;
+  padding-left: 80px;
+  font-weight: 500;
+  font-size: 25px;
+  text-align: left;
+}
+
+
+/* ===================================================== */
+/* CONTEÚDO DINÂMICO */
+/* ===================================================== */
+
+#conteudo-dinamico-lista,
+#conteudo-dinamico-reservados,
+#conteudo-dinamico-lidos,
+#conteudo-dinamico-prazo {
+  font-size: 22px !important;
+  color: #000000;
+  text-align: left;
+  display: block;
+  margin: 40px auto;
+  font-family: sans-serif;
+  margin-top: 20px;
+  padding-left: 40px;
+}
+
+/* ===================================================== */
+/* PAGINA DO LIVRO
+/* ===================================================== */
+
+
+.back {
+  display: flex;
+  align-items: center;
+  margin-left: 80px;
+  margin-bottom: 30px;
+  background: none;
+  border: none;
+  color: #f5f5f5;
+  font-size: 20px;
+  cursor: pointer;
+  gap: 1px;
+}
+
+.back:hover {
+  color: #c5c5c5;
+}
+
+
+.info-livro {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 50px;
+  padding-left: 80px;
+  width: 100%;
+}
+
+
+#livro-capa {
+  width: 260px;
+  height: auto;
+  border-radius: 8px;
+  object-fit: contain;
+  padding-left: 0 !important;
+}
+
+
+.textos-livro {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  text-align: left;
+  max-width: 700px;
+}
+
+
+#livro-titulo {
+  color: white !important;
+  font-size: 48px !important;
+  font-weight: 600;
+  margin: 0 0 10px 0 !important;
+  padding: 0 !important;
+  line-height: 1.2;
+}
+
+
+#livro-autor,
+#livro-genero,
+#livro-editora,
+#livro-prateleira,
+#livro-unidades,
+#livro-codigo {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 22px;
+  margin: 5px 0;
+  font-weight: normal;
+}
+
+
+.livro-detalhes {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 10px 0;
+}
+
+#livro-autor,
+#livro-editora {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 20px;
+  font-weight: normal;
+  margin: 0;
+}
+
+.divisor {
+  width: 2px;
+  height: 24px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  display: inline-block;
+}
+
+#livro-editora:empty, 
+#livro-editora:empty + .divisor {
+    display: none;
+}
+
+.livro-detalhes:has(#livro-editora:empty) .divisor {
+  display: none;
+}
+
+.divisor-livro {
+  border: 0;
+  height: 2px;
+  background-color: rgba(255, 255, 255, 0.2);
+  margin: 20px 0;
+  width: 650px;
+}
+
+.detalhes-tecnicos {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 0px;
+}
+
+.detalhes-tecnicos p {
+  padding: 0 20px;
+  border-right: 2px solid rgba(255, 255, 255, 0.2);
+  margin: 0;
+}
+
+.detalhes-tecnicos p:first-child {
+  padding-left: 0;
+}
+
+.detalhes-tecnicos p:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+
+/* ===================================================== */
+/* AVALIAÇÃO LIVRO */
+/* ===================================================== */
+
+.avaliacao-livro {
+  align-items: center;
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.estrelas {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.estrela {
+  cursor: pointer;
+  color: #ccc;
+}
+
+.estrela.ativa {
+  color: gold;
+}
+
+#media-avaliacao,
+.titulo-avaliacao {
+  color: white;
+  font-size: 16px;
+  margin: 0;
+  line-height: 1;
+}
+
+.titulo-avaliacao {
+  font-weight: bold;
+}
+
+/* ===================================================== */
+/* BOTÕES DE AÇÃO NA PÁGINA DO LIVRO */
+/* ===================================================== */
+
+.botoes-acoes {
+  display: flex;
+  gap: 15px;
+  margin-top: 40px;
+}
+
+.botoes-acoes button {
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: 0.3s;
+  background-color: transparent;
+  color: white;
+}
+
+
+.botoes-acoes .btn-lista {
+  color: white;
+}
+
+
+.botoes-acoes button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.botoes-acoes .btn-lista:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* ===================================================== */
+/*  PÁGINA DO LIVRO - DESCRIÇÂO*/
+/* ===================================================== */
+
+
+.container-conteudo-branco-livro {
+  background-color: white;
+  margin-top: 40px;
+  width: 98%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 50px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+
+.titulo-sessao-livro {
+  padding: 25px 40px 15px 40px;
+  color: #000000;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-bottom: 1px solid #d4d4d4;
+  margin: 0;
+}
+
+
+.texto-livro {
+  padding: 30px 40px 40px 40px;
+  color: #3a3a3a;
+  line-height: 1.8;
+  font-size: 1.05rem;
+  text-align: justify;
+}
+
+/* ===================================================== */
+/* STATUS (Disponivel) */
+/* ===================================================== */
+
+.status-container {
+  margin-bottom: 12px;
+}
+
+#livro-status {
+  padding: 5px 14px;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+#livro-status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  background-color: currentColor;
+}
+
+#livro-status.disponivel {
+  background-color: rgba(40, 167, 69, 0.2);
+  color: #4ade80;
+  border: 1px solid #4ade80;
+
+}
+
+#livro-status.disponivel::before {
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.8);
+}
+
+#livro-status.emprestado {
+  background-color: rgba(220, 53, 69, 0.2);
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
+}
+
+#livro-status.emprestado::before {
+  box-shadow: 0 0 8px rgba(255, 107, 107, 0.8);
+}
+
+.divisor-vertical {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 20px;
+  font-weight: 100;
+  margin: 0 5px;
+}
+
+/* ===================================================== */
+/* BOTÕES DE SETA */
+/* ===================================================== */
+
+.seta-carrossel {
+  background-color: rgba(0, 0, 0, 0.3);
+  color: white;
+  border: none;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.seta-carrossel:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+  transform: scale(1.1);
+}
+
+.seta-carrossel.esquerda {
+  margin-right: 30px;
+
+}
+
+.seta-carrossel.direita {
+  margin-left: 30px;
+
+}
+
+
+.carousel-wrapper {
+  position: relative;
+  margin: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+}
+
+.esquerda {
+  left: -25px;
+}
+
+.direita {
+  right: -25px;
+}
+
+
+@media (max-width: 768px) {
+  .seta-carrossel {
+    display: none;
+  }
+
+  .carousel-wrapper {
+    margin: 0 20px;
+  }
+}
+
+/* ===================================================== */
+/* BOTÃO CRIAR LISTA*/
+/* ===================================================== */
+
+.btn-suaLista {
+  display: block;
+  margin-left: auto;
+  justify-content: flex-end;
+  background-color: #2563eb;
+  color: white;
+  padding: 20px 60px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  float: right;
+}
+
+.item-lista {
+  background: white;
+  margin-top: 15px;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  clear: both;
+}
+
+.item-lista h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.contador-livros {
+  color: #666;
+  font-weight: bold;
+}
+
+.card-lista {
+  background-color: #dce0e0ee;
+  border: 1px solid #838282;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.card-lista:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.info-lista h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #2c3e50;
+}
+
+.qtd-livros {
+  font-size: 14px;
+  color: #7f8c8d;
+}
+
+.btn-add-livro {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* ===================================================== */
+/* MODAL CRIAR LISTA */
+/* ===================================================== */
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  background-color: #f5f5f5;
+  margin: 10% auto;
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px #1c5db1;
+  text-align: center;
+}
+
+.modal-content h3 {
+  margin-bottom: 20px;
+  color: #1c5db1;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #bbbbbb;
+  border-radius: 8px;
+  font-size: 16px;
+  outline: none;
+  background-color: #f5f5f5;
+}
+
+.modal-content input:focus {
+  border-color: #1c5db1;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.btn-confirmar {
+  background-color: #1c5db1;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-cancelar {
+  background-color: #e5e5e5;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* ===================================================== */
+/* DARK MODE (Controlado pelo botão no JavaScript) */
+/* ===================================================== */
+
+
+body.dark {
+  background-color: #0d2a52; 
+  color: #e0e6e5;
+}
+
+/* Escurecendo o azul principal (Header, Banner) */
+body.dark .banner-superior, 
+body.dark .topo,
+body.dark .header-azul-lista {
+  background-color: #0d2a52;
+}
+
+/* Sidebar */
+body.dark .sidebar {
+  background-color: #1e1e1e;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  color: #e0e6e5;
+  transition: background-color 0.3s ease;
+}
+
+body.dark .sidebar button {
+  color: #e0e6e5;
+}
+
+body.dark .sidebar button:hover {
+  background-color: #2a2a2a;
+}
+
+body.dark .sidebar button.ativo {
+  background-color: #2a2a2a;
+  color: #ffffff;
+  border-left: 4px solid #113669;
+}
+
+/* Seções e containers que antes eram brancos/cinzas */
+body.dark .secao-branca {
+  background-color: #121212;
+}
+
+body.dark .container-conteudo-branco,
+body.dark .container-conteudo-branco-prazo,
+body.dark .container-conteudo-branco-livro {
+  background-color: #1e1e1e;
+  color: #f5f5f5;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); 
+}
+
+/* Ajustando textos escuros para ficarem claros */
+body.dark #descricao,
+body.dark #conteudo-dinamico-lista,
+body.dark #conteudo-dinamico-reservados,
+body.dark #conteudo-dinamico-lidos,
+body.dark #conteudo-dinamico-prazo,
+body.dark .minhalista,
+body.dark .botao-lista {
+  color: #f5f5f5;
+}
+
+body.dark .minhalista i,
+body.dark .botao-lista i {
+  color: #f5f5f5;
+}
+
+/* Ajustes da página do livro */
+body.dark .titulo-sessao-livro {
+  color: #f5f5f5;
+  border-bottom: 1px solid #333;
+}
+
+body.dark .texto-livro {
+  color: #d4d4d4;
+}
+
+/* Cards de Lista */
+body.dark .item-lista,
+body.dark .card-lista {
+  background: #35353567;
+  border: 1px solid   #d4d4d479;
+}
+
+body.dark .info-lista h3 {
+  color: #f5f5f5;
+}
+
+body.dark .qtd-livros {
+  color: #aaa;
+}
+
+/* Modal Criar Lista */
+body.dark .modal-content {
+  background-color: #1e1e1e;
+  color: #f5f5f5;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.8);
+}
+
+body.dark .modal-content h3 {
+  color: #60a5fa; 
+}
+
+body.dark .modal-content input {
+  background-color: #2a2a2a;
+  color: #f5f5f5;
+  border: 1px solid #555;
+}
+
+body.dark .modal-content input:focus {
+  border-color: #60a5fa;
+}
+
+body.dark .btn-cancelar {
+  background-color: #333;
+  color: #f5f5f5;
+}
+
+body.dark .btn-aba {
+    background: rgba(255, 255, 255, 0.05); 
+    border-color: #334155; 
+    color: #94a3b8; 
+}
+
+
+body.dark .btn-aba:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #60a5fa; 
+    color: #fff;
+}
+
+
+body.dark .btn-aba.active {
+    background-color: 	#4F4F4F; 
+    border-color: #60a5fa;     
+    color: #ffffff;             
+    box-shadow: 0 0 15px rgba(96, 165, 250, 0.2); 
+    font-weight: bold;
+}
+
+/* ===================================================== */
+/* RESPONSIVIDADE E MENU MOBILE (COLAR NO FIM DO ARQUIVO) */
+/* ===================================================== */
+
+/* 1. Botão que abre o menu no celular/tablet */
+.menu-mobile {
+  display: none; 
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 2500;
+  background-color: #1c61b1bd;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* 2. Classe que o JavaScript usará para mostrar a sidebar */
+.sidebar.aberta {
+  left: 0 !important;
+}
+
+/* 3. Ajustes para Telas Grandes (Monitores maiores que 15p) */
+@media (min-width: 1600px) {
+  .container-abas,  
+  .info-livro, 
+  .container-conteudo-branco-livro {
+    max-width: 1600px; /* Impede que o site espalhe demais */
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+
+/* 4. Ajustes para Tablets e Celulares */
+@media (max-width: 1024px) {
+  .menu-mobile {
+    display: block; /* Mostra o botão hambúrguer */
+  }
+
+  .sidebar {
+    left: -260px; /* Esconde a sidebar para a esquerda */
+    transition: 0.3s ease;
+  }
+
+  main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .topo {
+    padding-left: 70px; /* Abre espaço para o botão do menu */
+    justify-content: flex-end;
+  }
+
+  /* Ajuste da Página do Livro */
+  .info-livro {
+    flex-direction: column;
+    align-items: center;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-align: center;
+  }
+
+  .textos-livro {
+    max-width: 100%;
+    align-items: center;
+  }
+
+  #livro-titulo {
+    font-size: 32px !important;
+    margin-top: 20px !important;
+  }
+
+  .divisor-livro {
+    width: 100%;
+  }
+
+  /* Ajuste das abas de navegação (Acervo) */
+  .abas-navegacao {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .btn-aba {
+    padding: 15px 20px;
+    width: 100%; /* Abas viram botões largos no celular */
+  }
+
+  /* Remove margens fixas que empurram o conteúdo para fora */
+  #descricao, #sugestoes, .titulo-secao-interna, .titulo-prazo, .minhalista, .busca {
+    margin-left: 20px !important;
+    margin-right: 20px !important;
+    padding-left: 0 !important;
+  }
+}
+
+/* 5. Pequenos ajustes para celulares finos */
+@media (max-width: 480px) {
+  .acoes-topo button span {
+    display: none; /* Esconde textos como "Português", deixa só ícone */
+  }
+  
+  .busca input {
+    font-size: 14px;
+  }
+}
+
+/* Remove cursor piscando só onde NÃO deve ter */
+body {
+  caret-color: transparent;
+}
+
+/* Permite cursor normal em inputs */
+input, textarea {
+  caret-color: auto;
+}
+
+/* Remove outline feio, mas mantém controle */
+*:focus {
+  outline: none;
+}

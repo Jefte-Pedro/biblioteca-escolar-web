@@ -1,0 +1,35 @@
+{% extends "biblioteca/base.html" %} {% load static %}
+
+{% block title %}Inicio - ERDJM{% endblock %}
+
+{% block content %}
+
+    <div id="pag-inicio" class="conteudo-pag" style="display: block;">
+        <h2 id="sugestoes">Sugestões de leitura</h2>
+
+        <div class="carousel-wrapper">
+            <button class="seta-carrossel esquerda" onclick="scrollCarrossel(-1)">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+
+            <div id="lista-livros"></div>
+
+            <button class="seta-carrossel direita" onclick="scrollCarrossel(1)">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <section class="secao-branca">
+
+            <button class="botao-lista" onclick="mostrarPagina('pag-lista')">
+                Minha Lista <i class="fa-solid fa-angle-right"></i>
+            </button>
+
+            <p id="descricao">
+                Escolha livros que deseja ler e armazene em sua lista para acessar rapidamente quando
+                precisar.
+            </p>
+        </section>
+    </div>
+
+{% endblock %}

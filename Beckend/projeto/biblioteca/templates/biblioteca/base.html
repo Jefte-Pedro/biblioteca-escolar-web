@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Biblioteca EREM Dr. Jaime Monteiro{% endblock %}</title>
+
+    <script src="https://kit.fontawesome.com/496892164a.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{% static 'biblioteca/css/style.css' %}">
+</head>
+
+<body>
+    <button id="menu-toggle" class="menu-mobile">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="container">
+        <nav class="sidebar">
+            <div class="nav-logo">
+                <img src="{% static 'biblioteca/img/IMG-BIBLIOTECA.png' %}" alt="Logo">
+                <h2 id="nav-biblioteca">Biblioteca</h2>
+            </div>
+
+            <div class="nav-Esc">
+                <h2>EREM Dr. Jaime Monteiro</h2>
+            </div>
+
+            <div class="nav-pgn-inical">
+                <a href="{% url 'inicio' %}" class="btn-nav"> 
+                    <button class="{% if request.resolver_match.url_name == 'inicio' %}ativo{% endif %}">
+                        <i class="fa-solid fa-house"></i>
+                        <span id="nav-inicio">Início</span>
+                    </button>
+                </a>
+            </div>
+
+            <div class="nav-lista">
+                <a href="{% url 'acervo' %}?aba=lista">
+                    <button class="{% if request.GET.aba == 'lista' %}ativo{% endif %}">
+                        <i class="fa-regular fa-heart"></i>
+                        <span id="nav-lista">Minha Lista</span>
+                    </button>
+                </a>
+            </div>
+
+            <div class="nav-reservado">
+                <a href="{% url 'acervo' %}?aba=reservado">
+                    <button class="{% if request.GET.aba == 'reservado' %}ativo{% endif %}">
+                        <i class="fa-regular fa-bookmark"></i>
+                        <span id="nav-reservados">Livros Reservados</span>
+                    </button>
+                </a>
+            </div>
+
+            <div class="nav-lido">
+                <a href="{% url 'acervo' %}?aba=lido">
+                    <button class="{% if request.GET.aba == 'lido' %}ativo{% endif %}">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span id="nav-lidos">Livros Lidos</span>
+                    </button>
+                </a>
+            </div>
+
+            <div class="nav-prazo">
+                <a href="{% url 'prazos' %}">
+                    <button class="{% if request.resolver_match.url_name == 'prazos' %}ativo{% endif %}">
+                        <i class="fa-regular fa-calendar-check"></i>
+                        <span>Meus Prazos</span>
+                    </button>
+                </a>
+            </div>
+        </nav>
+
+        <main>
+            <section class="banner-superior">
+                <header class="topo">
+                    <div class="acoes-topo">
+                        <div class="tema">
+                            <button id="alternar-tema">
+                                <i class="fa-solid fa-circle-half-stroke"></i>
+                            </button>
+                        </div>
+                        <div class="acessibilidade">
+                            <button id="aumentar-fonte">A+</button>
+                            <button id="diminuir-fonte">A-</button>
+                        </div>
+                        <div class="idioma-container">
+                            <button class="idioma">
+                                <span id="idioma-texto">Português</span>
+                                <i class="fa-solid fa-angle-down"></i>
+                            </button>
+                            <div class="idioma-menu">
+                                <button data-lang="pt">Português</button>
+                                <button data-lang="en">English</button>
+                                <button data-lang="es">Español</button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="busca">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input id="busca-texto" type="text" placeholder="Digite o nome do livro ou autor(a) que deseja buscar">
+                </div>
+            </section>
+
+            <div class="conteudo-dinamico">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script src="{% static 'biblioteca/js/script.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
