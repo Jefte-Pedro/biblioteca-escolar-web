@@ -12,6 +12,9 @@
 
 <body>
 
+    <button id="menu-toggle" class="menu-mobile">
+        <i class="fa-solid fa-bars"></i>
+    </button>
     <div class="container">
 
         <nav class="sidebar">
@@ -149,7 +152,8 @@
 
                 <div class="container-conteudo-branco">
 
-                    <p id="msg-vazia-lista" class="msg-vazia" style="margin-bottom: 20px;">
+
+                    <p id="conteudo-dinamico-lidos" class="msg-vazia" style="margin-bottom: 20px;">
                         Aqui aparecerão os livros que você salvou na sua lista.
                     </p>
 
@@ -248,9 +252,11 @@
                         <h2 id="livro-titulo">Dom Casmurro</h2>
 
                         <div class="livro-detalhes">
-                            <span id="livro-autor">Machado de Assis</span>
+                            <span id="livro-autor" onclick="">Machado de Assis</span>
                             <span class="divisor"></span>
-                            <span id="livro-editora">Editora Record</span>
+                            <span id="livro-genero" onclick="">Romance</span>
+                            <span class="divisor"></span>
+                            <span id="livro-editora" onclick="">Editora Record</span>
                         </div>
 
                         <hr class="divisor-livro">
@@ -321,3 +327,4 @@
 </body>
 
 </html>
+

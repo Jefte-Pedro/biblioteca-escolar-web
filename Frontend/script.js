@@ -247,6 +247,7 @@ function abrirLivro(idLivro) {
     document.getElementById("livro-titulo").textContent = livro.titulo;
     document.getElementById("livro-capa").src = livro.capa;
     document.getElementById("livro-autor").textContent = livro.autor;
+    document.getElementById("livro-genero").textContent = livro.genero;
     document.getElementById("livro-editora").textContent = livro.editora;
     document.getElementById("livro-prateleira").textContent = "Prateleira: " + livro.prateleira;
     document.getElementById("livro-unidades").textContent = "Unidades: " + livro.unidades;
@@ -316,7 +317,7 @@ estrelas.forEach(estrela => {
 
 function scrollCarrossel(direcao) {
     const lista = document.getElementById('lista-livros');
-    // Calcula quanto deve rolar (largura de 2 cards aproximadamente)
+    
     const larguraCard = 230; 
     lista.scrollBy({
         left: direcao * (larguraCard * 2),
@@ -409,4 +410,33 @@ function abrirLista(idDaLista) {
     // Por enquanto, apenas um console.log e um alert para testar se achou a lista certa
     console.log("Abrindo a lista:", listaSelecionada.nome);
     alert(`Você entrou na lista: ${listaSelecionada.nome}. \nAqui no futuro faremos a tela mudar para mostrar os livros dela!`);
+}
+
+/* ===== LÓGICA DA SIDEBAR RESPONSIVA ===== */
+const menuBtn = document.getElementById('menu-toggle');
+const sidebar = document.querySelector('.sidebar');
+
+if (menuBtn && sidebar) {
+    menuBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('aberta');
+        
+        // Troca o ícone de barras para X
+        const icon = menuBtn.querySelector('i');
+        if (sidebar.classList.contains('aberta')) {
+            icon.classList.replace('fa-bars', 'fa-times');
+        } else {
+            icon.classList.replace('fa-times', 'fa-bars');
+        }
+    });
+
+    // Fecha a sidebar automaticamente ao clicar em qualquer botão dela (melhor UX no mobile)
+    const botoesSidebar = document.querySelectorAll('.sidebar button');
+    botoesSidebar.forEach(botao => {
+        botao.addEventListener('click', () => {
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.remove('aberta');
+                menuBtn.querySelector('i').classList.replace('fa-times', 'fa-bars');
+            }
+        });
+    });
 }

@@ -3,6 +3,7 @@ const livros = [
         id: 1,
         titulo: "Dom Casmurro",
         autor: "Machado de Assis",
+        genero: "Romance",
         editora: "Editora Record",
         prateleira: "A",
         codigo: "A0064dM",
