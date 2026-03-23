@@ -1,39 +1,42 @@
 /* ===== TRADUÇÕES ===== */
 
 const traducoes = {
-    pt: {
-        idioma: "Português",
-        inicio: "Início",
-        lista: "Minha Lista",
-        reservados: "Livros Reservados",
-        lidos: "Livros Lidos",
-        prazos: "Meus Prazos",
-        busca: "Digite o nome do livro ou autor(a) que deseja buscar",
-        sugestoes: "Sugestões de leitura",
-        descricao: "Escolha livros que deseja ler e armazene em sua lista para acessar rapidamente quando precisar."
-    },
-    en: {
-        idioma: "English",
-        inicio: "Home",
-        lista: "My List",
-        reservados: "Reserved Books",
-        lidos: "Read Books",
-        prazos: "My Deadlines",
-        busca: "Type the book or author name you want to search",
-        sugestoes: "Reading Suggestions",
-        descricao: "Choose books you want to read and store them in your list for quick access."
-    },
-    es: {
-        idioma: "Español",
-        inicio: "Inicio",
-        lista: "Mi Lista",
-        reservados: "Libros Reservados",
-        lidos: "Libros Leídos",
-        prazos: "Mis Plazos",
-        busca: "Escribe el nombre del libro o autor que deseas buscar",
-        sugestoes: "Sugerencias de lectura",
-        descricao: "Elige libros que deseas leer y guárdalos en tu lista para acceder rápidamente."
-    }
+  pt: {
+    idioma: "Português",
+    inicio: "Início",
+    lista: "Minha Lista",
+    reservados: "Livros Reservados",
+    lidos: "Livros Lidos",
+    prazos: "Meus Prazos",
+    busca: "Digite o nome do livro ou autor(a) que deseja buscar",
+    sugestoes: "Sugestões de leitura",
+    descricao:
+      "Escolha livros que deseja ler e armazene em sua lista para acessar rapidamente quando precisar.",
+  },
+  en: {
+    idioma: "English",
+    inicio: "Home",
+    lista: "My List",
+    reservados: "Reserved Books",
+    lidos: "Read Books",
+    prazos: "My Deadlines",
+    busca: "Type the book or author name you want to search",
+    sugestoes: "Reading Suggestions",
+    descricao:
+      "Choose books you want to read and store them in your list for quick access.",
+  },
+  es: {
+    idioma: "Español",
+    inicio: "Inicio",
+    lista: "Mi Lista",
+    reservados: "Libros Reservados",
+    lidos: "Libros Leídos",
+    prazos: "Mis Plazos",
+    busca: "Escribe el nombre del libro o autor que deseas buscar",
+    sugestoes: "Sugerencias de lectura",
+    descricao:
+      "Elige libros que deseas leer y guárdalos en tu lista para acceder rápidamente.",
+  },
 };
 
 /* ===== SISTEMA DE TEMA (DARK MODE) ===== */
@@ -42,182 +45,174 @@ const temaSalvo = localStorage.getItem("tema");
 
 // 1. Aplica o tema imediatamente ao carregar a página
 if (temaSalvo === "dark") {
-    document.body.classList.add("dark");
+  document.body.classList.add("dark");
 }
 
 // 2. Faz o botão funcionar e salvar a escolha do usuário
 if (botaoTema) {
-    botaoTema.addEventListener("click", () => {
-        document.body.classList.toggle("dark");
-        
-        if (document.body.classList.contains("dark")) {
-            localStorage.setItem("tema", "dark");
-        } else {
-            localStorage.setItem("tema", "light");
-        }
-    });
+  botaoTema.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+
+    if (document.body.classList.contains("dark")) {
+      localStorage.setItem("tema", "dark");
+    } else {
+      localStorage.setItem("tema", "light");
+    }
+  });
 }
 
 /* ===== CARREGAR HTML ===== */
 
 document.addEventListener("DOMContentLoaded", () => {
+  /* ===== SISTEMA DE IDIOMA ===== */
 
-    /* ===== SISTEMA DE IDIOMA ===== */
+  const botaoIdioma = document.querySelector(".idioma");
+  const menuIdioma = document.querySelector(".idioma-menu");
+  const idiomaTexto = document.getElementById("idioma-texto");
 
-    const botaoIdioma = document.querySelector(".idioma");
-    const menuIdioma = document.querySelector(".idioma-menu");
-    const idiomaTexto = document.getElementById("idioma-texto");
+  if (botaoIdioma && menuIdioma) {
+    botaoIdioma.addEventListener("click", () => {
+      menuIdioma.classList.toggle("ativo");
+    });
 
-    if (botaoIdioma && menuIdioma) {
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".idioma-container")) {
+        menuIdioma.classList.remove("ativo");
+      }
+    });
 
-        botaoIdioma.addEventListener("click", () => {
-            menuIdioma.classList.toggle("ativo");
-        });
+    function trocarIdioma(lang) {
+      idiomaTexto.textContent = traducoes[lang].idioma;
 
-        document.addEventListener("click", (e) => {
-            if (!e.target.closest(".idioma-container")) {
-                menuIdioma.classList.remove("ativo");
-            }
-        });
+      document.getElementById("nav-inicio").textContent =
+        traducoes[lang].inicio;
+      document.getElementById("nav-lista").textContent = traducoes[lang].lista;
+      document.getElementById("nav-reservados").textContent =
+        traducoes[lang].reservados;
+      document.getElementById("nav-lidos").textContent = traducoes[lang].lidos;
 
-        function trocarIdioma(lang) {
+      document.getElementById("busca-texto").placeholder =
+        traducoes[lang].busca;
+      document.getElementById("sugestoes").textContent =
+        traducoes[lang].sugestoes;
 
-            idiomaTexto.textContent = traducoes[lang].idioma;
+      const descricoes = document.querySelectorAll("#descricao");
+      descricoes.forEach((d) => (d.textContent = traducoes[lang].descricao));
 
-            document.getElementById("nav-inicio").textContent = traducoes[lang].inicio;
-            document.getElementById("nav-lista").textContent = traducoes[lang].lista;
-            document.getElementById("nav-reservados").textContent = traducoes[lang].reservados;
-            document.getElementById("nav-lidos").textContent = traducoes[lang].lidos;
-
-            document.getElementById("busca-texto").placeholder = traducoes[lang].busca;
-            document.getElementById("sugestoes").textContent = traducoes[lang].sugestoes;
-
-            const descricoes = document.querySelectorAll("#descricao");
-            descricoes.forEach(d => d.textContent = traducoes[lang].descricao);
-
-            localStorage.setItem("idioma", lang);
-        }
-
-        document.querySelectorAll(".idioma-menu button").forEach(btn => {
-            btn.addEventListener("click", () => {
-                trocarIdioma(btn.dataset.lang);
-                menuIdioma.classList.remove("ativo");
-            });
-        });
-
-        const idiomaSalvo = localStorage.getItem("idioma") || "pt";
-        trocarIdioma(idiomaSalvo);
+      localStorage.setItem("idioma", lang);
     }
 
+    document.querySelectorAll(".idioma-menu button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        trocarIdioma(btn.dataset.lang);
+        menuIdioma.classList.remove("ativo");
+      });
+    });
 
-    /* ===== ACESSIBILIDADE - FONTE ===== */
+    const idiomaSalvo = localStorage.getItem("idioma") || "pt";
+    trocarIdioma(idiomaSalvo);
+  }
 
-    const btnAumentar = document.getElementById("aumentar-fonte");
-    const btnDiminuir = document.getElementById("diminuir-fonte");
+  /* ===== ACESSIBILIDADE - FONTE ===== */
 
-    let tamanhoFonte = localStorage.getItem("fonte") || 16;
+  const btnAumentar = document.getElementById("aumentar-fonte");
+  const btnDiminuir = document.getElementById("diminuir-fonte");
 
-    document.documentElement.style.fontSize = tamanhoFonte + "px";
+  let tamanhoFonte = localStorage.getItem("fonte") || 16;
 
-    if (btnAumentar) {
-        btnAumentar.addEventListener("click", () => {
+  document.documentElement.style.fontSize = tamanhoFonte + "px";
 
-            tamanhoFonte++;
-            document.documentElement.style.fontSize = tamanhoFonte + "px";
-            localStorage.setItem("fonte", tamanhoFonte);
+  if (btnAumentar) {
+    btnAumentar.addEventListener("click", () => {
+      tamanhoFonte++;
+      document.documentElement.style.fontSize = tamanhoFonte + "px";
+      localStorage.setItem("fonte", tamanhoFonte);
+    });
+  }
 
-        });
-    }
+  if (btnDiminuir) {
+    btnDiminuir.addEventListener("click", () => {
+      tamanhoFonte--;
+      document.documentElement.style.fontSize = tamanhoFonte + "px";
+      localStorage.setItem("fonte", tamanhoFonte);
+    });
+  }
+  /* ===== INICIALIZAÇÃO INTELIGENTE ===== */
+  const paginaSalva = localStorage.getItem("paginaAtual") || "pag-inicio";
 
-    if (btnDiminuir) {
-        btnDiminuir.addEventListener("click", () => {
-
-            tamanhoFonte--;
-            document.documentElement.style.fontSize = tamanhoFonte + "px";
-            localStorage.setItem("fonte", tamanhoFonte);
-
-        });
-    }
-    /* ===== INICIALIZAÇÃO INTELIGENTE ===== */
-    const paginaSalva = localStorage.getItem("paginaAtual") || "pag-inicio";
-
-    if (paginaSalva === "pag-livro") {
-        const idLivroSalvo = localStorage.getItem("livroAbertoID");
-        if (idLivroSalvo) {
-            // Se estava na página do livro, recarrega os dados dele
-            abrirLivro(parseInt(idLivroSalvo));
-        } else {
-            mostrarPagina("pag-inicio");
-        }
+  if (paginaSalva === "pag-livro") {
+    const idLivroSalvo = localStorage.getItem("livroAbertoID");
+    if (idLivroSalvo) {
+      // Se estava na página do livro, recarrega os dados dele
+      abrirLivro(parseInt(idLivroSalvo));
     } else {
-        mostrarPagina(paginaSalva);
+      mostrarPagina("pag-inicio");
     }
-
+  } else {
+    mostrarPagina(paginaSalva);
+  }
 });
-
 
 /* ===== SISTEMA DE PÁGINAS ===== */
 
-// function mostrarPagina(idPagina) {
-//     const paginaAtual = localStorage.getItem("paginaAtual");
+function mostrarPagina(idPagina) {
+  const paginaAtual = localStorage.getItem("paginaAtual");
 
-//     // Só salva como anterior se realmente estivermos mudando de uma página válida
-//     if (paginaAtual && paginaAtual !== idPagina) {
-//         localStorage.setItem("paginaAnterior", paginaAtual);
-//     }
+  // Só salva como anterior se realmente estivermos mudando de uma página válida
+  if (paginaAtual && paginaAtual !== idPagina) {
+    localStorage.setItem("paginaAnterior", paginaAtual);
+  }
 
-//     localStorage.setItem("paginaAtual", idPagina);
+  localStorage.setItem("paginaAtual", idPagina);
 
-//     // Esconde todas as páginas
-//     const paginas = document.querySelectorAll(".conteudo-pag");
-//     paginas.forEach(p => p.style.display = "none");
+  // Esconde todas as páginas
+  const paginas = document.querySelectorAll(".conteudo-pag");
+  paginas.forEach((p) => (p.style.display = "none"));
 
-//     // Mostra a página solicitada
-//     const pagina = document.getElementById(idPagina);
-//     if (pagina) {
-//         pagina.style.display = "block";
-//     }
+  // Mostra a página solicitada
+  const pagina = document.getElementById(idPagina);
+  if (pagina) {
+    pagina.style.display = "block";
+  }
 
-//     // --- SINCRONIZAÇÃO DA SIDEBAR ---
-//     // Remove o "ativo" de todos os botões da lateral
-//     const botoesSidebar = document.querySelectorAll(".sidebar button");
-//     botoesSidebar.forEach(btn => btn.classList.remove("ativo"));
+  // --- SINCRONIZAÇÃO DA SIDEBAR ---
+  // Remove o "ativo" de todos os botões da lateral
+  const botoesSidebar = document.querySelectorAll(".sidebar button");
+  botoesSidebar.forEach((btn) => btn.classList.remove("ativo"));
 
-//     // Procura na sidebar qual botão tem o onclick que chama essa página específica
-//     const botaoParaAtivar = document.querySelector(`.sidebar button[onclick*="'${idPagina}'"]`);
+  // Procura na sidebar qual botão tem o onclick que chama essa página específica
+  const botaoParaAtivar = document.querySelector(
+    `.sidebar button[onclick*="'${idPagina}'"]`,
+  );
 
-//     if (botaoParaAtivar) {
-//         botaoParaAtivar.classList.add("ativo");
-//     }
-// }
-
+  if (botaoParaAtivar) {
+    botaoParaAtivar.classList.add("ativo");
+  }
+}
 
 /* ===== BOTÃO VOLTAR ===== */
 
 function voltarPagina() {
-    const paginaAnterior = localStorage.getItem("paginaAnterior");
+  const paginaAnterior = localStorage.getItem("paginaAnterior");
 
-    if (paginaAnterior && paginaAnterior !== "pag-livro") {
-        mostrarPagina(paginaAnterior);
-    } else {
-        mostrarPagina("pag-inicio");
-    }
+  if (paginaAnterior && paginaAnterior !== "pag-livro") {
+    mostrarPagina(paginaAnterior);
+  } else {
+    mostrarPagina("pag-inicio");
+  }
 }
-
 
 /* ===== MOSTRAR LIVROS ===== */
 
 function mostrarLivro() {
+  const container = document.getElementById("lista-livros");
 
-    const container = document.getElementById("lista-livros");
+  if (!container) return;
 
-    if (!container) return;
+  container.innerHTML = "";
 
-    container.innerHTML = "";
-
-    livros.forEach(livro => {
-
-        container.innerHTML += `
+  livros.forEach((livro) => {
+    container.innerHTML += `
         <div class="card-livro">
 
             <img 
@@ -233,97 +228,145 @@ function mostrarLivro() {
 
         </div>
         `;
-
-    });
-
+  });
 }
-
 
 function abrirLivro(idLivro) {
-    const livro = livros.find(l => l.id === idLivro);
-    if (!livro) return;
+  const livro = livros.find((l) => l.id === idLivro);
+  if (!livro) return;
 
-    // Preenche os dados na tela
-    document.getElementById("livro-titulo").textContent = livro.titulo;
-    document.getElementById("livro-capa").src = livro.capa;
-    document.getElementById("livro-autor").textContent = livro.autor;
-    document.getElementById("livro-genero").textContent = livro.genero;
-    document.getElementById("livro-editora").textContent = livro.editora;
-    document.getElementById("livro-prateleira").textContent = "Prateleira: " + livro.prateleira;
-    document.getElementById("livro-unidades").textContent = "Unidades: " + livro.unidades;
-    document.getElementById("livro-codigo").textContent = "Codigo: " + livro.codigo;
-    document.getElementById("livro-status").textContent = livro.disponivel ? "Disponível" : "Emprestado";
-    document.getElementById("livro-sinopse").innerText = livro.sinopse || "Sinopse não disponível.";
+  // Preenche os dados na tela
+  document.getElementById("livro-titulo").textContent = livro.titulo;
+  document.getElementById("livro-capa").src = livro.capa;
+  document.getElementById("livro-autor").textContent = livro.autor;
+  document.getElementById("livro-genero").textContent = livro.genero;
+  document.getElementById("livro-editora").textContent = livro.editora;
+  document.getElementById("livro-prateleira").textContent =
+    "Prateleira: " + livro.prateleira;
+  document.getElementById("livro-unidades").textContent =
+    "Unidades: " + livro.unidades;
+  document.getElementById("livro-codigo").textContent =
+    "Codigo: " + livro.codigo;
+  document.getElementById("livro-status").textContent = livro.disponivel
+    ? "Disponível"
+    : "Emprestado";
+  document.getElementById("livro-sinopse").innerText =
+    livro.sinopse || "Sinopse não disponível.";
 
-    // --- LOGICA DE MEMÓRIA ---
-    const paginaAtual = localStorage.getItem("paginaAtual");
-    
-    if (paginaAtual && paginaAtual !== "pag-livro") {
-        localStorage.setItem("paginaAnterior", paginaAtual);
-    }
+  // --- LOGICA DE MEMÓRIA ---
+  const paginaAtual = localStorage.getItem("paginaAtual");
 
+  if (paginaAtual && paginaAtual !== "pag-livro") {
+    localStorage.setItem("paginaAnterior", paginaAtual);
+  }
 
-    localStorage.setItem("livroAbertoID", idLivro);
+  localStorage.setItem("livroAbertoID", idLivro);
 
-    const elementoStatus = document.getElementById("livro-status");
+  const elementoStatus = document.getElementById("livro-status");
 
+  elementoStatus.textContent = livro.disponivel ? "Disponível" : "Emprestado";
 
-elementoStatus.textContent = livro.disponivel ? "Disponível" : "Emprestado";
-
-
-if (livro.disponivel) {
+  if (livro.disponivel) {
     elementoStatus.classList.add("disponivel");
     elementoStatus.classList.remove("emprestado");
-} else {
+  } else {
     elementoStatus.classList.add("emprestado");
     elementoStatus.classList.remove("disponivel");
+  }
+
+  mostrarPagina("pag-livro");
 }
 
-    mostrarPagina("pag-livro");
-}
+let totalAvaliacoes = 0;
+let somaAvaliacoes = 0;
 
+const estrelas = document.querySelectorAll("#estrelas-avaliacao .estrela");
+const media = document.getElementById("media-avaliacao");
 
+estrelas.forEach((estrela) => {
+  estrela.addEventListener("click", () => {
+    let valor = parseInt(estrela.dataset.valor);
 
-let totalAvaliacoes = 0
-let somaAvaliacoes = 0
+    somaAvaliacoes += valor;
+    totalAvaliacoes++;
 
-const estrelas = document.querySelectorAll("#estrelas-avaliacao .estrela")
-const media = document.getElementById("media-avaliacao")
+    let mediaFinal = (somaAvaliacoes / totalAvaliacoes).toFixed(1);
 
-estrelas.forEach(estrela => {
+    media.textContent = mediaFinal + " / 5";
 
-    estrela.addEventListener("click", () => {
+    estrelas.forEach((e) => {
+      e.classList.remove("ativa");
 
-        let valor = parseInt(estrela.dataset.valor)
+      if (e.dataset.valor <= valor) {
+        e.classList.add("ativa");
+      }
+    });
+  });
+});
 
-        somaAvaliacoes += valor
-        totalAvaliacoes++
-
-        let mediaFinal = (somaAvaliacoes / totalAvaliacoes).toFixed(1)
-
-        media.textContent = mediaFinal + " / 5"
-
-        estrelas.forEach(e => {
-            e.classList.remove("ativa")
-
-            if (e.dataset.valor <= valor) {
-                e.classList.add("ativa")
-            }
-        })
-
-    })
-
-})
+/* ===== LÓGICA DE NAVEGAÇÃO DO CARROSSEL (ESTILO NETFLIX) ===== */
 
 function scrollCarrossel(direcao) {
-    const lista = document.getElementById('lista-livros');
-    
-    const larguraCard = 230; 
+  const lista = document.getElementById("lista-livros");
+  // Busca o primeiro card disponível dentro da lista
+  const primeiroCard = lista.querySelector(".card-livro");
+
+  if (primeiroCard) {
+    // Pega a largura real do card + o espaço (gap) entre eles
+    const larguraDoCard = primeiroCard.offsetWidth + 15;
+
+    // Se for celular (tela < 768px), move apenas 1 card.
+    // Se for PC, move 2 para ser mais rápido.
+    const multiplicador = window.innerWidth <= 768 ? 1 : 2;
+
     lista.scrollBy({
-        left: direcao * (larguraCard * 2),
-        behavior: 'smooth'
+      left: direcao * (larguraDoCard * multiplicador),
+      behavior: "smooth",
     });
+  }
 }
+
+// Função para dar o feedback visual de "seta desativada"
+function gerenciarEstadoDasSetas() {
+  const lista = document.getElementById("lista-livros");
+  const setaEsq = document.querySelector(".seta-carrossel.esquerda");
+  const setaDir = document.querySelector(".seta-carrossel.direita");
+
+  if (!lista || !setaEsq || !setaDir) return;
+
+  const scrollEsquerda = lista.scrollLeft;
+  // Largura total do conteúdo menos a largura visível
+  const scrollMaximo = lista.scrollWidth - lista.clientWidth;
+
+  // Lógica para a Seta Esquerda (Início)
+  if (scrollEsquerda <= 10) {
+    setaEsq.style.opacity = "0.2";
+    setaEsq.style.pointerEvents = "none"; // Impede o clique
+  } else {
+    setaEsq.style.opacity = "1";
+    setaEsq.style.pointerEvents = "auto";
+  }
+
+  // Lógica para a Seta Direita (Fim)
+  if (scrollEsquerda >= scrollMaximo - 10) {
+    setaDir.style.opacity = "0.2";
+    setaDir.style.pointerEvents = "none";
+  } else {
+    setaDir.style.opacity = "1";
+    setaDir.style.pointerEvents = "auto";
+  }
+}
+
+// Ativa os ouvintes de evento para as setas
+document.addEventListener("DOMContentLoaded", () => {
+  const lista = document.getElementById("lista-livros");
+  if (lista) {
+    // Sempre que o usuário rolar (com o mouse, dedo ou seta), verifica as setas
+    lista.addEventListener("scroll", gerenciarEstadoDasSetas);
+    // Verifica uma vez ao carregar para a seta esquerda já começar apagada
+    gerenciarEstadoDasSetas();
+  }
+});
 
 /* ===== INICIAR SISTEMA ===== */
 
@@ -331,65 +374,64 @@ console.log("mostrarLivros foi chamada");
 
 mostrarLivro();
 
-
 // ==========================================
 // LÓGICA DE CRIAR LISTAS PERSONALIZADAS
 // ==========================================
 
-const modalLista = document.getElementById('modal-lista');
-const btnAbrirModal = document.getElementById('btn-abrir-modal');
-const btnConfirmarLista = document.getElementById('btn-confirmar-lista');
-const inputNomeLista = document.getElementById('input-nome-lista');
-const containerListas = document.getElementById('conteudo-dinamico-lista');
+const modalLista = document.getElementById("modal-lista");
+const btnAbrirModal = document.getElementById("btn-abrir-modal");
+const btnConfirmarLista = document.getElementById("btn-confirmar-lista");
+const inputNomeLista = document.getElementById("input-nome-lista");
+const containerListas = document.getElementById("conteudo-dinamico-lista");
 
 // Array para guardar os dados (simulando um banco de dados)
 let colecaoDeListas = [];
 
 // 1. Abrir e Fechar Modal
 if (btnAbrirModal) {
-    btnAbrirModal.onclick = () => {
-        modalLista.style.display = 'block';
-        inputNomeLista.focus(); // Já coloca o cursor piscando pro usuário digitar
-    };
+  btnAbrirModal.onclick = () => {
+    modalLista.style.display = "block";
+    inputNomeLista.focus(); // Já coloca o cursor piscando pro usuário digitar
+  };
 }
 
 function fecharModal() {
-    modalLista.style.display = 'none';
-    inputNomeLista.value = ''; // Limpa o texto que estava lá
+  modalLista.style.display = "none";
+  inputNomeLista.value = ""; // Limpa o texto que estava lá
 }
 
 // 2. Criar a Lista de Fato
 if (btnConfirmarLista) {
-    btnConfirmarLista.onclick = () => {
-        const nomeDaLista = inputNomeLista.value.trim();
-        
-        if (nomeDaLista !== "") {
-            // Cria um objeto para a nova lista
-            const novaLista = {
-                id: Date.now(), // Gera um ID único baseado na data/hora
-                nome: nomeDaLista,
-                livros: [] // Começa sem livros
-            };
-            
-            colecaoDeListas.push(novaLista); // Salva na nossa coleção
-            fecharModal();
-            renderizarListasNaTela();
-        } else {
-            alert("Por favor, digite um nome para a lista.");
-        }
-    };
+  btnConfirmarLista.onclick = () => {
+    const nomeDaLista = inputNomeLista.value.trim();
+
+    if (nomeDaLista !== "") {
+      // Cria um objeto para a nova lista
+      const novaLista = {
+        id: Date.now(), // Gera um ID único baseado na data/hora
+        nome: nomeDaLista,
+        livros: [], // Começa sem livros
+      };
+
+      colecaoDeListas.push(novaLista); // Salva na nossa coleção
+      fecharModal();
+      renderizarListasNaTela();
+    } else {
+      alert("Por favor, digite um nome para a lista.");
+    }
+  };
 }
 
 // 3. Desenhar as listas no HTML
 function renderizarListasNaTela() {
-    containerListas.innerHTML = ''; // Apaga a mensagem de "vazio"
-    
-    colecaoDeListas.forEach(lista => {
-        const divLista = document.createElement('div');
-        divLista.className = 'card-lista'; // Usando aquele CSS que você já tem
-        
-        // Note o onclick="abrirLista(...)" na div inteira!
-        divLista.innerHTML = `
+  containerListas.innerHTML = ""; // Apaga a mensagem de "vazio"
+
+  colecaoDeListas.forEach((lista) => {
+    const divLista = document.createElement("div");
+    divLista.className = "card-lista"; // Usando aquele CSS que você já tem
+
+    // Note o onclick="abrirLista(...)" na div inteira!
+    divLista.innerHTML = `
             <div class="info-lista" onclick="abrirLista(${lista.id})" style="cursor:pointer; flex-grow: 1;">
                 <h3>${lista.nome}</h3>
                 <span class="qtd-livros">${lista.livros.length} livros</span>
@@ -398,62 +440,164 @@ function renderizarListasNaTela() {
                 <i class="fa-solid fa-plus"></i>
             </button>
         `;
-        
-        containerListas.appendChild(divLista);
-    });
+
+    containerListas.appendChild(divLista);
+  });
 }
 
 // 4. Entrar na Lista (O que você pediu!)
 function abrirLista(idDaLista) {
-    const listaSelecionada = colecaoDeListas.find(l => l.id === idDaLista);
-    
-    // Por enquanto, apenas um console.log e um alert para testar se achou a lista certa
-    console.log("Abrindo a lista:", listaSelecionada.nome);
-    alert(`Você entrou na lista: ${listaSelecionada.nome}. \nAqui no futuro faremos a tela mudar para mostrar os livros dela!`);
+  const listaSelecionada = colecaoDeListas.find((l) => l.id === idDaLista);
+
+  // Por enquanto, apenas um console.log e um alert para testar se achou a lista certa
+  console.log("Abrindo a lista:", listaSelecionada.nome);
+  alert(
+    `Você entrou na lista: ${listaSelecionada.nome}. \nAqui no futuro faremos a tela mudar para mostrar os livros dela!`,
+  );
 }
 
 /* ===== LÓGICA DA SIDEBAR RESPONSIVA ===== */
-const menuBtn = document.getElementById('menu-toggle');
-const sidebar = document.querySelector('.sidebar');
+const menuBtn = document.getElementById("menu-toggle");
+const sidebar = document.querySelector(".sidebar");
 
 if (menuBtn && sidebar) {
-    menuBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('aberta');
-        
-        // Troca o ícone de barras para X
-        const icon = menuBtn.querySelector('i');
-        if (sidebar.classList.contains('aberta')) {
-            icon.classList.replace('fa-bars', 'fa-times');
-        } else {
-            icon.classList.replace('fa-times', 'fa-bars');
-        }
-    });
+  menuBtn.addEventListener("click", () => {
+    sidebar.classList.toggle("aberta");
 
-    // Fecha a sidebar automaticamente ao clicar em qualquer botão dela (melhor UX no mobile)
-    const botoesSidebar = document.querySelectorAll('.sidebar button');
-    botoesSidebar.forEach(botao => {
-        botao.addEventListener('click', () => {
-            if (window.innerWidth <= 1024) {
-                sidebar.classList.remove('aberta');
-                menuBtn.querySelector('i').classList.replace('fa-times', 'fa-bars');
-            }
-        });
+    // Troca o ícone de barras para X
+    const icon = menuBtn.querySelector("i");
+    if (sidebar.classList.contains("aberta")) {
+      icon.classList.replace("fa-bars", "fa-times");
+    } else {
+      icon.classList.replace("fa-times", "fa-bars");
+    }
+  });
+
+  // Fecha a sidebar automaticamente ao clicar em qualquer botão dela (melhor UX no mobile)
+  const botoesSidebar = document.querySelectorAll(".sidebar button");
+  botoesSidebar.forEach((botao) => {
+    botao.addEventListener("click", () => {
+      if (window.innerWidth <= 1024) {
+        sidebar.classList.remove("aberta");
+        menuBtn.querySelector("i").classList.replace("fa-times", "fa-bars");
+      }
     });
+  });
 }
 
-// tudo aqui é do django e ainda não mudei o Js 
+// tudo aqui é do django e ainda não mudei o Js
 
 // Verifica a URL quando a página carrega e abre a aba correta do acervo
-document.addEventListener("DOMContentLoaded", function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const aba = urlParams.get('aba');
+document.addEventListener("DOMContentLoaded", function () {
+  const urlParams = new URLSearchParams(window.location.search);
+  const aba = urlParams.get("aba");
 
-    // Usa a sua própria função mostrarPagina para trocar a tela
-    if (aba === 'reservados') {
-        mostrarPagina('pag-reservados');
-    } else if (aba === 'lidos') {
-        mostrarPagina('pag-lidos');
-    } else if (aba === 'lista') {
-        mostrarPagina('pag-lista');
+  // Usa a sua própria função mostrarPagina para trocar a tela
+  if (aba === "reservados") {
+    mostrarPagina("pag-reservados");
+  } else if (aba === "lidos") {
+    mostrarPagina("pag-lidos");
+  } else if (aba === "lista") {
+    mostrarPagina("pag-lista");
+  }
+});
+
+/* ===== SISTEMA DE AUTOPLAY (SCROLL AUTOMÁTICO) ===== */
+
+let autoPlayInterval;
+let inatividadeTimer;
+const tempoEspera = 4000; // 4 segundos para mudar sozinho
+const tempoRetorno = 15000; // 15 segundos de espera após mexer
+
+// 1. Função que limpa TUDO (intervalos e timers)
+function pararTudo() {
+  clearInterval(autoPlayInterval);
+  clearTimeout(inatividadeTimer);
+}
+
+// 2. Função Principal de Scroll
+function scrollCarrossel(direcao) {
+  const lista = document.getElementById("lista-livros");
+  const primeiroCard = lista.querySelector(".card-livro");
+
+  // Para o autoplay IMEDIATAMENTE
+  pararTudo();
+
+  if (primeiroCard) {
+    const larguraDoCard = primeiroCard.offsetWidth + 15;
+    const multiplicador = window.innerWidth <= 768 ? 1 : 2;
+
+    lista.scrollBy({
+      left: direcao * (larguraDoCard * multiplicador),
+      behavior: "smooth",
+    });
+  }
+
+  // Só reagenda o início do autoplay para daqui a 10 segundos
+  inatividadeTimer = setTimeout(iniciarAutoPlay, tempoRetorno);
+}
+
+// 3. Função que liga o movimento automático
+function iniciarAutoPlay() {
+  pararTudo(); // Limpa resíduos antes de começar
+
+  autoPlayInterval = setInterval(() => {
+    const lista = document.getElementById("lista-livros");
+    if (!lista) return;
+
+    const scrollMaximo = lista.scrollWidth - lista.clientWidth;
+
+    if (lista.scrollLeft >= scrollMaximo - 10) {
+      lista.scrollTo({ left: 0, behavior: "smooth" });
+    } else {
+      const primeiroCard = lista.querySelector(".card-livro");
+      if (primeiroCard) {
+        const largura =
+          (primeiroCard.offsetWidth + 15) * (window.innerWidth <= 768 ? 1 : 2);
+        lista.scrollBy({ left: largura, behavior: "smooth" });
+      }
     }
+  }, tempoEspera);
+}
+
+// 4. Inicialização e Eventos
+document.addEventListener("DOMContentLoaded", () => {
+  const lista = document.getElementById("lista-livros");
+
+  if (lista) {
+    iniciarAutoPlay();
+
+    // 1. Monitora o início do toque (dedo encostou)
+    lista.addEventListener(
+      "touchstart",
+      () => {
+        pararTudo(); // Para o autoplay imediatamente
+      },
+      { passive: true },
+    );
+
+    // 2. Monitora o fim do toque (dedo saiu da tela)
+    lista.addEventListener(
+      "touchend",
+      () => {
+        // Após soltar o dedo, espera os 10 segundos de inatividade para voltar
+        clearTimeout(inatividadeTimer);
+        inatividadeTimer = setTimeout(iniciarAutoPlay, tempoRetorno);
+      },
+      { passive: true },
+    );
+
+    // 3. Mantém as regras de mouse para o PC
+    lista.addEventListener("mouseenter", pararTudo);
+    lista.addEventListener("mouseleave", () => {
+      // Se apenas tirou o mouse, volta rápido. Se clicou, o timer do scrollCarrossel (10s) manda.
+      if (!inatividadeTimer) {
+        inatividadeTimer = setTimeout(iniciarAutoPlay, 2000);
+      }
+    });
+
+    // 4. Atualiza as setas (opacidade)
+    lista.addEventListener("scroll", gerenciarEstadoDasSetas);
+    gerenciarEstadoDasSetas();
+  }
 });

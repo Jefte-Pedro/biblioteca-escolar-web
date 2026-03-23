@@ -315,15 +315,69 @@ estrelas.forEach(estrela => {
 
 })
 
+/* ===== LÓGICA DE NAVEGAÇÃO DO CARROSSEL (ESTILO NETFLIX) ===== */
+
 function scrollCarrossel(direcao) {
     const lista = document.getElementById('lista-livros');
+    // Busca o primeiro card disponível dentro da lista
+    const primeiroCard = lista.querySelector('.card-livro');
     
-    const larguraCard = 230; 
-    lista.scrollBy({
-        left: direcao * (larguraCard * 2),
-        behavior: 'smooth'
-    });
+    if (primeiroCard) {
+        // Pega a largura real do card + o espaço (gap) entre eles
+        const larguraDoCard = primeiroCard.offsetWidth + 15; 
+        
+        // Se for celular (tela < 768px), move apenas 1 card. 
+        // Se for PC, move 2 para ser mais rápido.
+        const multiplicador = window.innerWidth <= 768 ? 1 : 2;
+
+        lista.scrollBy({
+            left: direcao * (larguraDoCard * multiplicador),
+            behavior: 'smooth'
+        });
+    }
 }
+
+// Função para dar o feedback visual de "seta desativada"
+function gerenciarEstadoDasSetas() {
+    const lista = document.getElementById('lista-livros');
+    const setaEsq = document.querySelector('.seta-carrossel.esquerda');
+    const setaDir = document.querySelector('.seta-carrossel.direita');
+
+    if (!lista || !setaEsq || !setaDir) return;
+
+    const scrollEsquerda = lista.scrollLeft;
+    // Largura total do conteúdo menos a largura visível
+    const scrollMaximo = lista.scrollWidth - lista.clientWidth;
+
+    // Lógica para a Seta Esquerda (Início)
+    if (scrollEsquerda <= 10) {
+        setaEsq.style.opacity = "0.2";
+        setaEsq.style.pointerEvents = "none"; // Impede o clique
+    } else {
+        setaEsq.style.opacity = "1";
+        setaEsq.style.pointerEvents = "auto";
+    }
+
+    // Lógica para a Seta Direita (Fim)
+    if (scrollEsquerda >= scrollMaximo - 10) {
+        setaDir.style.opacity = "0.2";
+        setaDir.style.pointerEvents = "none";
+    } else {
+        setaDir.style.opacity = "1";
+        setaDir.style.pointerEvents = "auto";
+    }
+}
+
+// Ativa os ouvintes de evento para as setas
+document.addEventListener("DOMContentLoaded", () => {
+    const lista = document.getElementById('lista-livros');
+    if (lista) {
+        // Sempre que o usuário rolar (com o mouse, dedo ou seta), verifica as setas
+        lista.addEventListener('scroll', gerenciarEstadoDasSetas);
+        // Verifica uma vez ao carregar para a seta esquerda já começar apagada
+        gerenciarEstadoDasSetas();
+    }
+});
 
 /* ===== INICIAR SISTEMA ===== */
 
@@ -455,5 +509,96 @@ document.addEventListener("DOMContentLoaded", function() {
         mostrarPagina('pag-lidos');
     } else if (aba === 'lista') {
         mostrarPagina('pag-lista');
+    }
+});
+
+/* ===== SISTEMA DE AUTOPLAY (SCROLL AUTOMÁTICO) ===== */
+
+let autoPlayInterval;
+let inatividadeTimer;
+const tempoEspera = 4000;  // 4 segundos para mudar sozinho
+const tempoRetorno = 15000; // 15 segundos de espera após mexer
+
+// 1. Função que limpa TUDO (intervalos e timers)
+function pararTudo() {
+    clearInterval(autoPlayInterval);
+    clearTimeout(inatividadeTimer);
+}
+
+// 2. Função Principal de Scroll
+function scrollCarrossel(direcao) {
+    const lista = document.getElementById('lista-livros');
+    const primeiroCard = lista.querySelector('.card-livro');
+    
+    // Para o autoplay IMEDIATAMENTE
+    pararTudo();
+
+    if (primeiroCard) {
+        const larguraDoCard = primeiroCard.offsetWidth + 15; 
+        const multiplicador = window.innerWidth <= 768 ? 1 : 2;
+
+        lista.scrollBy({
+            left: direcao * (larguraDoCard * multiplicador),
+            behavior: 'smooth'
+        });
+    }
+
+    // Só reagenda o início do autoplay para daqui a 10 segundos
+    inatividadeTimer = setTimeout(iniciarAutoPlay, tempoRetorno);
+}
+
+// 3. Função que liga o movimento automático
+function iniciarAutoPlay() {
+    pararTudo(); // Limpa resíduos antes de começar
+    
+    autoPlayInterval = setInterval(() => {
+        const lista = document.getElementById('lista-livros');
+        if (!lista) return;
+
+        const scrollMaximo = lista.scrollWidth - lista.clientWidth;
+        
+        if (lista.scrollLeft >= scrollMaximo - 10) {
+            lista.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+            const primeiroCard = lista.querySelector('.card-livro');
+            if (primeiroCard) {
+                const largura = (primeiroCard.offsetWidth + 15) * (window.innerWidth <= 768 ? 1 : 2);
+                lista.scrollBy({ left: largura, behavior: 'smooth' });
+            }
+        }
+    }, tempoEspera);
+}
+
+// 4. Inicialização e Eventos
+document.addEventListener("DOMContentLoaded", () => {
+    const lista = document.getElementById('lista-livros');
+    
+    if (lista) {
+        iniciarAutoPlay();
+
+        // 1. Monitora o início do toque (dedo encostou)
+        lista.addEventListener('touchstart', () => {
+            pararTudo(); // Para o autoplay imediatamente
+        }, { passive: true });
+
+        // 2. Monitora o fim do toque (dedo saiu da tela)
+        lista.addEventListener('touchend', () => {
+            // Após soltar o dedo, espera os 10 segundos de inatividade para voltar
+            clearTimeout(inatividadeTimer);
+            inatividadeTimer = setTimeout(iniciarAutoPlay, tempoRetorno);
+        }, { passive: true });
+
+        // 3. Mantém as regras de mouse para o PC
+        lista.addEventListener('mouseenter', pararTudo);
+        lista.addEventListener('mouseleave', () => {
+            // Se apenas tirou o mouse, volta rápido. Se clicou, o timer do scrollCarrossel (10s) manda.
+            if (!inatividadeTimer) {
+                inatividadeTimer = setTimeout(iniciarAutoPlay, 2000);
+            }
+        });
+
+        // 4. Atualiza as setas (opacidade)
+        lista.addEventListener('scroll', gerenciarEstadoDasSetas);
+        gerenciarEstadoDasSetas(); 
     }
 });

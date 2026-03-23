@@ -1,3 +1,4 @@
+
 /* ===================================================== */
 /* RESPONSIVIDADE E MENU MOBILE */
 /* ===================================================== */
@@ -5,7 +6,7 @@
 /* 1. Botão que abre o menu no celular/tablet */
 .menu-mobile {
   justify-content: center;
-  display: none;
+  display: none; 
   position: fixed;
   top: 12px;
   left: 15px;
@@ -17,7 +18,7 @@
   border-radius: 8px;
   font-size: 20px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 body.dark .menu-mobile {
@@ -25,16 +26,17 @@ body.dark .menu-mobile {
   color: white;
 }
 
+
 .sidebar.aberta {
   left: 0 !important;
 }
 
 /* 3. Ajustes para Telas Grandes (Monitores maiores que 15p) */
 @media (min-width: 1600px) {
-  .container-abas,
-  .info-livro,
+  .container-abas,  
+  .info-livro, 
   .container-conteudo-branco-livro {
-    max-width: 1600px;
+    max-width: 1600px; 
     margin-left: auto !important;
     margin-right: auto !important;
   }
@@ -43,11 +45,11 @@ body.dark .menu-mobile {
 /* 4. Ajustes para Tablets e Celulares */
 @media (max-width: 1024px) {
   .menu-mobile {
-    display: block;
+    display: block; 
   }
 
   .sidebar {
-    left: -260px;
+    left: -260px; 
     transition: 0.3s ease;
   }
 
@@ -57,8 +59,9 @@ body.dark .menu-mobile {
   }
 
   .topo {
-    padding-left: 60px;
+    padding-left: 60px; 
     justify-content: flex-end;
+    
   }
 
   .info-livro {
@@ -90,15 +93,11 @@ body.dark .menu-mobile {
 
   .btn-aba {
     padding: 15px 20px;
-    width: 100%;
+    width: 100%; 
   }
 
-  #descricao,
-  #sugestoes,
-  .titulo-secao-interna,
-  .titulo-prazo,
-  .minhalista,
-  .busca {
+
+  #descricao, #sugestoes, .titulo-secao-interna, .titulo-prazo, .minhalista, .busca {
     margin-left: 20px !important;
     margin-right: 20px !important;
     padding-left: 0 !important;
@@ -108,16 +107,16 @@ body.dark .menu-mobile {
 /* 5. Pequenos ajustes para celulares finos */
 @media (max-width: 480px) {
   .acoes-topo button span {
-    display: block;
+    display: block; 
   }
-
+  
   .busca input {
     font-size: 14px;
     width: 200px;
   }
 
   .busca i {
-    left: 15px;
+    left: 15px;  
   }
 
   .busca input:focus {
@@ -131,14 +130,15 @@ body.dark .menu-mobile {
   }
 
   .seta-carrossel {
+
   }
 
   .botao-lista {
-    padding-left: 20px !important;
+    padding-left: 20px !important; 
     padding-top: 30px !important;
-    margin-top: 60px !important;
+    margin-top: 60px !important; 
     margin-left: 0 !important;
-    justify-content: flex-start;
+    justify-content: flex-start; 
   }
 }
 
@@ -148,8 +148,7 @@ body {
 }
 
 /* Permite cursor normal em inputs */
-input,
-textarea {
+input, textarea {
   caret-color: auto;
 }
 
@@ -163,7 +162,7 @@ textarea {
   .topo {
     padding-left: 55px !important;
     padding-right: 10px !important;
-    gap: 5px !important;
+    gap: 5px !important; 
   }
 
   .acoes-topo {
@@ -171,14 +170,14 @@ textarea {
   }
 
   /* Diminui a distância específica dos botões de zoom e do divisor */
-  .acoes-topo button,
-  .acoes-topo .divisor-v {
-    margin: 0 2px !important;
+  .acoes-topo button, 
+  .acoes-topo .divisor-v { 
+    margin: 0 2px !important; 
     padding: 5px !important;
   }
 
   /* Reduz o tamanho da fonte do seletor de idioma para ganhar espaço */
-  .acoes-topo select,
+  .acoes-topo select, 
   .acoes-topo .btn-idioma {
     font-size: 13px !important;
     padding: 4px !important;
@@ -187,27 +186,29 @@ textarea {
 
 /* 7. Ajuste para telas críticas (menores que 359px) */
 @media (max-width: 360px) {
-  .acoes-topo .btn-idioma span,
+  .acoes-topo .btn-idioma span, 
   .acoes-topo button span {
     display: none !important;
   }
 
   /* Garante que o botão de idioma mostre apenas o ícone ou a seta */
   .btn-idioma::after {
-    content: " ▼";
+    content: ' ▼'; 
     font-size: 10px;
     vertical-align: middle;
   }
+
 
   .acoes-topo {
     gap: 4px !important;
   }
 
   .topo {
-    padding-left: 50px !important;
+    padding-left: 50px !important; 
     padding-right: 5px !important;
   }
-
+  
+  
   .acoes-topo button {
     padding: 4px 6px !important;
     font-size: 12px !important;
@@ -215,46 +216,46 @@ textarea {
 }
 
 @media (max-width: 768px) {
-  .carousel-wrapper {
-    display: grid;
-    grid-template-areas:
-      "vazio controles"
-      "lista lista";
-    gap: 20px;
-    padding: 10px;
-  }
+    .carousel-wrapper {
+        display: grid;
+        grid-template-areas: 
+            "vazio controles"  
+            "lista lista";     
+        gap: 20px;
+        padding: 10px;
+    }
 
-  /* Posicionando a Seta Esquerda */
-  .seta-carrossel.esquerda {
-    grid-area: controles;
-    justify-self: end;
-    margin-right: 50px;
-    position: static;
-  }
+    /* Posicionando a Seta Esquerda */
+    .seta-carrossel.esquerda {
+        grid-area: controles; 
+        justify-self: end;    
+        margin-right: 50px;   
+        position: static;     
+    }
 
-  /* Posicionando a Seta Direita */
-  .seta-carrossel.direita {
-    grid-area: controles;
-    justify-self: end;
-    position: static;
-  }
+    /* Posicionando a Seta Direita */
+    .seta-carrossel.direita {
+        grid-area: controles; 
+        justify-self: end;    
+        position: static;
+    }
 
-  #lista-livros {
-    grid-area: lista;
-    width: 100%;
-  }
+    #lista-livros {
+        grid-area: lista;     
+        width: 100%;
+    }
 
-  /* Estilo para as setas ficarem bonitas juntas */
-  .seta-carrossel {
-    width: 35px;
-    height: 35px;
-    background-color: transparent;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
+    /* Estilo para as setas ficarem bonitas juntas */
+    .seta-carrossel {
+        width: 35px;
+        height: 35px;
+        background-color: transparent; 
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
 }
