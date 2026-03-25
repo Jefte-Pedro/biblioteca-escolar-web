@@ -517,7 +517,7 @@ document.addEventListener("DOMContentLoaded", function() {
 let autoPlayInterval;
 let inatividadeTimer;
 const tempoEspera = 4000;  // 4 segundos para mudar sozinho
-const tempoRetorno = 15000; // 15 segundos de espera após mexer
+const tempoRetorno = 10000; // 15 segundos de espera após mexer
 
 // 1. Função que limpa TUDO (intervalos e timers)
 function pararTudo() {

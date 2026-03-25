@@ -282,6 +282,7 @@ main {
 .descricao {
   padding-left: 0px;
   padding-right: 40px;
+  
 }
 
 .busca {
@@ -375,11 +376,12 @@ main {
   scroll-snap-align: start;
   flex-shrink: 0;
   transition: transform 0.3s ease;
+  color: #fff;
 }
 
 .card-livro:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+  box-shadow: 10px 20px 32px rgba(0, 0, 0, 0.15);
 }
 
 .capa-livro {

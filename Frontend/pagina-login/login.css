@@ -1,12 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap");
 
-html,
-body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-}
-
 * {
     margin: 0;
     padding: 0;
@@ -14,21 +7,69 @@ body {
     font-family: "Poppins", "sans-serif";
 }
 
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+ html  { 
+    height: 100%;
 }
 
-.img-fund {
-    position: fixed;
-    top: 0%;
+
+body {
+    display: flex;
+    flex-direction: column; 
+    align-items: center;
+     min-height: 100vh;
+    background: linear-gradient(135deg, #000000, #1c5db1);
+    background-attachment: fixed;
+}
+.img-logo {
+    width: 80px;
+    height: auto;
+    
+}
+.top {
+    text-align: center;
+    margin: 0; 
+}
+
+.logotipo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    padding: 20px 40px;
+}
+
+.top h1 {
+    font-size: 25px;
+    color: #fff;
+    text-align: left;       
+    margin: 0;              
+    line-height: 1.1;
+}
+
+.tema{
+    margin-left: auto;
+}
+
+.tema::before {
+    content: "";
+    position: absolute;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-    z-index: -2;
+    top: 20%;
+    height: 60%;
+    width: 1px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.tema button {
+    background: none;   
+    border: none;       
+    outline: none;      
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    color: #fff;     
 }
 
 .wrapper {
@@ -276,6 +317,11 @@ body {
     animation: fadeIn 0.5s ease;
 }
 
+body.dark {
+    background: linear-gradient(to bottom right, #1c5db1, #fff );
+    background-attachment: fixed;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -285,5 +331,19 @@ body {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@media (max-width: 600px) {
+    .logotipo {
+        position: static;           /* volta ao fluxo normal */
+        justify-content: center;    /* centraliza */
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .top h1 {
+        text-align: center;
+        font-size: 20px;         /* centraliza o texto */
     }
 }
