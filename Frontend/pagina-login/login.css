@@ -17,7 +17,7 @@ body {
     flex-direction: column; 
     align-items: center;
      min-height: 100vh;
-    background: linear-gradient(135deg, #000000, #1c5db1);
+    background: linear-gradient(to bottom right, #1c5db1, 65%, #fff );
     background-attachment: fixed;
 }
 .img-logo {
@@ -318,7 +318,7 @@ body {
 }
 
 body.dark {
-    background: linear-gradient(to bottom right, #1c5db1, #fff );
+    background: linear-gradient(135deg, #000000, #1c5db1);
     background-attachment: fixed;
 }
 

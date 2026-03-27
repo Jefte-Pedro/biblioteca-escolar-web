@@ -376,7 +376,7 @@ main {
   scroll-snap-align: start;
   flex-shrink: 0;
   transition: transform 0.3s ease;
-  color: #fff;
+  color: #ffffffce;
 }
 
 .card-livro:hover {
