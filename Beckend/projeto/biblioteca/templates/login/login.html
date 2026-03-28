@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Bem vindo à Biblioteca da EREM Dr. Jaime Monteiro{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'biblioteca/css/login.css' %}">
+    <link rel="stylesheet" href="{% static 'biblioteca/css/Login.css' %}">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 
@@ -50,7 +50,7 @@
     <!-- Pagina de Cadastro  -->
 
     <div class="wrapper conteudo-pag" id="tela-cadastro" style="display: none;">
-        <form action="{% url 'cadastrar_usuario' %}" method="POST">
+        <form action="{% url 'cadastro' %}" method="POST">
             {% csrf_token %}
             
             <h1>Cadastre-se</h1>
@@ -68,7 +68,7 @@
                 <i class='bx bxs-envelope'></i>
             </div>
             <div class="input-box">
-                <label for="telefone"></label>
+                <label for="telefone">Telefone</label>
                 <input type="tel" id="Telefone" pattern="\(\d{2}\) \s\d{4,5}-\d{4}" placeholder="Número de Telefone"  required name="number" autocomplete="tel">
             </div>
             <div class="input-box">
@@ -117,7 +117,9 @@
     <!-- Pagina de Recuperação de Senha  -->
 
     <div class="wrapper conteudo-pag" id="tela-recuperar" style="display: none;">
-        <form action="">
+        <form action="{% url 'recuperar_senha' %}" method="POST">
+            {% csrf_token %}
+
             <h1>Recuperar Senha</h1>
             <p class="instrucao">Digite seu e-mail cadastrado para receber as instruções de redefinição.</p>
 

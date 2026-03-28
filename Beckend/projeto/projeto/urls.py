@@ -20,5 +20,6 @@ from django.urls import path, include
 urlpatterns = [
     # path('api/', include('biblioteca.urls')),
     path('', include('biblioteca.urls')),
+    path('acervo/', include('biblioteca.urls')),
     
 ]

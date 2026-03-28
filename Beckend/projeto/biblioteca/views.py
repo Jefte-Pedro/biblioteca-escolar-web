@@ -10,8 +10,23 @@ class LivroViewset(viewsets.ModelViewSet):
 def inicio(request):
     return render(request, 'biblioteca/inicio.html')
 
-def acervo(request):
-    return render(request, 'biblioteca/acervo.html')
+def lista(request):
+    return render(request, 'biblioteca/acervo.html', { 'aba': 'lista' })
+
+def lidos(request):
+    return render(request, 'biblioteca/acervo.html', { 'aba': 'lidos' })
+
+def reservados(request):
+    return render(request, 'biblioteca/acervo.html', { 'aba': 'reservados' })
 
 def prazos(request):
     return render(request, 'biblioteca/prazo.html')
+
+def login(request):
+    return render(request, 'biblioteca/Login.html')
+
+def cadastro(request):
+    return render(request, 'biblioteca/Login.html')
+
+def recuperar_senha(request):
+    return render(request, 'biblioteca/Login.html')

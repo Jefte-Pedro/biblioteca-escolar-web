@@ -20,6 +20,25 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
+.conteudo-pag {
+    display: none;
+}
+
+.conteudo-pag.ativo {
+    display: block;
+}
+
+.btn-aba {
+    padding: 10px;
+    text-decoration: none;
+    color: gray;
+}
+
+.btn-aba.ativo {
+    color: #1c5db1;
+    font-weight: bold;
+}
+
 body.dark .menu-mobile {
   background-color: #103568;
   color: white;

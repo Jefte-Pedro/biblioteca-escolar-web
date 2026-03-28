@@ -9,7 +9,13 @@ router.register(r'livros', LivroViewset)
 urlpatterns = [
     # path('', include(router.urls)),
     path('', views.inicio, name='inicio'), 
-    path('acervo/', views.acervo, name='acervo'),
+    path('lista/', views.acervo, name='acervo'),
+    path('lidos/', views.lidos, name='lidos'),
+    path('reservados/', views.reservados, name='reservados'),
     path('prazos/', views.prazos, name='prazos'),
+
+    path('login/', views.login, name='login'),
+    path('cadastro/', views.cadastro, name='cadastro'),
+    path('recuperar-senha/', views.recuperar_senha, name='recuperar_senha'),
     path('api/', include(router.urls)),
 ]

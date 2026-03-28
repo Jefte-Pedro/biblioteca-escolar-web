@@ -4,14 +4,16 @@
 
 {% block content %}
 
-<section id="pag-lista" class="conteudo-pag" style="display: block;">
+<section class="conteudo-pag {% if aba == 'lista' %}ativo{% endif %}">
     <div class="header-azul-lista">
         <h2 class="titulo-secao-interna">Seu acervo</h2>
         <p class="descricao-acervo">Gerencie suas leituras e reservas em um só lugar.</p>
+
         <div class="abas-navegacao">
-            <button class="btn-aba active" onclick="mostrarPagina('pag-lista')">Minha Lista</button>
-            <button class="btn-aba" onclick="mostrarPagina('pag-reservados')">Reservados</button>
-            <button class="btn-aba" onclick="mostrarPagina('pag-lidos')">Livros Lidos</button>
+            <a href="{% url 'minha_lista' %}" class="btn-aba {% if aba == 'lista' %}active{% endif %}">Minha Lista</a>
+            <a href="{% url 'reservados' %}"
+                class="btn-aba {% if aba == 'reservados' %}active{% endif %}">Reservados</a>
+            <a href="{% url 'lidos' %}" class="btn-aba {% if aba == 'lidos' %}active{% endif %}">Livros Lidos</a>
         </div>
     </div>
 
@@ -38,14 +40,16 @@
 </section>
 
 
-<section id="pag-reservados" class="conteudo-pag" style="display: none;">
+<section class="conteudo-pag {% if aba == 'reservados' %}ativo{% endif %}">
     <div class="header-azul-lista">
         <h2 class="titulo-secao-interna">Seu acervo</h2>
         <p class="descricao-acervo">Gerencie suas leituras e reservas em um só lugar.</p>
+
         <div class="abas-navegacao">
-            <button class="btn-aba" onclick="mostrarPagina('pag-lista')">Minha Lista</button>
-            <button class="btn-aba active" onclick="mostrarPagina('pag-reservados')">Reservados</button>
-            <button class="btn-aba" onclick="mostrarPagina('pag-lidos')">Livros Lidos</button>
+            <a href="{% url 'minha_lista' %}" class="btn-aba {% if aba == 'lista' %}active{% endif %}">Minha Lista</a>
+            <a href="{% url 'reservados' %}"
+                class="btn-aba {% if aba == 'reservados' %}active{% endif %}">Reservados</a>
+            <a href="{% url 'lidos' %}" class="btn-aba {% if aba == 'lidos' %}active{% endif %}">Livros Lidos</a>
         </div>
     </div>
 
@@ -57,14 +61,18 @@
 </section>
 
 
-<section id="pag-lidos" class="conteudo-pag" style="display: none;">
+<section id="pag-lidos" class="conteudo-pag {% if aba != 'lidos' %}oculto{% endif %}">
+    
+
     <div class="header-azul-lista">
         <h2 class="titulo-secao-interna">Seu acervo</h2>
         <p class="descricao-acervo">Gerencie suas leituras e reservas em um só lugar.</p>
+
         <div class="abas-navegacao">
-            <button class="btn-aba" onclick="mostrarPagina('pag-lista')">Minha Lista</button>
-            <button class="btn-aba" onclick="mostrarPagina('pag-reservados')">Reservados</button>
-            <button class="btn-aba active" onclick="mostrarPagina('pag-lidos')">Livros Lidos</button>
+            <a href="{% url 'minha_lista' %}" class="btn-aba {% if aba == 'lista' %}active{% endif %}">Minha Lista</a>
+            <a href="{% url 'reservados' %}"
+                class="btn-aba {% if aba == 'reservados' %}active{% endif %}">Reservados</a>
+            <a href="{% url 'lidos' %}" class="btn-aba {% if aba == 'lidos' %}active{% endif %}">Livros Lidos</a>
         </div>
     </div>
 
