@@ -137,171 +137,6 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("fonte", tamanhoFonte);
     });
   }
-  /* ===== INICIALIZAÇÃO INTELIGENTE ===== */
-  const paginaSalva = localStorage.getItem("paginaAtual") || "pag-inicio";
-
-  if (paginaSalva === "pag-livro") {
-    const idLivroSalvo = localStorage.getItem("livroAbertoID");
-    if (idLivroSalvo) {
-      // Se estava na página do livro, recarrega os dados dele
-      abrirLivro(parseInt(idLivroSalvo));
-    } else {
-      mostrarPagina("pag-inicio");
-    }
-  } else {
-    mostrarPagina(paginaSalva);
-  }
-});
-
-/* ===== SISTEMA DE PÁGINAS ===== */
-
-function mostrarPagina(idPagina) {
-  const paginaAtual = localStorage.getItem("paginaAtual");
-
-  // Só salva como anterior se realmente estivermos mudando de uma página válida
-  if (paginaAtual && paginaAtual !== idPagina) {
-    localStorage.setItem("paginaAnterior", paginaAtual);
-  }
-
-  localStorage.setItem("paginaAtual", idPagina);
-
-  // Esconde todas as páginas
-  const paginas = document.querySelectorAll(".conteudo-pag");
-  paginas.forEach((p) => (p.style.display = "none"));
-
-  // Mostra a página solicitada
-  const pagina = document.getElementById(idPagina);
-  if (pagina) {
-    pagina.style.display = "block";
-  }
-
-  // --- SINCRONIZAÇÃO DA SIDEBAR ---
-  // Remove o "ativo" de todos os botões da lateral
-  const botoesSidebar = document.querySelectorAll(".sidebar button");
-  botoesSidebar.forEach((btn) => btn.classList.remove("ativo"));
-
-  // Procura na sidebar qual botão tem o onclick que chama essa página específica
-  const botaoParaAtivar = document.querySelector(
-    `.sidebar button[onclick*="'${idPagina}'"]`,
-  );
-
-  if (botaoParaAtivar) {
-    botaoParaAtivar.classList.add("ativo");
-  }
-}
-
-/* ===== BOTÃO VOLTAR ===== */
-
-function voltarPagina() {
-  const paginaAnterior = localStorage.getItem("paginaAnterior");
-
-  if (paginaAnterior && paginaAnterior !== "pag-livro") {
-    mostrarPagina(paginaAnterior);
-  } else {
-    mostrarPagina("pag-inicio");
-  }
-}
-
-/* ===== MOSTRAR LIVROS ===== */
-
-function mostrarLivro() {
-  const container = document.getElementById("lista-livros");
-
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  livros.forEach((livro) => {
-    container.innerHTML += `
-        <div class="card-livro">
-
-            <img 
-                src="${livro.capa}" 
-                alt="${livro.titulo}" 
-                onclick="abrirLivro(${livro.id})"
-                class="capa-livro"
-            >
-
-            <h3>${livro.titulo}</h3>
-
-            <p><strong>Autor:</strong> ${livro.autor}</p>
-
-        </div>
-        `;
-  });
-}
-
-function abrirLivro(idLivro) {
-  const livro = livros.find((l) => l.id === idLivro);
-  if (!livro) return;
-
-  // Preenche os dados na tela
-  document.getElementById("livro-titulo").textContent = livro.titulo;
-  document.getElementById("livro-capa").src = livro.capa;
-  document.getElementById("livro-autor").textContent = livro.autor;
-  document.getElementById("livro-genero").textContent = livro.genero;
-  document.getElementById("livro-editora").textContent = livro.editora;
-  document.getElementById("livro-prateleira").textContent =
-    "Prateleira: " + livro.prateleira;
-  document.getElementById("livro-unidades").textContent =
-    "Unidades: " + livro.unidades;
-  document.getElementById("livro-codigo").textContent =
-    "Codigo: " + livro.codigo;
-  document.getElementById("livro-status").textContent = livro.disponivel
-    ? "Disponível"
-    : "Emprestado";
-  document.getElementById("livro-sinopse").innerText =
-    livro.sinopse || "Sinopse não disponível.";
-
-  // --- LOGICA DE MEMÓRIA ---
-  const paginaAtual = localStorage.getItem("paginaAtual");
-
-  if (paginaAtual && paginaAtual !== "pag-livro") {
-    localStorage.setItem("paginaAnterior", paginaAtual);
-  }
-
-  localStorage.setItem("livroAbertoID", idLivro);
-
-  const elementoStatus = document.getElementById("livro-status");
-
-  elementoStatus.textContent = livro.disponivel ? "Disponível" : "Emprestado";
-
-  if (livro.disponivel) {
-    elementoStatus.classList.add("disponivel");
-    elementoStatus.classList.remove("emprestado");
-  } else {
-    elementoStatus.classList.add("emprestado");
-    elementoStatus.classList.remove("disponivel");
-  }
-
-  mostrarPagina("pag-livro");
-}
-
-let totalAvaliacoes = 0;
-let somaAvaliacoes = 0;
-
-const estrelas = document.querySelectorAll("#estrelas-avaliacao .estrela");
-const media = document.getElementById("media-avaliacao");
-
-estrelas.forEach((estrela) => {
-  estrela.addEventListener("click", () => {
-    let valor = parseInt(estrela.dataset.valor);
-
-    somaAvaliacoes += valor;
-    totalAvaliacoes++;
-
-    let mediaFinal = (somaAvaliacoes / totalAvaliacoes).toFixed(1);
-
-    media.textContent = mediaFinal + " / 5";
-
-    estrelas.forEach((e) => {
-      e.classList.remove("ativa");
-
-      if (e.dataset.valor <= valor) {
-        e.classList.add("ativa");
-      }
-    });
-  });
 });
 
 /* ===== LÓGICA DE NAVEGAÇÃO DO CARROSSEL (ESTILO NETFLIX) ===== */
@@ -368,94 +203,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-/* ===== INICIAR SISTEMA ===== */
-
-console.log("mostrarLivros foi chamada");
-
-mostrarLivro();
-
-// ==========================================
-// LÓGICA DE CRIAR LISTAS PERSONALIZADAS
-// ==========================================
-
-const modalLista = document.getElementById("modal-lista");
-const btnAbrirModal = document.getElementById("btn-abrir-modal");
-const btnConfirmarLista = document.getElementById("btn-confirmar-lista");
-const inputNomeLista = document.getElementById("input-nome-lista");
-const containerListas = document.getElementById("conteudo-dinamico-lista");
-
-// Array para guardar os dados (simulando um banco de dados)
-let colecaoDeListas = [];
-
-// 1. Abrir e Fechar Modal
-if (btnAbrirModal) {
-  btnAbrirModal.onclick = () => {
-    modalLista.style.display = "block";
-    inputNomeLista.focus(); // Já coloca o cursor piscando pro usuário digitar
-  };
-}
-
-function fecharModal() {
-  modalLista.style.display = "none";
-  inputNomeLista.value = ""; // Limpa o texto que estava lá
-}
-
-// 2. Criar a Lista de Fato
-if (btnConfirmarLista) {
-  btnConfirmarLista.onclick = () => {
-    const nomeDaLista = inputNomeLista.value.trim();
-
-    if (nomeDaLista !== "") {
-      // Cria um objeto para a nova lista
-      const novaLista = {
-        id: Date.now(), // Gera um ID único baseado na data/hora
-        nome: nomeDaLista,
-        livros: [], // Começa sem livros
-      };
-
-      colecaoDeListas.push(novaLista); // Salva na nossa coleção
-      fecharModal();
-      renderizarListasNaTela();
-    } else {
-      alert("Por favor, digite um nome para a lista.");
-    }
-  };
-}
-
-// 3. Desenhar as listas no HTML
-function renderizarListasNaTela() {
-  containerListas.innerHTML = ""; // Apaga a mensagem de "vazio"
-
-  colecaoDeListas.forEach((lista) => {
-    const divLista = document.createElement("div");
-    divLista.className = "card-lista"; // Usando aquele CSS que você já tem
-
-    // Note o onclick="abrirLista(...)" na div inteira!
-    divLista.innerHTML = `
-            <div class="info-lista" onclick="abrirLista(${lista.id})" style="cursor:pointer; flex-grow: 1;">
-                <h3>${lista.nome}</h3>
-                <span class="qtd-livros">${lista.livros.length} livros</span>
-            </div>
-            <button class="btn-add-livro" onclick="event.stopPropagation(); alert('Em breve: abrir janela para escolher livros!')">
-                <i class="fa-solid fa-plus"></i>
-            </button>
-        `;
-
-    containerListas.appendChild(divLista);
-  });
-}
-
-// 4. Entrar na Lista (O que você pediu!)
-function abrirLista(idDaLista) {
-  const listaSelecionada = colecaoDeListas.find((l) => l.id === idDaLista);
-
-  // Por enquanto, apenas um console.log e um alert para testar se achou a lista certa
-  console.log("Abrindo a lista:", listaSelecionada.nome);
-  alert(
-    `Você entrou na lista: ${listaSelecionada.nome}. \nAqui no futuro faremos a tela mudar para mostrar os livros dela!`,
-  );
-}
-
 /* ===== LÓGICA DA SIDEBAR RESPONSIVA ===== */
 const menuBtn = document.getElementById("menu-toggle");
 const sidebar = document.querySelector(".sidebar");
@@ -464,7 +211,7 @@ if (menuBtn && sidebar) {
   menuBtn.addEventListener("click", () => {
     sidebar.classList.toggle("aberta");
 
-    // Troca o ícone de barras para X
+    
     const icon = menuBtn.querySelector("i");
     if (sidebar.classList.contains("aberta")) {
       icon.classList.replace("fa-bars", "fa-times");
@@ -485,20 +232,16 @@ if (menuBtn && sidebar) {
   });
 }
 
-// tudo aqui é do django e ainda não mudei o Js
-
 // Verifica a URL quando a página carrega e abre a aba correta do acervo
 document.addEventListener("DOMContentLoaded", function () {
-  const urlParams = new URLSearchParams(window.location.search);
-  const aba = urlParams.get("aba");
+  // Pega a variável 'aba' que o Django injetou no HTML
+  const abaAtiva = document.querySelector(".conteudo-pag.ativo");
 
-  // Usa a sua própria função mostrarPagina para trocar a tela
-  if (aba === "reservados") {
-    mostrarPagina("pag-reservados");
-  } else if (aba === "lidos") {
-    mostrarPagina("pag-lidos");
-  } else if (aba === "lista") {
-    mostrarPagina("pag-lista");
+  if (abaAtiva) {
+    // Se Django mandou uma aba ativa, ignora o localStorage
+    const paginas = document.querySelectorAll(".conteudo-pag");
+    paginas.forEach((p) => (p.style.display = "none"));
+    abaAtiva.style.display = "block";
   }
 });
 
