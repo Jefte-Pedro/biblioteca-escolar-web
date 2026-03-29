@@ -8,6 +8,7 @@
 
     <script src="https://kit.fontawesome.com/496892164a.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="{% static 'biblioteca/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'biblioteca/css/responsive.css' %}">
 </head>
 
 <body>
@@ -36,8 +37,8 @@
             </div>
 
             <div class="nav-lista">
-                <a href="{% url 'acervo' %}?aba=lista">
-                    <button class="{% if request.GET.aba == 'lista' %}ativo{% endif %}">
+                <a href="{% url 'minha_lista' %}">
+                    <button class="{% if request.resolver_match.url_name == 'minha_lista' %}ativo{% endif %}">
                         <i class="fa-regular fa-heart"></i>
                         <span id="nav-lista">Minha Lista</span>
                     </button>
@@ -45,8 +46,8 @@
             </div>
 
             <div class="nav-reservado">
-                <a href="{% url 'acervo' %}?aba=reservado">
-                    <button class="{% if request.GET.aba == 'reservado' %}ativo{% endif %}">
+                <a href="{% url 'reservados' %}">
+                    <button class="{% if request.resolver_match.url_name == 'reservados' %}ativo{% endif %}">
                         <i class="fa-regular fa-bookmark"></i>
                         <span id="nav-reservados">Livros Reservados</span>
                     </button>
@@ -54,8 +55,8 @@
             </div>
 
             <div class="nav-lido">
-                <a href="{% url 'acervo' %}?aba=lido">
-                    <button class="{% if request.GET.aba == 'lido' %}ativo{% endif %}">
+                <a href="{% url 'lidos' %}">
+                    <button class="{% if request.resolver_match.url_name == 'lidos' %}ativo{% endif %}">
                         <i class="fa-solid fa-clock-rotate-left"></i>
                         <span id="nav-lidos">Livros Lidos</span>
                     </button>
@@ -66,7 +67,7 @@
                 <a href="{% url 'prazos' %}">
                     <button class="{% if request.resolver_match.url_name == 'prazos' %}ativo{% endif %}">
                         <i class="fa-regular fa-calendar-check"></i>
-                        <span>Meus Prazos</span>
+                        <span id="nav-prazos">Meus Prazos</span>
                     </button>
                 </a>
             </div>

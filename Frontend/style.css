@@ -19,9 +19,10 @@ body {
   background-color: #1c5db1;
   color: black;
   font-family: Arial, Helvetica, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease; 
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
-
 
 /* ===================================================== */
 /* LAYOUT BASE */
@@ -42,7 +43,6 @@ main {
   display: block;
 }
 
-
 /* ===================================================== */
 /* BANNER SUPERIOR */
 /* ===================================================== */
@@ -55,7 +55,7 @@ main {
 }
 
 .secao-branca {
-  background-color: #F0F2F5;
+  background-color: #f0f2f5;
   width: 100%;
   min-height: 200px;
   position: relative;
@@ -79,7 +79,6 @@ main {
   display: flex;
   justify-content: center;
 }
-
 
 /* ===================================================== */
 /* SIDEBAR */
@@ -138,7 +137,6 @@ main {
   border-radius: 10px;
 }
 
-
 /* ===================================================== */
 /* LOGO / ESCOLA */
 /* ===================================================== */
@@ -157,7 +155,6 @@ main {
   padding: 5px 0;
 }
 
-
 /* ===================================================== */
 /* HEADER SUPERIOR */
 /* ===================================================== */
@@ -170,7 +167,6 @@ main {
   padding: 0 40px;
   color: white;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  ;
   background-color: #1c5db1;
 }
 
@@ -196,7 +192,6 @@ main {
 .acoes-topo button:hover {
   background: rgba(255, 255, 255, 0.1);
 }
-
 
 /* ===================================================== */
 /* ACESSIBILIDADE / TEMA / IDIOMA */
@@ -276,7 +271,6 @@ main {
   background-color: rgba(0, 0, 0, 0.5);
 }
 
-
 /* ===================================================== */
 /* BUSCA */
 /* ===================================================== */
@@ -288,11 +282,12 @@ main {
 .descricao {
   padding-left: 0px;
   padding-right: 40px;
+  
 }
 
 .busca {
   margin: 40px 0 10px 0; /* remove laterais */
-  padding-left: 90px;   /* igual ao título */
+  padding-left: 90px; /* igual ao título */
   display: flex;
   align-items: center;
   position: relative;
@@ -330,7 +325,6 @@ main {
   border-color: white;
 }
 
-
 /* ===================================================== */
 /* CARDS DE LIVROS */
 /* ===================================================== */
@@ -345,6 +339,8 @@ main {
   scroll-behavior: smooth;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
 }
 
 #lista-livros::-webkit-scrollbar {
@@ -373,13 +369,19 @@ main {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   flex: 0 0 200px;
+  scroll-snap-align: start;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+  color: #ffffffce;
 }
 
 .card-livro:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+  box-shadow: 10px 20px 32px rgba(0, 0, 0, 0.15);
 }
 
 .capa-livro {
@@ -400,7 +402,6 @@ main {
   margin: 2px 0;
   text-align: center;
 }
-
 
 /* ===================================================== */
 /* SEÇÕES INTERNAS */
@@ -437,7 +438,6 @@ main {
   gap: 15px;
 }
 
-
 /* ===================================================== */
 /* ABAS */
 /* ===================================================== */
@@ -458,7 +458,6 @@ main {
   color: #1c5db1;
   border-bottom: 4px solid #1c5db1;
 }
-
 
 /* ===================================================== */
 /* MINHA LISTA */
@@ -491,7 +490,6 @@ main {
   color: rgba(0, 0, 0);
 }
 
-
 /* ===================================================== */
 /* BOTÃO LISTA */
 /* ===================================================== */
@@ -506,7 +504,7 @@ main {
   align-items: center;
   gap: 10px;
   color: #222;
-  padding: 40px 0px 10px 100px; 
+  padding: 40px 0px 10px 100px;
   padding-left: 100;
   margin-top: 100px;
 }
@@ -514,7 +512,6 @@ main {
 .botao-lista:hover {
   color: #535151;
 }
-
 
 /* ===================================================== */
 /* PÁGINA LISTA */
@@ -558,7 +555,6 @@ main {
   font-weight: bold;
 }
 
-
 /* ===================================================== */
 /* CONTEÚDO BRANCO */
 /* ===================================================== */
@@ -581,7 +577,6 @@ main {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   margin-top: 30px;
 }
-
 
 /* ===================================================== */
 /* TÍTULOS E DESCRIÇÕES */
@@ -620,7 +615,6 @@ main {
   text-align: left;
 }
 
-
 /* ===================================================== */
 /* CONTEÚDO DINÂMICO */
 /* ===================================================== */
@@ -643,7 +637,6 @@ main {
 /* PAGINA DO LIVRO
 /* ===================================================== */
 
-
 .back {
   display: flex;
   align-items: center;
@@ -661,7 +654,6 @@ main {
   color: #c5c5c5;
 }
 
-
 .info-livro {
   display: flex;
   flex-direction: row;
@@ -671,7 +663,6 @@ main {
   width: 100%;
 }
 
-
 #livro-capa {
   width: 260px;
   height: auto;
@@ -679,7 +670,6 @@ main {
   object-fit: contain;
   padding-left: 0 !important;
 }
-
 
 .textos-livro {
   display: flex;
@@ -689,7 +679,6 @@ main {
   max-width: 700px;
 }
 
-
 #livro-titulo {
   color: white !important;
   font-size: 48px !important;
@@ -698,7 +687,6 @@ main {
   padding: 0 !important;
   line-height: 1.2;
 }
-
 
 #livro-autor,
 #livro-genero,
@@ -711,7 +699,6 @@ main {
   margin: 5px 0;
   font-weight: normal;
 }
-
 
 .livro-detalhes {
   display: flex;
@@ -736,9 +723,9 @@ main {
   display: inline-block;
 }
 
-#livro-editora:empty, 
+#livro-editora:empty,
 #livro-editora:empty + .divisor {
-    display: none;
+  display: none;
 }
 
 .livro-detalhes:has(#livro-editora:empty) .divisor {
@@ -840,11 +827,9 @@ main {
   color: white;
 }
 
-
 .botoes-acoes .btn-lista {
   color: white;
 }
-
 
 .botoes-acoes button:hover {
   background-color: rgba(255, 255, 255, 0.2);
@@ -860,7 +845,6 @@ main {
 /*  PÁGINA DO LIVRO - DESCRIÇÂO*/
 /* ===================================================== */
 
-
 .container-conteudo-branco-livro {
   background-color: white;
   margin-top: 40px;
@@ -873,7 +857,6 @@ main {
   overflow: hidden;
 }
 
-
 .titulo-sessao-livro {
   padding: 25px 40px 15px 40px;
   color: #000000;
@@ -883,7 +866,6 @@ main {
   border-bottom: 1px solid #d4d4d4;
   margin: 0;
 }
-
 
 .texto-livro {
   padding: 30px 40px 40px 40px;
@@ -926,7 +908,6 @@ main {
   background-color: rgba(40, 167, 69, 0.2);
   color: #4ade80;
   border: 1px solid #4ade80;
-
 }
 
 #livro-status.disponivel::before {
@@ -955,12 +936,12 @@ main {
 /* ===================================================== */
 
 .seta-carrossel {
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: transparent;
   color: white;
   border: none;
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
+  width: 40px;
+  height: 200px;
+  border-radius: 20px;
   cursor: pointer;
   transition: 0.3s;
   display: flex;
@@ -969,6 +950,9 @@ main {
   font-size: 20px;
   flex-shrink: 0;
   z-index: 10;
+  transition:
+    opacity 0.3s ease,
+    background-color 0.3s ease;
 }
 
 .seta-carrossel:hover {
@@ -978,14 +962,11 @@ main {
 
 .seta-carrossel.esquerda {
   margin-right: 30px;
-
 }
 
 .seta-carrossel.direita {
   margin-left: 30px;
-
 }
-
 
 .carousel-wrapper {
   position: relative;
@@ -993,7 +974,6 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
 }
 
 .esquerda {
@@ -1002,17 +982,6 @@ main {
 
 .direita {
   right: -25px;
-}
-
-
-@media (max-width: 768px) {
-  .seta-carrossel {
-    display: none;
-  }
-
-  .carousel-wrapper {
-    margin: 0 20px;
-  }
 }
 
 /* ===================================================== */
@@ -1169,14 +1138,13 @@ main {
 /* DARK MODE (Controlado pelo botão no JavaScript) */
 /* ===================================================== */
 
-
 body.dark {
-  background-color: #0d2a52; 
+  background-color: #0d2a52;
   color: #e0e6e5;
 }
 
 /* Escurecendo o azul principal (Header, Banner) */
-body.dark .banner-superior, 
+body.dark .banner-superior,
 body.dark .topo,
 body.dark .header-azul-lista {
   background-color: #0d2a52;
@@ -1185,7 +1153,7 @@ body.dark .header-azul-lista {
 /* Sidebar */
 body.dark .sidebar {
   background-color: #1e1e1e;
-  border-right: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   color: #e0e6e5;
   transition: background-color 0.3s ease;
 }
@@ -1214,7 +1182,7 @@ body.dark .container-conteudo-branco-prazo,
 body.dark .container-conteudo-branco-livro {
   background-color: #1e1e1e;
   color: #f5f5f5;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); 
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 /* Ajustando textos escuros para ficarem claros */
@@ -1247,7 +1215,7 @@ body.dark .texto-livro {
 body.dark .item-lista,
 body.dark .card-lista {
   background: #35353567;
-  border: 1px solid   #d4d4d479;
+  border: 1px solid #d4d4d479;
 }
 
 body.dark .info-lista h3 {
@@ -1266,7 +1234,7 @@ body.dark .modal-content {
 }
 
 body.dark .modal-content h3 {
-  color: #60a5fa; 
+  color: #60a5fa;
 }
 
 body.dark .modal-content input {
@@ -1285,25 +1253,23 @@ body.dark .btn-cancelar {
 }
 
 body.dark .btn-aba {
-    background: rgba(255, 255, 255, 0.05); 
-    border-color: #334155; 
-    color: #94a3b8; 
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #334155;
+  color: #94a3b8;
 }
-
 
 body.dark .btn-aba:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: #60a5fa; 
-    color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #60a5fa;
+  color: #fff;
 }
 
-
 body.dark .btn-aba.active {
-    background-color: 	#4F4F4F; 
-    border-color: #60a5fa;     
-    color: #ffffff;             
-    box-shadow: 0 0 15px rgba(96, 165, 250, 0.2); 
-    font-weight: bold;
+  background-color: #4f4f4f;
+  border-color: #60a5fa;
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(96, 165, 250, 0.2);
+  font-weight: bold;
 }
 
 /* ===================================================== */
@@ -1312,7 +1278,7 @@ body.dark .btn-aba.active {
 
 /* 1. Botão que abre o menu no celular/tablet */
 .menu-mobile {
-  display: none; 
+  display: none;
   position: fixed;
   top: 15px;
   left: 15px;
@@ -1324,7 +1290,7 @@ body.dark .btn-aba.active {
   border-radius: 8px;
   font-size: 22px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 /* 2. Classe que o JavaScript usará para mostrar a sidebar */
@@ -1334,8 +1300,8 @@ body.dark .btn-aba.active {
 
 /* 3. Ajustes para Telas Grandes (Monitores maiores que 15p) */
 @media (min-width: 1600px) {
-  .container-abas,  
-  .info-livro, 
+  .container-abas,
+  .info-livro,
   .container-conteudo-branco-livro {
     max-width: 1600px; /* Impede que o site espalhe demais */
     margin-left: auto !important;
@@ -1399,7 +1365,12 @@ body.dark .btn-aba.active {
   }
 
   /* Remove margens fixas que empurram o conteúdo para fora */
-  #descricao, #sugestoes, .titulo-secao-interna, .titulo-prazo, .minhalista, .busca {
+  #descricao,
+  #sugestoes,
+  .titulo-secao-interna,
+  .titulo-prazo,
+  .minhalista,
+  .busca {
     margin-left: 20px !important;
     margin-right: 20px !important;
     padding-left: 0 !important;
@@ -1411,7 +1382,7 @@ body.dark .btn-aba.active {
   .acoes-topo button span {
     display: none; /* Esconde textos como "Português", deixa só ícone */
   }
-  
+
   .busca input {
     font-size: 14px;
   }
@@ -1423,7 +1394,8 @@ body {
 }
 
 /* Permite cursor normal em inputs */
-input, textarea {
+input,
+textarea {
   caret-color: auto;
 }
 

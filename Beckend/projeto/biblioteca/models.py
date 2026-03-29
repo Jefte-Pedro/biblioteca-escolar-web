@@ -24,7 +24,12 @@ class Livro(models.Model):
         email = models.EmailField(unique=True)
         senha = models.CharField(max_length=100)
         telefone = models.CharField(max_length=20, unique=True)
-        tipo_usuario = models.CharField(aluno='Aluno', funcionario='Funcionário', exaluno='Ex-aluno', max_length=20)
+        
+        tipo_usuario = models.CharField(choices=[
+            ('aluno', 'Aluno'),
+            ('funcionario', 'Funcionário'),
+            ('exaluno', 'Ex-aluno')
+        ], max_length=20)
         observacoes = models.TextField()
 
         def __str__(self):
