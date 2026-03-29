@@ -23,4 +23,5 @@ urlpatterns = [
     path('api/', include(router.urls)),
 
     path('renovar/<int:pk>/', views.renovar_emprestimo, name='renovar_emprestimo'),
+    path('cancelar-reserva/<int:pk>/', views.cancelar_reserva, name='cancelar_reserva'),
 ]
