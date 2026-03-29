@@ -37,10 +37,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_beat',
 
     'rest_framework',
     'biblioteca'
 ]
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BEAT_SCHEDULE = {
+    'verificar-reservas-diaria' : {
+        'task': 'biblioteca.tasks.verificar_prazos_reservas',
+        'schedule': 86400.0,  # Executa a cada 24 horas (86400 segundos)
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -105,9 +114,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pt-br'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 
