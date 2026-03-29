@@ -21,4 +21,6 @@ urlpatterns = [
     path('recuperar-senha/', views.recuperar_senha, name='recuperar_senha'),
 
     path('api/', include(router.urls)),
+
+    path('renovar/<int:pk>/', views.renovar_emprestimo, name='renovar_emprestimo'),
 ]

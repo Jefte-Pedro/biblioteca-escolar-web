@@ -48,6 +48,7 @@ class Livro(models.Model):
         data_emprestimo = models.DateField(default=timezone.now)
         data_devolucao_prevista = models.DateField(default=timezone.now() + timedelta(days=15))
         data_devolucao_real = models.DateField(null=True, blank=True)
+        renovacoes_concluidas = models.IntegerField(default=0)
         observacoes = models.TextField(blank=True)
 
         def __str__(self):
