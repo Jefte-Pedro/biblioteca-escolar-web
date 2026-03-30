@@ -4,7 +4,7 @@
 
 {% block content %}
 
-    <section id="pag-prazos" class="conteudo-pag" style="display: none;">
+    <section id="pag-prazos" class="conteudo-pag {% if request.resolver_match.url_name == 'prazos' %}ativo{% endif %}">
         <h2 class="titulo-prazo">Meus Prazos</h2>
         <p class="descricao-prazo">Acompanhe as datas de devolução e Renovação.</p>
 

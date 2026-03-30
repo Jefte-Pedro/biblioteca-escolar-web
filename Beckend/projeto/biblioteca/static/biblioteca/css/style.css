@@ -521,7 +521,7 @@ main {
   color: white;
   padding: 35px 20px;
   text-align: center;
-  border-radius: 10px 10px 10px 10px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -533,7 +533,8 @@ main {
   display: flex;
   justify-content: center;
   gap: 20px;
-  font-size: 400px;
+  font-size: 
+  40px;
   text-align: left;
 }
 
@@ -542,9 +543,11 @@ main {
   border: 2px solid #e5e5e5;
   color: #e5e5e5;
   padding: 25px 90px;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   transition: 0.3s;
+  text-decoration: none; 
+  display: inline-block;
 }
 
 .btn-aba.active {
