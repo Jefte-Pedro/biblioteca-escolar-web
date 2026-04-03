@@ -137,6 +137,14 @@ main {
   border-radius: 10px;
 }
 
+.Adm p {
+  color: 	#696969;
+  font-size: 14px;
+  font-weight: normal;
+  padding-left: 10px;
+  margin: 8px;
+}
+
 /* ===================================================== */
 /* LOGO / ESCOLA */
 /* ===================================================== */
@@ -271,6 +279,7 @@ main {
   background-color: rgba(0, 0, 0, 0.5);
 }
 
+
 /* ===================================================== */
 /* BUSCA */
 /* ===================================================== */
@@ -285,8 +294,8 @@ main {
 }
 
 .busca {
-  margin: 40px 0 10px 0; /* remove laterais */
-  padding-left: 90px; /* igual ao título */
+  margin: 40px 0 10px 0; 
+  padding-left: 90px; 
   display: flex;
   align-items: center;
   position: relative;
@@ -303,7 +312,7 @@ main {
 }
 
 .busca input {
-  width: 800px; /* fixa ou usa max-width */
+  width: 800px;
   max-width: 100%;
   padding: 10px 10px 10px 45px;
   background-color: rgba(255, 255, 255, 0.1);
@@ -375,11 +384,12 @@ main {
   scroll-snap-align: start;
   flex-shrink: 0;
   transition: transform 0.3s ease;
+  color: #ffffffce;
 }
 
 .card-livro:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+  box-shadow: 10px 20px 32px rgba(0, 0, 0, 0.15);
 }
 
 .capa-livro {
@@ -521,7 +531,7 @@ main {
   color: white;
   padding: 35px 20px;
   text-align: center;
-  border-radius: 10px;
+  border-radius: 10px 10px 10px 10px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -533,8 +543,7 @@ main {
   display: flex;
   justify-content: center;
   gap: 20px;
-  font-size: 
-  40px;
+  font-size: 40px;
   text-align: left;
 }
 
@@ -543,11 +552,9 @@ main {
   border: 2px solid #e5e5e5;
   color: #e5e5e5;
   padding: 25px 90px;
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
   transition: 0.3s;
-  text-decoration: none; 
-  display: inline-block;
 }
 
 .btn-aba.active {
@@ -608,6 +615,15 @@ main {
 }
 
 .descricao-prazo {
+  color: white;
+  margin: 0px 0px 50px 0px;
+  padding-left: 80px;
+  font-weight: 500;
+  font-size: 25px;
+  text-align: left;
+}
+
+.descricao-cad-livro {
   color: white;
   margin: 0px 0px 50px 0px;
   padding-left: 80px;
@@ -725,7 +741,7 @@ main {
 }
 
 #livro-editora:empty,
-#livro-editora:empty + .divisor {
+#livro-editora:empty+.divisor {
   display: none;
 }
 
@@ -1136,6 +1152,63 @@ main {
 }
 
 /* ===================================================== */
+/* PAGINA DE CADASTRO DE LIVRO */
+/* ===================================================== */
+#form-cadastro-livro {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 40px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.campo label {
+  font-size: 18px;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+/* Inputs */
+#form-cadastro-livro input {
+  padding: 10px;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: 0.2s;
+}
+ 
+#form-cadastro-livro input:focus {
+  border-color: #1c5db1;
+  box-shadow: 0 0 5px rgba(28, 93, 177, 0.3);
+  outline: none;
+}
+
+
+.btn-confirmar-cad-livro {
+  display: block;
+  margin-left: auto;
+  margin-right: 0;
+
+  background-color: #1c5db1;
+  color: white;
+  border: none;
+  padding: 16px 35px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+  margin-top: 20px;
+}
+
+.btn-confirmar-cad-livro:hover {
+  background-color: #174a8c;
+}
+
+/* ===================================================== */
 /* DARK MODE (Controlado pelo botão no JavaScript) */
 /* ===================================================== */
 
@@ -1192,6 +1265,7 @@ body.dark #conteudo-dinamico-lista,
 body.dark #conteudo-dinamico-reservados,
 body.dark #conteudo-dinamico-lidos,
 body.dark #conteudo-dinamico-prazo,
+body.dark .campo label,
 body.dark .minhalista,
 body.dark .botao-lista {
   color: #f5f5f5;
@@ -1301,10 +1375,12 @@ body.dark .btn-aba.active {
 
 /* 3. Ajustes para Telas Grandes (Monitores maiores que 15p) */
 @media (min-width: 1600px) {
+
   .container-abas,
   .info-livro,
   .container-conteudo-branco-livro {
-    max-width: 1600px; /* Impede que o site espalhe demais */
+    max-width: 1600px;
+    /* Impede que o site espalhe demais */
     margin-left: auto !important;
     margin-right: auto !important;
   }
@@ -1313,11 +1389,13 @@ body.dark .btn-aba.active {
 /* 4. Ajustes para Tablets e Celulares */
 @media (max-width: 1024px) {
   .menu-mobile {
-    display: block; /* Mostra o botão hambúrguer */
+    display: block;
+    /* Mostra o botão hambúrguer */
   }
 
   .sidebar {
-    left: -260px; /* Esconde a sidebar para a esquerda */
+    left: -260px;
+    /* Esconde a sidebar para a esquerda */
     transition: 0.3s ease;
   }
 
@@ -1327,7 +1405,8 @@ body.dark .btn-aba.active {
   }
 
   .topo {
-    padding-left: 70px; /* Abre espaço para o botão do menu */
+    padding-left: 70px;
+    /* Abre espaço para o botão do menu */
     justify-content: flex-end;
   }
 
@@ -1362,7 +1441,8 @@ body.dark .btn-aba.active {
 
   .btn-aba {
     padding: 15px 20px;
-    width: 100%; /* Abas viram botões largos no celular */
+    width: 100%;
+    /* Abas viram botões largos no celular */
   }
 
   /* Remove margens fixas que empurram o conteúdo para fora */
@@ -1381,7 +1461,8 @@ body.dark .btn-aba.active {
 /* 5. Pequenos ajustes para celulares finos */
 @media (max-width: 480px) {
   .acoes-topo button span {
-    display: none; /* Esconde textos como "Português", deixa só ícone */
+    display: none;
+    /* Esconde textos como "Português", deixa só ícone */
   }
 
   .busca input {

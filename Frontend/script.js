@@ -165,7 +165,7 @@ function mostrarPagina(idPagina) {
     if (paginaAtual && paginaAtual !== idPagina) {
         localStorage.setItem("paginaAnterior", paginaAtual);
     }
-
+    
     localStorage.setItem("paginaAtual", idPagina);
 
     // Esconde todas as páginas

@@ -16,6 +16,7 @@ urlpatterns = [
     path('acervo/lidos/', views.lidos, name='lidos'),
 
     path('prazos/', views.prazos, name='prazos'),
+    path('cadastrar-livro/', views.cadastrar_livro, name='cadastrar-livro'),
 
     path('login/', views.login, name='login'),
     path('cadastro/', views.cadastro, name='cadastro'),

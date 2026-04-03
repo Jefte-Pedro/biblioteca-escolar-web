@@ -27,6 +27,9 @@ def reservados(request):
 def prazos(request):
     return render(request, 'biblioteca/prazo.html')
 
+def cadastrar_livro(request):
+    return render(request, 'biblioteca/cad-livro.html')
+
 def login(request):
     return render(request, 'biblioteca/Login.html')
 
