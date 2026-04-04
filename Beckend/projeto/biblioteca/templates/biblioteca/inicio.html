@@ -18,10 +18,9 @@
         </div>
 
         <section class="secao-branca">
-
-            <button class="botao-lista" onclick="mostrarPagina('pag-lista')">
+            <a href="{% url 'minha_lista' %}" class="botao-lista {% if aba == 'lista' %}active{% endif %}">
                 Minha Lista <i class="fa-solid fa-angle-right"></i>
-            </button>
+            </a>
 
             <p id="descricao">
                 Escolha livros que deseja ler e armazene em sua lista para acessar rapidamente quando

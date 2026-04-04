@@ -22,67 +22,57 @@
                 <img src="{% static 'biblioteca/img/IMG-BIBLIOTECA.png' %}" alt="Logo">
                 <h2 id="nav-biblioteca">Biblioteca</h2>
             </div>
-
+        
             <div class="nav-Esc">
                 <h2>EREM Dr. Jaime Monteiro</h2>
             </div>
+        
+            <a href="{% url 'inicio' %}"
+                class="btn-sidebar {% if request.resolver_match.url_name == 'inicio' %}ativo{% endif %}">
+                <i class="fa-solid fa-house"></i>
+                <span id="nav-inicio">Início</span>
+            </a>
+        
+            <a href="{% url 'minha_lista' %}"
+                class="btn-sidebar {% if request.resolver_match.url_name == 'minha_lista' %}ativo{% endif %}">
+                <i class="fa-regular fa-heart"></i>
+                <span id="nav-lista">Minha Lista</span>
+            </a>
+        
+            <a href="{% url 'reservados' %}"
+                class="btn-sidebar {% if request.resolver_match.url_name == 'reservados' %}ativo{% endif %}">
+                <i class="fa-regular fa-bookmark"></i>
+                <span id="nav-reservados">Livros Reservados</span>
+            </a>
+        
+            <a href="{% url 'lidos' %}" class="btn-sidebar {% if request.resolver_match.url_name == 'lidos' %}ativo{% endif %}">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span id="nav-lidos">Livros Lidos</span>
+            </a>
+        
+            <a href="{% url 'prazos' %}"
+                class="btn-sidebar {% if request.resolver_match.url_name == 'prazos' %}ativo{% endif %}">
+                <i class="fa-regular fa-calendar-check"></i>
+                <span id="nav-prazos">Meus Prazos</span>
+            </a>
 
-            <div class="nav-pgn-inical">
-                <a href="{% url 'inicio' %}" class="btn-nav"> 
-                    <button class="{% if request.resolver_match.url_name == 'inicio' %}ativo{% endif %}">
-                        <i class="fa-solid fa-house"></i>
-                        <span id="nav-inicio">Início</span>
-                    </button>
-                </a>
-            </div>
-
-            <div class="nav-lista">
-                <a href="{% url 'minha_lista' %}">
-                    <button class="{% if request.resolver_match.url_name == 'minha_lista' %}ativo{% endif %}">
-                        <i class="fa-regular fa-heart"></i>
-                        <span id="nav-lista">Minha Lista</span>
-                    </button>
-                </a>
-            </div>
-
-            <div class="nav-reservado">
-                <a href="{% url 'reservados' %}">
-                    <button class="{% if request.resolver_match.url_name == 'reservados' %}ativo{% endif %}">
-                        <i class="fa-regular fa-bookmark"></i>
-                        <span id="nav-reservados">Livros Reservados</span>
-                    </button>
-                </a>
-            </div>
-
-            <div class="nav-lido">
-                <a href="{% url 'lidos' %}">
-                    <button class="{% if request.resolver_match.url_name == 'lidos' %}ativo{% endif %}">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                        <span id="nav-lidos">Livros Lidos</span>
-                    </button>
-                </a>
-            </div>
-
-            <div class="nav-prazo">
-                <a href="{% url 'prazos' %}">
-                    <button class="{% if request.resolver_match.url_name == 'prazos' %}ativo{% endif %}">
-                        <i class="fa-regular fa-calendar-check"></i>
-                        <span id="nav-prazos">Meus Prazos</span>
-                    </button>
-                </a>
-            </div>
+        {# TODO: adicionar % if request.user.is_staff % quando o sistema de login estiver pronto #}
 
             <div class="Adm">
                 <p>Área da Bibliotecaria</p>
-                <div class="nav-cad-livro">
-                    <a href="{% url 'cadastrar-livro' %}"> 
-                    <button button onclick="mostrarPagina('pag-cad-livro', this)">
-                        <i class="fa-solid fa-book"></i>
-                        <span id="nav-cadastro">Cadastro de livros</span>
-                    </button>
-                    </a> 
-                </div>
+                <a href="{% url 'cadastrar-livro' %}"
+                    class="btn-sidebar {% if request.resolver_match.url_name == 'cadastrar-livro' %}ativo{% endif %}">
+                    <i class="fa-solid fa-book"></i>
+                    <span id="nav-cadastro">Cadastro de livros</span>
+                </a>
+
+                <a href="{% url 'emprestimos' %}"
+                    class="btn-sidebar {% if request.resolver_match.url_name == 'emprestimos' %}ativo{% endif %}">
+                    <i class="fa-solid fa-handshake"></i>
+                    <span id="nav-emprestimos">Empréstimos</span>
+                </a>
             </div>
+            {# TODO: fechar % endif % aqui #}
         </nav>
 
         <main>

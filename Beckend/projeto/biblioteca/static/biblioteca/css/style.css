@@ -96,6 +96,8 @@ main {
   overflow-y: auto;
   z-index: 1000;
   transition: left 0.3s ease;
+  overflow-anchor: none;
+  scroll-behavior: auto !important;
 }
 
 .sidebar i {
@@ -105,27 +107,39 @@ main {
   text-align: center;
 }
 
-.sidebar button {
+.btn-sidebar {
   width: 100%;
-  background: none;
-  border: none;
-  text-align: left;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
   padding: 14px;
-  cursor: pointer;
   font-size: 16px;
-}
-
-.sidebar button:hover {
-  background-color: #e5e5e5;
   border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-left: 4px solid transparent;
 }
 
-.sidebar button.ativo {
+.btn-sidebar i {
+  font-size: 18px;
+  margin-right: 10px;
+  width: 20px;
+  text-align: center;
+}
+
+.btn-sidebar:hover {
+  background-color: #e5e5e5;
+}
+
+.btn-sidebar.ativo {
   border-left: 4px solid #1c5db1;
   font-weight: bold;
   background-color: #e5e5e5;
   color: #050505;
-  border-radius: 8px;
+
+  scroll-margin-top: 0;
+  scroll-margin-bottom: 0;
 }
 
 .sidebar::-webkit-scrollbar {
@@ -138,13 +152,23 @@ main {
 }
 
 .Adm p {
-  color: 	#696969;
+  color: #696969;
   font-size: 14px;
   font-weight: normal;
   padding-left: 10px;
   margin: 8px;
 }
+.Adm .btn-sidebar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
 
+/* Impede que o .Adm empurre ou quebre o layout ao ativar */
+.Adm {
+  display: flex;
+  flex-direction: column;
+}
 /* ===================================================== */
 /* LOGO / ESCOLA */
 /* ===================================================== */
@@ -279,7 +303,6 @@ main {
   background-color: rgba(0, 0, 0, 0.5);
 }
 
-
 /* ===================================================== */
 /* BUSCA */
 /* ===================================================== */
@@ -294,8 +317,8 @@ main {
 }
 
 .busca {
-  margin: 40px 0 10px 0; 
-  padding-left: 90px; 
+  margin: 40px 0 10px 0;
+  padding-left: 90px;
   display: flex;
   align-items: center;
   position: relative;
@@ -499,26 +522,33 @@ main {
 }
 
 /* ===================================================== */
-/* BOTÃO LISTA */
+/* BOTÃO LISTA  DA TELA DE INICIO */
 /* ===================================================== */
 
 .botao-lista {
+  text-decoration: none;
   background: none;
   border: none;
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 2px solid transparent;
   font-size: 30px;
   font-weight: 500;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
   color: #222;
-  padding: 40px 0px 10px 100px;
-  padding-left: 100;
+  padding: 30px 0px 5px 0px;
   margin-top: 100px;
+  margin-left: 100px;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
 }
 
 .botao-lista:hover {
   color: #535151;
+  border-bottom: 2px solid #535151;
 }
 
 /* ===================================================== */
@@ -741,7 +771,7 @@ main {
 }
 
 #livro-editora:empty,
-#livro-editora:empty+.divisor {
+#livro-editora:empty + .divisor {
   display: none;
 }
 
@@ -1165,7 +1195,6 @@ main {
   flex-direction: column;
 }
 
-
 .campo label {
   font-size: 18px;
   margin-bottom: 5px;
@@ -1180,13 +1209,12 @@ main {
   font-size: 14px;
   transition: 0.2s;
 }
- 
+
 #form-cadastro-livro input:focus {
   border-color: #1c5db1;
   box-shadow: 0 0 5px rgba(28, 93, 177, 0.3);
   outline: none;
 }
-
 
 .btn-confirmar-cad-livro {
   display: block;
@@ -1232,21 +1260,20 @@ body.dark .sidebar {
   transition: background-color 0.3s ease;
 }
 
-body.dark .sidebar button {
+body.dark .btn-sidebar {
   color: #e0e6e5;
 }
 
-body.dark .sidebar button:hover {
+body.dark .btn-sidebar:hover {
   background-color: #2a2a2a;
 }
 
-body.dark .sidebar button.ativo {
+body.dark .btn-sidebar.ativo {
   background-color: #2a2a2a;
   color: #ffffff;
   border-left: 4px solid #113669;
 }
 
-/* Seções e containers que antes eram brancos/cinzas */
 body.dark .secao-branca {
   background-color: #121212;
 }
@@ -1375,7 +1402,6 @@ body.dark .btn-aba.active {
 
 /* 3. Ajustes para Telas Grandes (Monitores maiores que 15p) */
 @media (min-width: 1600px) {
-
   .container-abas,
   .info-livro,
   .container-conteudo-branco-livro {

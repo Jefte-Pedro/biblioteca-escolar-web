@@ -30,6 +30,9 @@ def prazos(request):
 def cadastrar_livro(request):
     return render(request, 'biblioteca/cad-livro.html')
 
+def emprestimos(request):
+    return render(request, 'biblioteca/emp-livro.html')
+
 def login(request):
     return render(request, 'biblioteca/Login.html')
 
