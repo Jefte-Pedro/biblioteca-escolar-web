@@ -662,6 +662,11 @@ main {
   text-align: left;
 }
 
+.msg-vazia {
+  margin: 10px;
+  font-size: 20px;
+  color: #000000;
+}
 /* ===================================================== */
 /* CONTEÚDO DINÂMICO */
 /* ===================================================== */
@@ -669,7 +674,8 @@ main {
 #conteudo-dinamico-lista,
 #conteudo-dinamico-reservados,
 #conteudo-dinamico-lidos,
-#conteudo-dinamico-prazo {
+#conteudo-dinamico-prazo,
+#conteudo-dinamico-emprestimo {
   font-size: 22px !important;
   color: #000000;
   text-align: left;
@@ -1208,6 +1214,7 @@ main {
   border-radius: 8px;
   font-size: 14px;
   transition: 0.2s;
+  background: #ffffffaf;
 }
 
 #form-cadastro-livro input:focus {
@@ -1217,25 +1224,79 @@ main {
 }
 
 .btn-confirmar-cad-livro {
-  display: block;
-  margin-left: auto;
-  margin-right: 0;
+  grid-column: 1 / -1;
+  justify-self: end;
 
   background-color: #1c5db1;
   color: white;
   border: none;
-  padding: 16px 35px;
+  padding: 20px 35px;
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
   transition: 0.2s;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .btn-confirmar-cad-livro:hover {
   background-color: #174a8c;
 }
 
+/* ===== BOLINHAS DE STATUS ===== */
+.bolinha {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 15px;
+}
+
+.bolinha-verde {
+  background-color: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
+}
+
+.bolinha-vermelha {
+  background-color: #ff6b6b;
+  box-shadow: 0 0 8px rgba(255, 107, 107, 0.7);
+}
+
+/* ===== TAGS ===== */
+.tag-renovado {
+  display: inline-block;
+  background-color: #dbeafe;
+  color: #1c5db1;
+  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: 20px;
+  margin-top: 4px;
+  font-weight: bold;
+}
+
+.tag-atrasado {
+  display: inline-block;
+  background-color: #fee2e2;
+  color: #dc2626;
+  font-size: 12px;
+  padding: 2px 10px;
+  border-radius: 20px;
+  margin-top: 4px;
+  font-weight: bold;
+}
+
+/* ===== BOTÃO DEVOLVER ===== */
+.btn-devolver {
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-devolver:hover {
+  background: #15803d;
+}
 /* ===================================================== */
 /* DARK MODE (Controlado pelo botão no JavaScript) */
 /* ===================================================== */
@@ -1292,7 +1353,9 @@ body.dark #conteudo-dinamico-lista,
 body.dark #conteudo-dinamico-reservados,
 body.dark #conteudo-dinamico-lidos,
 body.dark #conteudo-dinamico-prazo,
+body.dark #conteudo-dinamico-emprestimo,
 body.dark .campo label,
+body.dark .msg-vazia,
 body.dark .minhalista,
 body.dark .botao-lista {
   color: #f5f5f5;

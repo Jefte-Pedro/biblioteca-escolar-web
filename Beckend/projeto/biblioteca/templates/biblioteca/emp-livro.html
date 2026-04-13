@@ -4,36 +4,79 @@
 {% block content %}
 
 <section class="conteudo-pag ativo">
-    <div id="pag-cad-livro">
+    <div id="pag-emprestimos">
         <h2 class="titulo-cadastro">Empréstimos de Livros</h2>
-        <p class="descricao-cad-livro">Acompanhe todos os livros emprestados no momento.</p>
+        <p class="descricao-cad-livro">Empreste livros e monitore devoluções em tempo real.</p>
 
         <div class="container-conteudo-branco">
-            <table class="tabela-emprestimos">
-                <thead>
-                    <tr>
-                        <th>Título do Livro</th>
-                        <th>Nome do Leitor</th>
-                        <th>Data de Empréstimo</th>
-                        <th>Data de Devolução</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Exemplo de linha de empréstimo -->
-                    <tr>
-                        <td>O Senhor dos Anéis</td>
-                        <td>João Silva</td>
-                        <td>01/06/2024</td>
-                        <td>15/06/2024</td>
-                    </tr>
-                    <!-- Adicione mais linhas conforme necessário -->
-                </tbody>
-            </table>
 
+            <button id="btn-abrir-modal-emp" class="btn-suaLista" style="float: none; margin-bottom: 30px;">
+                <i class="fa-solid fa-plus"></i> Emprestar Livro
+            </button>
+
+            <div id="conteudo-dinamico-emprestimo">
+                {% for emp in emprestimos %}
+                <div class="card-lista" id="emp-{{ emp.pk }}">
+                    <span
+                        class="bolinha {% if emp.esta_atrasado %}bolinha-vermelha{% else %}bolinha-verde{% endif %}"></span>
+                    <div class="info-lista" style="flex-grow: 1;">
+                        <h3>{{ emp.livro.titulo }}</h3>
+                        <span class="qtd-livros">
+                            {{ emp.nome_aluno }} · {{ emp.turma }} · {{ emp.codigo_catalografico }}
+                        </span>
+                        <span class="qtd-livros">
+                            Empréstimo: {{ emp.data_emprestimo }} · Devolução prevista: {{ emp.data_devolucao_prevista
+                            }}
+                        </span>
+                        {% if emp.foi_renovado %}
+                        <span class="tag-renovado">Renovado ({{ emp.renovacoes_concluidas }}x)</span>
+                        {% endif %}
+                        {% if emp.observacoes %}
+                        <span class="qtd-livros">Obs: {{ emp.observacoes }}</span>
+                        {% endif %}
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn-add-livro" onclick="renovarEmprestimo({{ emp.pk }})">
+                            <i class="fa-solid fa-rotate-right"></i> Renovar
+                        </button>
+                        <button class="btn-devolver" onclick="devolverEmprestimo({{ emp.pk }})">
+                            <i class="fa-solid fa-check"></i> Devolver
+                        </button>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="msg-vazia" id="msg-sem-emprestimos">Nenhum empréstimo ativo no momento.</p>
+                {% endfor %}
+            </div>
         </div>
-
     </div>
 </section>
 
+<!-- MODAL EMPRESTAR -->
+<div id="modal-emprestimo" class="modal">
+    <div class="modal-content" style="max-width: 520px;">
+        <h3>Novo Empréstimo</h3>
+
+        <input type="text" id="emp-titulo" placeholder="Título do livro *">
+        <input type="text" id="emp-codigo" placeholder="Código catalográfico (ex: V1, V2) *">
+        <input type="text" id="emp-nome" placeholder="Nome completo do aluno *">
+        <input type="text" id="emp-turma" placeholder="Turma *">
+
+        <label style="text-align:left; display:block; margin-bottom:4px; color:#555;">Data do empréstimo *</label>
+        <input type="date" id="emp-data-emp">
+
+        <label style="text-align:left; display:block; margin-bottom:4px; color:#555;">
+            Data de devolução <span style="font-size:12px; color:#888;">(opcional — padrão: 15 dias)</span>
+        </label>
+        <input type="date" id="emp-data-dev">
+
+        <input type="text" id="emp-obs" placeholder="Observações (opcional)">
+
+        <div class="modal-buttons">
+            <button onclick="fecharModalEmp()" class="btn-cancelar">Cancelar</button>
+            <button id="btn-confirmar-emp" class="btn-confirmar">Confirmar Empréstimo</button>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

@@ -34,7 +34,6 @@ class Usuario(models.Model):
         
     tipo_usuario = models.CharField(choices=[
         ('aluno', 'Aluno'),
-        ('funcionario', 'Funcionário'),
         ('exaluno', 'Ex-aluno')
     ], max_length=20)
     observacoes = models.TextField()
@@ -43,23 +42,31 @@ class Usuario(models.Model):
         return self.nome
         
 class Emprestimo(models.Model):
-    # As chave estrangeiras para Livro e Usuario, 
-    # com on_delete=models.CASCADE para garantir que 
-    # os empréstimos sejam excluídos se o livro ou usuário 
-    # for removido.
     livro = models.ForeignKey('Livro', on_delete=models.CASCADE)
     usuario = models.ForeignKey('Usuario', on_delete=models.CASCADE)
-    # Datas dos empréstimos, com data_emprestimo padrão 
-    # para a data atual e data_devolucao para 15 dias depois
-    # e para quando foi realmente devolvido.
+    codigo_catalografico = models.CharField(max_length=50)
+    nome_aluno = models.CharField(max_length=100)
+    turma = models.CharField(max_length=50)
     data_emprestimo = models.DateField(default=timezone.now)
-    data_devolucao_prevista = models.DateField(default=timezone.now() + timedelta(days=15))
+    data_devolucao_prevista = models.DateField(blank=True, null=True)
     data_devolucao_real = models.DateField(null=True, blank=True)
     renovacoes_concluidas = models.IntegerField(default=0)
+    foi_renovado = models.BooleanField(default=False)
     observacoes = models.TextField(blank=True)
 
     def __str__(self):
-        return f"{self.usuario.nome} - {self.livro.titulo}"
+        return f"{self.nome_aluno} - {self.livro.titulo}"
+
+    def esta_atrasado(self):
+        if self.data_devolucao_real:
+            return False
+        return timezone.now().date() > self.data_devolucao_prevista
+
+    def save(self, *args, **kwargs):
+        # Se não tiver data de devolução, soma 15 dias automaticamente
+        if not self.data_devolucao_prevista:
+            self.data_devolucao_prevista = self.data_emprestimo + timedelta(days=15)
+        super().save(*args, **kwargs)
         
 class Reserva(models.Model):
     livro = models.ForeignKey('Livro', on_delete=models.CASCADE)
@@ -72,3 +79,11 @@ class Reserva(models.Model):
 
     def __str__(self):
         return f"Reserva:{self.livro.titulo} para {self.usuario.nome}"
+    
+class Lista(models.Model):
+    usuario = models.ForeignKey('Usuario', on_delete=models.CASCADE)
+    nome = models.CharField(max_length=200)
+    criada_em = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.nome

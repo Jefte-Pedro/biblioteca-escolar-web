@@ -1,18 +1,37 @@
-{% extends "biblioteca/base.html" %} {% load static %}
+{% extends "biblioteca/base.html" %}
+{% load static %}
 
 {% block content %}
 
-    <section id="pag-prazos" class="conteudo-pag {% if request.resolver_match.url_name == 'prazos' %}ativo{% endif %}">
-        <h2 class="titulo-prazo">Meus Prazos</h2>
-        <p class="descricao-prazo">Acompanhe as datas de devolução e Renovação.</p>
+<section id="pag-prazos" class="conteudo-pag ativo">
+    <h2 class="titulo-prazo">Meus Prazos</h2>
+    <p class="descricao-prazo">Acompanhe as datas de devolução e renovação dos seus livros.</p>
 
-        <div class="container-conteudo-branco-prazo">
-            <div id="conteudo-dinamico-prazo">
-                <p class="msg-vazia-prazo">Acompanhe aqui as datas de devolução e Renovação dos seus livros.
-                </p>
-
+    <div class="container-conteudo-branco-prazo">
+        <div id="conteudo-dinamico-prazo">
+            {% for emp in emprestimos %}
+            <div class="card-lista">
+                <span
+                    class="bolinha {% if emp.esta_atrasado %}bolinha-vermelha{% else %}bolinha-verde{% endif %}"></span>
+                <div class="info-lista" style="flex-grow: 1;">
+                    <h3>{{ emp.livro.titulo }}</h3>
+                    <span class="qtd-livros">{{ emp.codigo_catalografico }} · {{ emp.turma }}</span>
+                    <span class="qtd-livros">
+                        Empréstimo: {{ emp.data_emprestimo }} · Devolução prevista: {{ emp.data_devolucao_prevista }}
+                    </span>
+                    {% if emp.esta_atrasado %}
+                    <span class="tag-atrasado">Em atraso</span>
+                    {% endif %}
+                    {% if emp.foi_renovado %}
+                    <span class="tag-renovado">Renovado ({{ emp.renovacoes_concluidas }}x)</span>
+                    {% endif %}
+                </div>
             </div>
+            {% empty %}
+            <p class="msg-vazia">Você não tem empréstimos ativos no momento.</p>
+            {% endfor %}
         </div>
-    </section>
+    </div>
+</section>
 
 {% endblock %}

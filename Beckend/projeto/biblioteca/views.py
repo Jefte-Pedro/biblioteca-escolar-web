@@ -7,6 +7,12 @@ from django.http import JsonResponse
 from .models import Emprestimo
 from .models import Reserva
 from django.utils import timezone
+import json
+from django.views.decorators.http import require_POST
+from .models import Lista
+from .models import Usuario
+
+
 # Cria as views.
 class LivroViewset(viewsets.ModelViewSet):
     queryset = Livro.objects.all()
@@ -16,7 +22,29 @@ def inicio(request):
     return render(request, 'biblioteca/inicio.html')
 
 def lista(request):
-    return render(request, 'biblioteca/acervo.html', { 'aba': 'lista' })
+    usuario = Usuario.objects.first()
+    listas = Lista.objects.filter(usuario=usuario) if usuario else []
+    return render(request, 'biblioteca/acervo.html', {
+        'aba': 'lista',
+        'listas': listas
+    })
+
+@require_POST
+def criar_lista(request):
+    data = json.loads(request.body)
+    nome = data.get('nome', '').strip()
+
+    if not nome:
+        return JsonResponse({'erro': 'Nome não pode ser vazio.'}, status=400)
+
+    usuario = Usuario.objects.first()
+    nova_lista = Lista.objects.create(usuario=usuario, nome=nome)
+
+    return JsonResponse({
+        'id': nova_lista.id,
+        'nome': nova_lista.nome,
+        'qtd_livros': 0
+    })
 
 def lidos(request):
     return render(request, 'biblioteca/acervo.html', { 'aba': 'lidos' })
@@ -25,13 +53,78 @@ def reservados(request):
     return render(request, 'biblioteca/acervo.html', { 'aba': 'reservados' })
 
 def prazos(request):
-    return render(request, 'biblioteca/prazo.html')
+    usuario = Usuario.objects.first()
+    emprestimos_usuario = Emprestimo.objects.filter(
+        usuario=usuario,
+        data_devolucao_real__isnull=True
+    ) if usuario else []
+    return render(request, 'biblioteca/prazo.html', {
+        'emprestimos': emprestimos_usuario
+    })
 
 def cadastrar_livro(request):
     return render(request, 'biblioteca/cad-livro.html')
 
 def emprestimos(request):
-    return render(request, 'biblioteca/emp-livro.html')
+    emprestimos_ativos = Emprestimo.objects.filter(data_devolucao_real__isnull=True)
+    return render(request, 'biblioteca/emp-livro.html', {
+        'emprestimos': emprestimos_ativos
+    })
+
+@require_POST
+def criar_emprestimo(request):
+    data = json.loads(request.body)
+
+    titulo = data.get('titulo', '').strip()
+    codigo = data.get('codigo_catalografico', '').strip()
+    nome_aluno = data.get('nome_aluno', '').strip()
+    turma = data.get('turma', '').strip()
+    data_emp = data.get('data_emprestimo', '').strip()
+    data_dev = data.get('data_devolucao_prevista', '').strip()
+
+    if not all([titulo, codigo, nome_aluno, turma, data_emp]):
+        return JsonResponse({'erro': 'Preencha todos os campos obrigatórios.'}, status=400)
+
+    livro = Livro.objects.filter(titulo__icontains=titulo).first()
+    if not livro:
+        return JsonResponse({'erro': 'Livro não encontrado.'}, status=404)
+
+    usuario = Usuario.objects.first()
+
+    from datetime import date
+    data_emprestimo = date.fromisoformat(data_emp)
+    data_devolucao = date.fromisoformat(data_dev) if data_dev else None
+
+    emp = Emprestimo.objects.create(
+        livro=livro,
+        usuario=usuario,
+        codigo_catalografico=codigo,
+        nome_aluno=nome_aluno,
+        turma=turma,
+        data_emprestimo=data_emprestimo,
+        data_devolucao_prevista=data_devolucao,
+        observacoes=data.get('observacoes', '')
+    )
+
+    return JsonResponse({
+        'id': emp.pk,
+        'titulo': livro.titulo,
+        'codigo_catalografico': emp.codigo_catalografico,
+        'nome_aluno': emp.nome_aluno,
+        'turma': emp.turma,
+        'data_emprestimo': str(emp.data_emprestimo),
+        'data_devolucao_prevista': str(emp.data_devolucao_prevista),
+        'atrasado': emp.esta_atrasado(),
+        'foi_renovado': emp.foi_renovado,
+        'observacoes': emp.observacoes,
+    })
+
+@require_POST
+def devolver_emprestimo(request, pk):
+    emprestimo = get_object_or_404(Emprestimo, pk=pk)
+    emprestimo.data_devolucao_real = timezone.now().date()
+    emprestimo.save()
+    return JsonResponse({'sucesso': 'Livro devolvido com sucesso.'})
 
 def login(request):
     return render(request, 'biblioteca/Login.html')
@@ -42,43 +135,42 @@ def cadastro(request):
 def recuperar_senha(request):
     return render(request, 'biblioteca/Login.html')
 
-def renovar_emprestimo(request, pk): # Busca o empréstimo pelo ID
+@require_POST
+def renovar_emprestimo(request, pk):
     emprestimo = get_object_or_404(Emprestimo, pk=pk)
     hoje = timezone.now().date()
-    if emprestimo.data_devolucao_prevista < hoje: # Verifica se o empréstimo está atrasado
+    if emprestimo.data_devolucao_prevista < hoje:
         return JsonResponse({
             "Erro": "Não é possível renovar um empréstimo atrasado",
             "status": "Erro"
         }, status=400)
-    if emprestimo.renovacoes_concluidas >= 3: # Verifica se o empréstimo já foi renovado 3 vezes
+    if emprestimo.renovacoes_concluidas >= 3:
         return JsonResponse({
             "Erro": "Limite de renovações atingido para este empréstimo",
             "status": "Erro"
         }, status=400)
-    # Se após isso, o empréstimo ainda for elegível para renovação, atualiza a data de devolução prevista
-    emprestimo.data_devolucao_prevista += timezone.timedelta(days=15) # Atualiza a data somando 15 dias ao prazo que já existia
-    # Salva a alteração no mesmo registro (mantém o mesmo ID)
+    emprestimo.data_devolucao_prevista += timezone.timedelta(days=15)
     emprestimo.renovacoes_concluidas += 1
-    # Para adicionar uma renovação no emprestimo, caso bata 3, o sistema não permitirá mais renovações para aquele empréstimo.
+    emprestimo.foi_renovado = True
     emprestimo.save()
-    # Retorna uma resposta JSON indicando sucesso
     return JsonResponse({
         "sucesso": f"Renovado com sucesso. A nova data é: {emprestimo.data_devolucao_prevista}",
+        "nova_data": str(emprestimo.data_devolucao_prevista),
         "status": "Sucesso"
     })
 
 def cancelar_reserva(request, pk):
-    get_object_or_404(Reserva, pk=pk) #Busca a reserva pelo ID, se não encontrar, retorna 404
-    if Reserva.usuario != request.user: # Verifica se a reserva pertence ao usuário logado
+    get_object_or_404(Reserva, pk=pk)
+    if Reserva.usuario != request.user:
         return JsonResponse({
             "Erro": "Você não tem permissão para cancelar esta reserva",
             "status": "Erro"
         }, status=403)
-    if Reserva.status != 'pendente': # Verifica se a reserva ainda está pendente
+    if Reserva.status != 'pendente':
         return JsonResponse({
             "Erro": "Esta reserva não pode ser mais ser cancelada",
         }, status=400)
-    Reserva.status = 'cancelada' # Se a reserva for válida para cancelamento, exclui o registro
+    Reserva.status = 'cancelada'
     Reserva.save()
     return JsonResponse({
         "sucesso": "Reserva cancelada com sucesso",

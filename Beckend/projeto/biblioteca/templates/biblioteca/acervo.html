@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<section class="conteudo-pag {% if aba == 'lista' %}ativo{% endif %}"> 
+<section class="conteudo-pag {% if aba == 'lista' %}ativo{% endif %}">
     <div class="header-azul-lista">
         <h2 class="titulo-secao-interna">Seu acervo</h2>
         <p class="descricao-acervo">Gerencie suas leituras e reservas em um só lugar.</p>
@@ -16,14 +16,30 @@
     </div>
 
     <div class="container-conteudo-branco">
-        <p id="conteudo-dinamico-lidos" class="msg-vazia" style="margin-bottom: 20px;">
-            Aqui aparecerão os livros que você salvou na sua lista.
+        <div id="#conteudo-dinamico-lista"> 
+        <p class="msg-vazia" >
+            Aqui aparecerão suas listas e os livros guardado nelas
         </p>
-        
+        </div>
+
         <button id="btn-abrir-modal" class="btn-suaLista" style="float: none; margin-bottom: 30px;">
             <i class="fa-solid fa-plus"></i> Crie sua Lista
         </button>
-        <div id="conteudo-dinamico-lista"></div>
+
+        <div>
+            {% for lista in listas %}
+            <div class="card-lista">
+                <div class="info-lista" style="cursor:pointer; flex-grow: 1;">
+                    <h3>{{ lista.nome }}</h3>
+                    <span class="qtd-livros">0 livros</span>
+                </div>
+                <button class="btn-add-livro" onclick="event.stopPropagation();">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+            {% empty %}
+            {% endfor %}
+        </div>
     </div>
 
     <div id="modal-lista" class="modal">
@@ -61,7 +77,7 @@
 
 
 <section id="pag-lidos" class="conteudo-pag {% if aba == 'lidos' %}ativo{% endif %}">
-    
+
 
     <div class="header-azul-lista">
         <h2 class="titulo-secao-interna">Seu acervo</h2>

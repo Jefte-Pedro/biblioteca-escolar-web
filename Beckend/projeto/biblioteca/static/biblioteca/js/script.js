@@ -331,3 +331,205 @@ function iniciarAutoPlay() {
     }
   }, tempoEspera);
 }
+
+/* ===== MODAL DE LISTA ===== */
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+const btnAbrirModal = document.getElementById('btn-abrir-modal');
+const btnConfirmarLista = document.getElementById('btn-confirmar-lista');
+const inputNomeLista = document.getElementById('input-nome-lista');
+const containerListas = document.getElementById('conteudo-dinamico-lista');
+
+if (btnAbrirModal) {
+    btnAbrirModal.onclick = () => {
+        document.getElementById('modal-lista').style.display = 'block';
+        inputNomeLista.focus();
+    };
+}
+
+function fecharModal() {
+    document.getElementById('modal-lista').style.display = 'none';
+    inputNomeLista.value = '';
+}
+
+if (btnConfirmarLista) {
+    btnConfirmarLista.onclick = async () => {
+        const nome = inputNomeLista.value.trim();
+        if (!nome) { alert("Digite um nome para a lista."); return; }
+
+        const response = await fetch('/acervo/lista/criar/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({ nome: nome })
+        });
+
+        if (response.ok) {
+            const lista = await response.json();
+            fecharModal();
+
+            // Remove o "Você ainda não tem listas." se existir
+            const msgVazia = document.getElementById('msg-sem-listas');
+            if (msgVazia) msgVazia.remove();
+
+            const div = document.createElement('div');
+            div.className = 'card-lista';
+            div.innerHTML = `
+                <div class="info-lista" style="cursor:pointer; flex-grow: 1;">
+                    <h3>${lista.nome}</h3>
+                    <span class="qtd-livros">${lista.qtd_livros} livros</span>
+                </div>
+                <button class="btn-add-livro" onclick="event.stopPropagation();">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            `;
+            containerListas.appendChild(div);
+        } else {
+            alert("Erro ao criar lista.");
+        }
+    };
+}
+
+/* ===== MODAL EMPRÉSTIMO ===== */
+
+const btnAbrirModalEmp = document.getElementById('btn-abrir-modal-emp');
+
+if (btnAbrirModalEmp) {
+    btnAbrirModalEmp.onclick = () => {
+        // Preenche a data de hoje automaticamente
+        const hoje = new Date().toISOString().split('T')[0];
+        document.getElementById('emp-data-emp').value = hoje;
+        document.getElementById('modal-emprestimo').style.display = 'block';
+    };
+}
+
+function fecharModalEmp() {
+    document.getElementById('modal-emprestimo').style.display = 'none';
+    ['emp-titulo','emp-codigo','emp-nome','emp-turma',
+     'emp-data-emp','emp-data-dev','emp-obs'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+}
+
+const btnConfirmarEmp = document.getElementById('btn-confirmar-emp');
+if (btnConfirmarEmp) {
+    btnConfirmarEmp.onclick = async () => {
+        const payload = {
+            titulo: document.getElementById('emp-titulo').value.trim(),
+            codigo_catalografico: document.getElementById('emp-codigo').value.trim(),
+            nome_aluno: document.getElementById('emp-nome').value.trim(),
+            turma: document.getElementById('emp-turma').value.trim(),
+            data_emprestimo: document.getElementById('emp-data-emp').value,
+            data_devolucao_prevista: document.getElementById('emp-data-dev').value,
+            observacoes: document.getElementById('emp-obs').value.trim(),
+        };
+
+        if (!payload.titulo || !payload.codigo_catalografico ||
+            !payload.nome_aluno || !payload.turma || !payload.data_emprestimo) {
+            alert('Preencha todos os campos obrigatórios.');
+            return;
+        }
+
+        const response = await fetch('/emprestimos/criar/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            const emp = await response.json();
+            fecharModalEmp();
+
+            const msgVazia = document.getElementById('msg-sem-emprestimos');
+            if (msgVazia) msgVazia.remove();
+
+            const container = document.getElementById('conteudo-dinamico-emprestimo');
+            const div = document.createElement('div');
+            div.className = 'card-lista';
+            div.id = `emp-${emp.id}`;
+            div.innerHTML = `
+                <span class="bolinha ${emp.atrasado ? 'bolinha-vermelha' : 'bolinha-verde'}"></span>
+                <div class="info-lista" style="flex-grow:1;">
+                    <h3>${emp.titulo}</h3>
+                    <span class="qtd-livros">${emp.nome_aluno} · ${emp.turma} · ${emp.codigo_catalografico}</span>
+                    <span class="qtd-livros">Empréstimo: ${emp.data_emprestimo} · Devolução prevista: ${emp.data_devolucao_prevista}</span>
+                    ${emp.observacoes ? `<span class="qtd-livros">Obs: ${emp.observacoes}</span>` : ''}
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-add-livro" onclick="renovarEmprestimo(${emp.id})">
+                        <i class="fa-solid fa-rotate-right"></i> Renovar
+                    </button>
+                    <button class="btn-devolver" onclick="devolverEmprestimo(${emp.id})">
+                        <i class="fa-solid fa-check"></i> Devolver
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+        } else {
+            const err = await response.json();
+            alert(err.erro || 'Erro ao criar empréstimo.');
+        }
+    };
+}
+
+async function renovarEmprestimo(pk) {
+    if (!confirm('Confirmar renovação deste empréstimo?')) return;
+
+    const response = await fetch(`/emprestimos/renovar/${pk}/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        const card = document.getElementById(`emp-${pk}`);
+        if (card) {
+            // Atualiza a data exibida
+            const spans = card.querySelectorAll('.qtd-livros');
+            spans.forEach(s => {
+                if (s.textContent.includes('Devolução prevista')) {
+                    s.textContent = s.textContent.replace(
+                        /Devolução prevista: [\d-]+/,
+                        `Devolução prevista: ${data.nova_data}`
+                    );
+                }
+            });
+            // Adiciona tag renovado se não existir
+            if (!card.querySelector('.tag-renovado')) {
+                const tag = document.createElement('span');
+                tag.className = 'tag-renovado';
+                tag.textContent = 'Renovado';
+                card.querySelector('.info-lista').appendChild(tag);
+            }
+        }
+    } else {
+        const err = await response.json();
+        alert(err.Erro || 'Erro ao renovar.');
+    }
+}
+
+async function devolverEmprestimo(pk) {
+    if (!confirm('Confirmar devolução? O card será removido.')) return;
+
+    const response = await fetch(`/emprestimos/devolver/${pk}/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    });
+
+    if (response.ok) {
+        const card = document.getElementById(`emp-${pk}`);
+        if (card) card.remove();
+    } else {
+        alert('Erro ao registrar devolução.');
+    }
+}
