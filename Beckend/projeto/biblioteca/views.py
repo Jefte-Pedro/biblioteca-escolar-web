@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from .models import Livro
 from .serializers import LivroSerializer
 from django.shortcuts import get_object_or_404
@@ -11,6 +11,7 @@ import json
 from django.views.decorators.http import require_POST
 from .models import Lista
 from .models import Usuario
+
 
 
 # Cria as views.
@@ -181,3 +182,17 @@ def detalhes_livro(request, livro_id):
     livro = get_object_or_404(Livro, id=livro_id)
     disponivel = livro.esta_disponivel()
     return render(request, 'biblioteca/detalhes_livro.html', {'livro': livro, 'disponivel': disponivel})
+
+
+
+class LivroViewset(viewsets.ModelViewSet):
+    queryset = Livro.objects.all()
+    serializer_class = LivroSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['titulo', 'autor']  # busca por título ou autor
+
+@require_POST
+def deletar_lista(request, pk):
+    lista = get_object_or_404(Lista, pk=pk)
+    lista.delete()
+    return JsonResponse({'sucesso': 'Lista deletada.'})

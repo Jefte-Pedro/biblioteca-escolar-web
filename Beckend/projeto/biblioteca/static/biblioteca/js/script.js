@@ -57,6 +57,14 @@ if (botaoTema) {
   });
 }
 
+/* ===== UTILITÁRIO: CSRF ===== */
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+}
+
 /* ===== CARREGAR HTML ===== */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -75,19 +83,16 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".btn-sidebar").forEach((link) => {
     link.addEventListener("click", function (e) {
       if (this.classList.contains("ativo")) return;
-
       e.preventDefault();
       const destino = this.href;
-
       mainEl.style.opacity = "0";
-
       setTimeout(() => {
         window.location.href = destino;
       }, 250);
     });
   });
 
-  /* ===== SIDEBAR - SCROLL E RESPONSIVA (UNIFICADO) ===== */
+  /* ===== SIDEBAR - SCROLL E RESPONSIVA ===== */
 
   const sidebar = document.querySelector(".sidebar");
   const menuBtn = document.getElementById("menu-toggle");
@@ -199,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const btnAumentar = document.getElementById("aumentar-fonte");
   const btnDiminuir = document.getElementById("diminuir-fonte");
-  let tamanhoFonte = localStorage.getItem("fonte") || 16;
+  let tamanhoFonte = parseInt(localStorage.getItem("fonte")) || 16;
 
   document.documentElement.style.fontSize = tamanhoFonte + "px";
 
@@ -229,22 +234,21 @@ document.addEventListener("DOMContentLoaded", () => {
     abaAtiva.style.display = "block";
   }
 
-  /* ===== CARROSSEL - SETAS ===== */
+  /* ===== CARROSSEL - INICIALIZAÇÃO ===== */
 
-  const lista = document.getElementById("lista-livros");
-  if (lista) {
-    lista.addEventListener("scroll", gerenciarEstadoDasSetas);
+  const listaCarrossel = document.getElementById("lista-livros");
+  if (listaCarrossel) {
+    listaCarrossel.addEventListener("scroll", gerenciarEstadoDasSetas);
     gerenciarEstadoDasSetas();
-    iniciarAutoPlay();
 
-    lista.addEventListener(
+    listaCarrossel.addEventListener(
       "touchstart",
       () => {
         pararTudo();
       },
       { passive: true },
     );
-    lista.addEventListener(
+    listaCarrossel.addEventListener(
       "touchend",
       () => {
         clearTimeout(inatividadeTimer);
@@ -253,14 +257,182 @@ document.addEventListener("DOMContentLoaded", () => {
       { passive: true },
     );
 
-    lista.addEventListener("mouseenter", pararTudo);
-    lista.addEventListener("mouseleave", () => {
+    listaCarrossel.addEventListener("mouseenter", pararTudo);
+    listaCarrossel.addEventListener("mouseleave", () => {
       if (!inatividadeTimer) {
         inatividadeTimer = setTimeout(iniciarAutoPlay, 2000);
       }
     });
+
+    // Carrega os livros do banco ao abrir a página inicial
+    carregarLivros();
   }
-}); // <- fecha o DOMContentLoaded corretamente
+
+  /* ===== BUSCA DE LIVROS ===== */
+
+  const inputBusca = document.getElementById("busca-texto");
+  if (inputBusca) {
+    let timerBusca;
+    inputBusca.addEventListener("input", () => {
+      clearTimeout(timerBusca);
+      timerBusca = setTimeout(() => {
+        const termo = inputBusca.value.trim();
+        if (termo.length === 0) {
+          // Se apagou tudo, volta ao carrossel normal
+          carregarLivros();
+        } else {
+          buscarLivros(termo);
+        }
+      }, 400); // espera 400ms depois que o usuário para de digitar
+    });
+  }
+
+  /* ===== MODAL DE LISTA ===== */
+
+  const btnAbrirModal = document.getElementById("btn-abrir-modal");
+  const btnConfirmarLista = document.getElementById("btn-confirmar-lista");
+  const inputNomeLista = document.getElementById("input-nome-lista");
+  const containerListas = document.getElementById("conteudo-dinamico-lista");
+
+  if (btnAbrirModal) {
+    btnAbrirModal.onclick = () => {
+      document.getElementById("modal-lista").style.display = "block";
+      inputNomeLista.focus();
+    };
+  }
+
+  if (btnConfirmarLista) {
+    btnConfirmarLista.onclick = async () => {
+      const nome = inputNomeLista.value.trim();
+      if (!nome) {
+        alert("Digite um nome para a lista.");
+        return;
+      }
+
+      const response = await fetch("/acervo/lista/criar/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify({ nome }),
+      });
+
+      if (response.ok) {
+        const lista = await response.json();
+        fecharModal();
+
+        // Remove mensagem de lista vazia se existir
+        const msgVazia = document.getElementById("msg-sem-listas");
+        if (msgVazia) msgVazia.remove();
+
+        const div = document.createElement("div");
+        div.className = "card-lista";
+        div.dataset.listaId = lista.id;
+        div.innerHTML = `
+          <div class="info-lista" style="cursor:pointer; flex-grow: 1;">
+            <h3>${lista.nome}</h3>
+            <span class="qtd-livros">${lista.qtd_livros} livros</span>
+          </div>
+          <button class="btn-add-livro" onclick="event.stopPropagation();">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+          <button class="btn-deletar-lista" onclick="deletarLista(${lista.id}, this)" style="margin-left:8px;">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        `;
+        containerListas.appendChild(div);
+      } else {
+        alert("Erro ao criar lista.");
+      }
+    };
+  }
+
+  /* ===== MODAL EMPRÉSTIMO ===== */
+
+  const btnAbrirModalEmp = document.getElementById("btn-abrir-modal-emp");
+
+  if (btnAbrirModalEmp) {
+    btnAbrirModalEmp.onclick = () => {
+      const hoje = new Date().toISOString().split("T")[0];
+      document.getElementById("emp-data-emp").value = hoje;
+      document.getElementById("modal-emprestimo").style.display = "block";
+    };
+  }
+
+  const btnConfirmarEmp = document.getElementById("btn-confirmar-emp");
+  if (btnConfirmarEmp) {
+    btnConfirmarEmp.onclick = async () => {
+      const payload = {
+        titulo: document.getElementById("emp-titulo").value.trim(),
+        codigo_catalografico: document
+          .getElementById("emp-codigo")
+          .value.trim(),
+        nome_aluno: document.getElementById("emp-nome").value.trim(),
+        turma: document.getElementById("emp-turma").value.trim(),
+        data_emprestimo: document.getElementById("emp-data-emp").value,
+        data_devolucao_prevista: document.getElementById("emp-data-dev").value,
+        observacoes: document.getElementById("emp-obs").value.trim(),
+      };
+
+      if (
+        !payload.titulo ||
+        !payload.codigo_catalografico ||
+        !payload.nome_aluno ||
+        !payload.turma ||
+        !payload.data_emprestimo
+      ) {
+        alert("Preencha todos os campos obrigatórios.");
+        return;
+      }
+
+      const response = await fetch("/emprestimos/criar/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const emp = await response.json();
+        fecharModalEmp();
+
+        const msgVazia = document.getElementById("msg-sem-emprestimos");
+        if (msgVazia) msgVazia.remove();
+
+        const container = document.getElementById(
+          "conteudo-dinamico-emprestimo",
+        );
+        const div = document.createElement("div");
+        div.className = "card-lista";
+        div.id = `emp-${emp.id}`;
+        div.innerHTML = `
+          <span class="bolinha ${emp.atrasado ? "bolinha-vermelha" : "bolinha-verde"}"></span>
+          <div class="info-lista" style="flex-grow:1;">
+            <h3>${emp.titulo}</h3>
+            <span class="qtd-livros">${emp.nome_aluno} · ${emp.turma} · ${emp.codigo_catalografico}</span>
+            <span class="qtd-livros">Empréstimo: ${emp.data_emprestimo} · Devolução prevista: ${emp.data_devolucao_prevista}</span>
+            ${emp.observacoes ? `<span class="qtd-livros">Obs: ${emp.observacoes}</span>` : ""}
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-add-livro" onclick="renovarEmprestimo(${emp.id})">
+              <i class="fa-solid fa-rotate-right"></i> Renovar
+            </button>
+            <button class="btn-devolver" onclick="devolverEmprestimo(${emp.id})">
+              <i class="fa-solid fa-check"></i> Devolver
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      } else {
+        const err = await response.json();
+        alert(err.erro || "Erro ao criar empréstimo.");
+      }
+    };
+  }
+}); // <- fecha o DOMContentLoaded
 
 /* ===== CARROSSEL ===== */
 
@@ -332,204 +504,252 @@ function iniciarAutoPlay() {
   }, tempoEspera);
 }
 
-/* ===== MODAL DE LISTA ===== */
+/* ===== LIVROS - CARREGAR E BUSCAR ===== */
 
-function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
+async function carregarLivros() {
+  const lista = document.getElementById("lista-livros");
+  if (!lista) return;
+
+  lista.innerHTML = '<p style="padding:20px;">Carregando livros...</p>';
+
+  try {
+    const response = await fetch("/api/livros/");
+    if (!response.ok) throw new Error("Erro ao buscar livros");
+
+    const livros = await response.json();
+
+    // Embaralha para aparecer aleatório
+    livros.sort(() => Math.random() - 0.5);
+
+    lista.innerHTML = "";
+
+    if (livros.length === 0) {
+      lista.innerHTML =
+        '<p style="padding:20px;">Nenhum livro cadastrado ainda.</p>';
+      return;
+    }
+
+    livros.forEach((livro) => {
+      const card = criarCardLivro(livro);
+      lista.appendChild(card);
+    });
+
+    gerenciarEstadoDasSetas();
+    iniciarAutoPlay();
+  } catch (err) {
+    lista.innerHTML =
+      '<p style="padding:20px; color:red;">Erro ao carregar livros.</p>';
+    console.error(err);
+  }
 }
 
-const btnAbrirModal = document.getElementById('btn-abrir-modal');
-const btnConfirmarLista = document.getElementById('btn-confirmar-lista');
-const inputNomeLista = document.getElementById('input-nome-lista');
-const containerListas = document.getElementById('conteudo-dinamico-lista');
+async function buscarLivros(termo) {
+  const lista = document.getElementById("lista-livros");
+  if (!lista) return;
 
-if (btnAbrirModal) {
-    btnAbrirModal.onclick = () => {
-        document.getElementById('modal-lista').style.display = 'block';
-        inputNomeLista.focus();
-    };
+  pararTudo(); // para o autoplay durante a busca
+  lista.innerHTML = '<p style="padding:20px;">Buscando...</p>';
+
+  try {
+    const response = await fetch(
+      `/api/livros/?search=${encodeURIComponent(termo)}`,
+    );
+    if (!response.ok) throw new Error("Erro na busca");
+
+    const livros = await response.json();
+
+    lista.innerHTML = "";
+
+    if (livros.length === 0) {
+      lista.innerHTML = '<p style="padding:20px;">Nenhum livro encontrado.</p>';
+      return;
+    }
+
+    livros.forEach((livro) => {
+      const card = criarCardLivro(livro);
+      lista.appendChild(card);
+    });
+
+    gerenciarEstadoDasSetas();
+  } catch (err) {
+    lista.innerHTML =
+      '<p style="padding:20px; color:red;">Erro ao buscar livros.</p>';
+    console.error(err);
+  }
 }
+
+function criarCardLivro(livro) {
+  const card = document.createElement("div");
+  card.className = "card-livro";
+  card.style.cursor = "pointer";
+  card.innerHTML = `
+    <img src="${livro.capa || ""}" alt="${livro.titulo}" onerror="this.style.display='none'">
+    <p>${livro.titulo}</p>
+    <span>${livro.autor}</span>
+  `;
+  card.addEventListener("click", () => abrirLivro(livro.id));
+  return card;
+}
+
+/* ===== PÁGINA DO LIVRO ===== */
+
+async function abrirLivro(id) {
+  const pagina = document.getElementById("pag-livro");
+  if (!pagina) return;
+
+  // Mostra a página e exibe loading
+  pagina.style.display = "block";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  try {
+    const response = await fetch(`/api/livros/${id}/`);
+    if (!response.ok) throw new Error("Livro não encontrado");
+
+    const livro = await response.json();
+
+    // Preenche todos os campos do template
+    document.getElementById("livro-titulo").textContent = livro.titulo;
+    document.getElementById("livro-autor").textContent = livro.autor;
+    document.getElementById("livro-genero").textContent = livro.genero;
+    document.getElementById("livro-editora").textContent = livro.editora;
+    document.getElementById("livro-sinopse").textContent = livro.sinopse;
+    document.getElementById("livro-prateleira").textContent =
+      `Prateleira: ${livro.endereco_prateleira}`;
+    document.getElementById("livro-unidades").textContent =
+      `Unidades disponíveis: ${livro.quantidade}`;
+    document.getElementById("livro-codigo").textContent =
+      `Edição: ${livro.edicao}`;
+
+    const capa = document.getElementById("livro-capa");
+    if (livro.capa) {
+      capa.src = livro.capa;
+      capa.style.display = "block";
+    } else {
+      capa.style.display = "none";
+    }
+
+    // Status disponível / indisponível
+    const statusEl = document.getElementById("livro-status");
+    if (statusEl) {
+      statusEl.textContent = livro.disponivel
+        ? "✓ Disponível"
+        : "✗ Indisponível";
+      statusEl.style.color = livro.disponivel ? "green" : "red";
+    }
+
+    // Limpa status de emprestado
+    const statusEmp = document.getElementById("livro-status-Emprestado");
+    if (statusEmp) {
+      statusEmp.textContent = livro.disponivel
+        ? ""
+        : "Este livro está emprestado no momento.";
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao carregar detalhes do livro.");
+    pagina.style.display = "none";
+  }
+}
+
+function voltarPagina() {
+  const pagina = document.getElementById("pag-livro");
+  if (pagina) pagina.style.display = "none";
+}
+
+/* ===== MODAL DE LISTA - FECHAR ===== */
 
 function fecharModal() {
-    document.getElementById('modal-lista').style.display = 'none';
-    inputNomeLista.value = '';
+  const modal = document.getElementById("modal-lista");
+  const input = document.getElementById("input-nome-lista");
+  if (modal) modal.style.display = "none";
+  if (input) input.value = "";
 }
 
-if (btnConfirmarLista) {
-    btnConfirmarLista.onclick = async () => {
-        const nome = inputNomeLista.value.trim();
-        if (!nome) { alert("Digite um nome para a lista."); return; }
+/* ===== DELETAR LISTA ===== */
 
-        const response = await fetch('/acervo/lista/criar/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken'),
-            },
-            body: JSON.stringify({ nome: nome })
-        });
+async function deletarLista(id, btn) {
+  if (!confirm("Tem certeza que deseja deletar esta lista?")) return;
 
-        if (response.ok) {
-            const lista = await response.json();
-            fecharModal();
+  const response = await fetch(`/acervo/lista/deletar/${id}/`, {
+    method: "POST",
+    headers: { "X-CSRFToken": getCookie("csrftoken") },
+  });
 
-            // Remove o "Você ainda não tem listas." se existir
-            const msgVazia = document.getElementById('msg-sem-listas');
-            if (msgVazia) msgVazia.remove();
-
-            const div = document.createElement('div');
-            div.className = 'card-lista';
-            div.innerHTML = `
-                <div class="info-lista" style="cursor:pointer; flex-grow: 1;">
-                    <h3>${lista.nome}</h3>
-                    <span class="qtd-livros">${lista.qtd_livros} livros</span>
-                </div>
-                <button class="btn-add-livro" onclick="event.stopPropagation();">
-                    <i class="fa-solid fa-plus"></i>
-                </button>
-            `;
-            containerListas.appendChild(div);
-        } else {
-            alert("Erro ao criar lista.");
-        }
-    };
+  if (response.ok) {
+    // Remove o card da lista da tela
+    const card = btn.closest(".card-lista");
+    if (card) card.remove();
+  } else {
+    alert("Erro ao deletar lista.");
+  }
 }
 
-/* ===== MODAL EMPRÉSTIMO ===== */
-
-const btnAbrirModalEmp = document.getElementById('btn-abrir-modal-emp');
-
-if (btnAbrirModalEmp) {
-    btnAbrirModalEmp.onclick = () => {
-        // Preenche a data de hoje automaticamente
-        const hoje = new Date().toISOString().split('T')[0];
-        document.getElementById('emp-data-emp').value = hoje;
-        document.getElementById('modal-emprestimo').style.display = 'block';
-    };
-}
+/* ===== MODAL EMPRÉSTIMO - FECHAR ===== */
 
 function fecharModalEmp() {
-    document.getElementById('modal-emprestimo').style.display = 'none';
-    ['emp-titulo','emp-codigo','emp-nome','emp-turma',
-     'emp-data-emp','emp-data-dev','emp-obs'].forEach(id => {
-        document.getElementById(id).value = '';
-    });
+  const modal = document.getElementById("modal-emprestimo");
+  if (modal) modal.style.display = "none";
+  [
+    "emp-titulo",
+    "emp-codigo",
+    "emp-nome",
+    "emp-turma",
+    "emp-data-emp",
+    "emp-data-dev",
+    "emp-obs",
+  ].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
 }
 
-const btnConfirmarEmp = document.getElementById('btn-confirmar-emp');
-if (btnConfirmarEmp) {
-    btnConfirmarEmp.onclick = async () => {
-        const payload = {
-            titulo: document.getElementById('emp-titulo').value.trim(),
-            codigo_catalografico: document.getElementById('emp-codigo').value.trim(),
-            nome_aluno: document.getElementById('emp-nome').value.trim(),
-            turma: document.getElementById('emp-turma').value.trim(),
-            data_emprestimo: document.getElementById('emp-data-emp').value,
-            data_devolucao_prevista: document.getElementById('emp-data-dev').value,
-            observacoes: document.getElementById('emp-obs').value.trim(),
-        };
-
-        if (!payload.titulo || !payload.codigo_catalografico ||
-            !payload.nome_aluno || !payload.turma || !payload.data_emprestimo) {
-            alert('Preencha todos os campos obrigatórios.');
-            return;
-        }
-
-        const response = await fetch('/emprestimos/criar/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken'),
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-            const emp = await response.json();
-            fecharModalEmp();
-
-            const msgVazia = document.getElementById('msg-sem-emprestimos');
-            if (msgVazia) msgVazia.remove();
-
-            const container = document.getElementById('conteudo-dinamico-emprestimo');
-            const div = document.createElement('div');
-            div.className = 'card-lista';
-            div.id = `emp-${emp.id}`;
-            div.innerHTML = `
-                <span class="bolinha ${emp.atrasado ? 'bolinha-vermelha' : 'bolinha-verde'}"></span>
-                <div class="info-lista" style="flex-grow:1;">
-                    <h3>${emp.titulo}</h3>
-                    <span class="qtd-livros">${emp.nome_aluno} · ${emp.turma} · ${emp.codigo_catalografico}</span>
-                    <span class="qtd-livros">Empréstimo: ${emp.data_emprestimo} · Devolução prevista: ${emp.data_devolucao_prevista}</span>
-                    ${emp.observacoes ? `<span class="qtd-livros">Obs: ${emp.observacoes}</span>` : ''}
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-add-livro" onclick="renovarEmprestimo(${emp.id})">
-                        <i class="fa-solid fa-rotate-right"></i> Renovar
-                    </button>
-                    <button class="btn-devolver" onclick="devolverEmprestimo(${emp.id})">
-                        <i class="fa-solid fa-check"></i> Devolver
-                    </button>
-                </div>
-            `;
-            container.appendChild(div);
-        } else {
-            const err = await response.json();
-            alert(err.erro || 'Erro ao criar empréstimo.');
-        }
-    };
-}
+/* ===== EMPRÉSTIMOS - RENOVAR E DEVOLVER ===== */
 
 async function renovarEmprestimo(pk) {
-    if (!confirm('Confirmar renovação deste empréstimo?')) return;
+  if (!confirm("Confirmar renovação deste empréstimo?")) return;
 
-    const response = await fetch(`/emprestimos/renovar/${pk}/`, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': getCookie('csrftoken') }
-    });
+  const response = await fetch(`/emprestimos/renovar/${pk}/`, {
+    method: "POST",
+    headers: { "X-CSRFToken": getCookie("csrftoken") },
+  });
 
-    if (response.ok) {
-        const data = await response.json();
-        const card = document.getElementById(`emp-${pk}`);
-        if (card) {
-            // Atualiza a data exibida
-            const spans = card.querySelectorAll('.qtd-livros');
-            spans.forEach(s => {
-                if (s.textContent.includes('Devolução prevista')) {
-                    s.textContent = s.textContent.replace(
-                        /Devolução prevista: [\d-]+/,
-                        `Devolução prevista: ${data.nova_data}`
-                    );
-                }
-            });
-            // Adiciona tag renovado se não existir
-            if (!card.querySelector('.tag-renovado')) {
-                const tag = document.createElement('span');
-                tag.className = 'tag-renovado';
-                tag.textContent = 'Renovado';
-                card.querySelector('.info-lista').appendChild(tag);
-            }
+  if (response.ok) {
+    const data = await response.json();
+    const card = document.getElementById(`emp-${pk}`);
+    if (card) {
+      card.querySelectorAll(".qtd-livros").forEach((s) => {
+        if (s.textContent.includes("Devolução prevista")) {
+          s.textContent = s.textContent.replace(
+            /Devolução prevista: [\d-]+/,
+            `Devolução prevista: ${data.nova_data}`,
+          );
         }
-    } else {
-        const err = await response.json();
-        alert(err.Erro || 'Erro ao renovar.');
+      });
+      if (!card.querySelector(".tag-renovado")) {
+        const tag = document.createElement("span");
+        tag.className = "tag-renovado";
+        tag.textContent = "Renovado";
+        card.querySelector(".info-lista").appendChild(tag);
+      }
     }
+  } else {
+    const err = await response.json();
+    alert(err.Erro || "Erro ao renovar.");
+  }
 }
 
 async function devolverEmprestimo(pk) {
-    if (!confirm('Confirmar devolução? O card será removido.')) return;
+  if (!confirm("Confirmar devolução? O card será removido.")) return;
 
-    const response = await fetch(`/emprestimos/devolver/${pk}/`, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': getCookie('csrftoken') }
-    });
+  const response = await fetch(`/emprestimos/devolver/${pk}/`, {
+    method: "POST",
+    headers: { "X-CSRFToken": getCookie("csrftoken") },
+  });
 
-    if (response.ok) {
-        const card = document.getElementById(`emp-${pk}`);
-        if (card) card.remove();
-    } else {
-        alert('Erro ao registrar devolução.');
-    }
+  if (response.ok) {
+    const card = document.getElementById(`emp-${pk}`);
+    if (card) card.remove();
+  } else {
+    alert("Erro ao registrar devolução.");
+  }
 }

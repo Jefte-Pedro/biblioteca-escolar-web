@@ -55,14 +55,29 @@
 <!-- MODAL EMPRESTAR -->
 <div id="modal-emprestimo" class="modal">
     <div class="modal-content" style="max-width: 520px;">
-        <h3>Novo Empréstimo</h3>
+        <h3 class="titulo-model-emprestimo">Novo Empréstimo</h3>
 
-        <input type="text" id="emp-titulo" placeholder="Título do livro *">
-        <input type="text" id="emp-codigo" placeholder="Código catalográfico (ex: V1, V2) *">
-        <input type="text" id="emp-nome" placeholder="Nome completo do aluno *">
-        <input type="text" id="emp-turma" placeholder="Turma *">
-
-        <label style="text-align:left; display:block; margin-bottom:4px; color:#555;">Data do empréstimo *</label>
+        <label class="label-campo">
+            Título do livro <span class="obrigatorio">*</span>
+        </label>
+        <input type="text" id="emp-titulo" placeholder="Digite o título">
+        
+        <label class="label-campo">
+            Código catalográfico <span class="obrigatorio">*</span>
+        </label>
+        <input type="text" id="emp-codigo" placeholder="Ex: A0001/V1">
+        
+        <label class="label-campo">
+            Nome completo do aluno <span class="obrigatorio">*</span>
+        </label>
+        <input type="text" id="emp-nome" placeholder="Digite o nome Completo">
+        
+        <label class="label-campo">
+            Turma <span class="obrigatorio">*</span>
+        </label>
+        <input type="text" id="emp-turma" placeholder="Ex: 3º A">
+        
+        <label style="text-align:left; display:block; margin-bottom:4px; color:#555;font-size: 16px; font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">Data do empréstimo <span class="obrigatorio">*</span></label>
         <input type="date" id="emp-data-emp">
 
         <label style="text-align:left; display:block; margin-bottom:4px; color:#555;">
