@@ -165,22 +165,52 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnAumentar = document.getElementById("aumentar-fonte");
   const btnDiminuir = document.getElementById("diminuir-fonte");
   let tamanhoFonte = parseInt(localStorage.getItem("fonte")) || 16;
+  const FONTE_PADRAO = 16;
+  const FONTE_MIN = 12;
+  const FONTE_MAX = 24;
 
-  document.documentElement.style.fontSize = tamanhoFonte + "px";
+  function aplicarFonte(tamanho) {
+    // Aplica como porcentagem no html — afeta TUDO que usa rem/em
+    // E sobrescreve px via variável CSS — afeta elementos com px fixo
+    const escala = tamanho / FONTE_PADRAO;
+    document.documentElement.style.fontSize = tamanho + "px";
+    document.documentElement.style.setProperty("--escala-fonte", escala);
+  }
+
+  function atualizarEstadoBotoesFonte() {
+    const isPadrao = tamanhoFonte === FONTE_PADRAO;
+    if (btnAumentar) {
+      btnAumentar.classList.toggle("fonte-alterada", !isPadrao);
+      btnAumentar.classList.toggle("fonte-padrao", isPadrao);
+      btnAumentar.disabled = tamanhoFonte >= FONTE_MAX;
+    }
+    if (btnDiminuir) {
+      btnDiminuir.classList.toggle("fonte-alterada", !isPadrao);
+      btnDiminuir.classList.toggle("fonte-padrao", isPadrao);
+      btnDiminuir.disabled = tamanhoFonte <= FONTE_MIN;
+    }
+  }
+
+  aplicarFonte(tamanhoFonte);
+  atualizarEstadoBotoesFonte();
 
   if (btnAumentar) {
     btnAumentar.addEventListener("click", () => {
+      if (tamanhoFonte >= FONTE_MAX) return;
       tamanhoFonte++;
-      document.documentElement.style.fontSize = tamanhoFonte + "px";
       localStorage.setItem("fonte", tamanhoFonte);
+      aplicarFonte(tamanhoFonte);
+      atualizarEstadoBotoesFonte();
     });
   }
 
   if (btnDiminuir) {
     btnDiminuir.addEventListener("click", () => {
+      if (tamanhoFonte <= FONTE_MIN) return;
       tamanhoFonte--;
-      document.documentElement.style.fontSize = tamanhoFonte + "px";
       localStorage.setItem("fonte", tamanhoFonte);
+      aplicarFonte(tamanhoFonte);
+      atualizarEstadoBotoesFonte();
     });
   }
 

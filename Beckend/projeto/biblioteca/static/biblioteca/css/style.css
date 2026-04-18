@@ -1328,6 +1328,22 @@ main {
 .btn-devolver:hover {
   background: #15803d;
 }
+
+/* ===== FONTE - ESTADO DOS BOTÕES ===== */
+
+#aumentar-fonte.fonte-padrao,
+#diminuir-fonte.fonte-padrao {
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  font-weight: bold;
+}
+
+#aumentar-fonte.fonte-alterada,
+#diminuir-fonte.fonte-alterada {
+  color: #ffd700 !important;
+  border: 1px solid #ffd700 !important;
+}
+
 /* ===================================================== */
 /* DARK MODE (Controlado pelo botão no JavaScript) */
 /* ===================================================== */
