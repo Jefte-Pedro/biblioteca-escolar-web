@@ -1123,14 +1123,8 @@ main {
   position: fixed;
   z-index: 2000;
   inset: 0;
-
   background-color: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(2px);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
   overflow-y: auto;
   padding: 20px;
 }
@@ -1144,6 +1138,12 @@ main {
   box-shadow: 0 5px 20px #1c5db1;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+.modal.aberto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .titulo-model-emprestimo {

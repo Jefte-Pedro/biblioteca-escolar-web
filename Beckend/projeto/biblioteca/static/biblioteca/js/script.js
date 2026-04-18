@@ -264,7 +264,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // Carrega os livros do banco ao abrir a página inicial
     carregarLivros();
   }
 
@@ -278,12 +277,11 @@ document.addEventListener("DOMContentLoaded", () => {
       timerBusca = setTimeout(() => {
         const termo = inputBusca.value.trim();
         if (termo.length === 0) {
-          // Se apagou tudo, volta ao carrossel normal
           carregarLivros();
         } else {
           buscarLivros(termo);
         }
-      }, 400); // espera 400ms depois que o usuário para de digitar
+      }, 400);
     });
   }
 
@@ -296,7 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (btnAbrirModal) {
     btnAbrirModal.onclick = () => {
-      document.getElementById("modal-lista").style.display = "block";
+      document.getElementById("modal-lista").classList.add("aberto"); // ← CORRIGIDO
       inputNomeLista.focus();
     };
   }
@@ -322,7 +320,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const lista = await response.json();
         fecharModal();
 
-        // Remove mensagem de lista vazia se existir
         const msgVazia = document.getElementById("msg-sem-listas");
         if (msgVazia) msgVazia.remove();
 
@@ -356,7 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnAbrirModalEmp.onclick = () => {
       const hoje = new Date().toISOString().split("T")[0];
       document.getElementById("emp-data-emp").value = hoje;
-      document.getElementById("modal-emprestimo").style.display = "block";
+      document.getElementById("modal-emprestimo").classList.add("aberto"); // ← CORRIGIDO
     };
   }
 
@@ -518,7 +515,6 @@ async function carregarLivros() {
 
     const livros = await response.json();
 
-    // Embaralha para aparecer aleatório
     livros.sort(() => Math.random() - 0.5);
 
     lista.innerHTML = "";
@@ -547,7 +543,7 @@ async function buscarLivros(termo) {
   const lista = document.getElementById("lista-livros");
   if (!lista) return;
 
-  pararTudo(); // para o autoplay durante a busca
+  pararTudo();
   lista.innerHTML = '<p style="padding:20px;">Buscando...</p>';
 
   try {
@@ -597,7 +593,6 @@ async function abrirLivro(id) {
   const pagina = document.getElementById("pag-livro");
   if (!pagina) return;
 
-  // Mostra a página e exibe loading
   pagina.style.display = "block";
   window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -607,7 +602,6 @@ async function abrirLivro(id) {
 
     const livro = await response.json();
 
-    // Preenche todos os campos do template
     document.getElementById("livro-titulo").textContent = livro.titulo;
     document.getElementById("livro-autor").textContent = livro.autor;
     document.getElementById("livro-genero").textContent = livro.genero;
@@ -628,7 +622,6 @@ async function abrirLivro(id) {
       capa.style.display = "none";
     }
 
-    // Status disponível / indisponível
     const statusEl = document.getElementById("livro-status");
     if (statusEl) {
       statusEl.textContent = livro.disponivel
@@ -637,7 +630,6 @@ async function abrirLivro(id) {
       statusEl.style.color = livro.disponivel ? "green" : "red";
     }
 
-    // Limpa status de emprestado
     const statusEmp = document.getElementById("livro-status-Emprestado");
     if (statusEmp) {
       statusEmp.textContent = livro.disponivel
@@ -661,7 +653,7 @@ function voltarPagina() {
 function fecharModal() {
   const modal = document.getElementById("modal-lista");
   const input = document.getElementById("input-nome-lista");
-  if (modal) modal.style.display = "none";
+  if (modal) modal.classList.remove("aberto"); // ← CORRIGIDO
   if (input) input.value = "";
 }
 
@@ -676,7 +668,6 @@ async function deletarLista(id, btn) {
   });
 
   if (response.ok) {
-    // Remove o card da lista da tela
     const card = btn.closest(".card-lista");
     if (card) card.remove();
   } else {
@@ -688,7 +679,7 @@ async function deletarLista(id, btn) {
 
 function fecharModalEmp() {
   const modal = document.getElementById("modal-emprestimo");
-  if (modal) modal.style.display = "none";
+  if (modal) modal.classList.remove("aberto"); // ← CORRIGIDO
   [
     "emp-titulo",
     "emp-codigo",
