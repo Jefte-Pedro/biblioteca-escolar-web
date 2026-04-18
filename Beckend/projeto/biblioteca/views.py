@@ -14,11 +14,6 @@ from .models import Usuario
 
 
 
-# Cria as views.
-class LivroViewset(viewsets.ModelViewSet):
-    queryset = Livro.objects.all()
-    serializer_class = LivroSerializer
-
 def inicio(request):
     return render(request, 'biblioteca/inicio.html')
 
@@ -127,8 +122,8 @@ def devolver_emprestimo(request, pk):
     emprestimo.save()
     return JsonResponse({'sucesso': 'Livro devolvido com sucesso.'})
 
-def login(request):
-    return render(request, 'biblioteca/Login.html')
+def pagina_login(request):
+    return render(request, 'biblioteca/pagina_login.html')
 
 def cadastro(request):
     return render(request, 'biblioteca/Login.html')
@@ -160,23 +155,16 @@ def renovar_emprestimo(request, pk):
         "status": "Sucesso"
     })
 
+@require_POST
 def cancelar_reserva(request, pk):
-    get_object_or_404(Reserva, pk=pk)
-    if Reserva.usuario != request.user:
-        return JsonResponse({
-            "Erro": "Você não tem permissão para cancelar esta reserva",
-            "status": "Erro"
-        }, status=403)
-    if Reserva.status != 'pendente':
-        return JsonResponse({
-            "Erro": "Esta reserva não pode ser mais ser cancelada",
-        }, status=400)
-    Reserva.status = 'cancelada'
-    Reserva.save()
-    return JsonResponse({
-        "sucesso": "Reserva cancelada com sucesso",
-        "status": "Sucesso"
-    })
+    reserva = get_object_or_404(Reserva, pk=pk)  # ← salva na variável
+    if reserva.usuario != request.user:
+        return JsonResponse({"Erro": "Você não tem permissão para cancelar esta reserva"}, status=403)
+    if reserva.status != 'pendente':
+        return JsonResponse({"Erro": "Esta reserva não pode mais ser cancelada"}, status=400)
+    reserva.status = 'cancelada'
+    reserva.save()
+    return JsonResponse({"sucesso": "Reserva cancelada com sucesso"})
 
 def detalhes_livro(request, livro_id):
     livro = get_object_or_404(Livro, id=livro_id)

@@ -5,7 +5,7 @@
     <section id="pag-livro" class="conteudo-pag" style="display:none;">
 
         <button class="back" onclick="voltarPagina()">
-            <i class="fa-solid fa-angle-left"></i> Voltar
+            <i class="fa-solid fa-angle-left"></i> <span data-i18n="voltar">Voltar</span>
         </button>
 
         <div class="info-livro">
@@ -46,7 +46,7 @@
 
                     <p id="media-avaliacao">0 / 5</p>
 
-                    <p class="titulo-avaliacao">Avaliação dos leitores</p>
+                    <p class="titulo-avaliacao" data-i18n="livro_avaliacao">Avaliação dos leitores</p>
 
                     <span class="divisor-vertical">|</span>
 
@@ -60,13 +60,13 @@
 
                 <div class="botoes-acoes">
                     <button class="btn-lista">
-                        <i class="fa-regular fa-heart"></i> Minha Lista
+                        <i class="fa-regular fa-heart"></i> <span data-i18n="btn_add_lista">Minha Lista</span>
                     </button>
                     <button class="btn-reservar">
-                        <i class="fa-regular fa-bookmark"></i> Reservar
+                        <i class="fa-regular fa-bookmark"></i> <span data-i18n="btn_reservar">Reservar</span>
                     </button>
                     <button class="btn-lido">
-                        <i class="fa-solid fa-check"></i> Marcar como Lido
+                        <i class="fa-solid fa-check"></i> <span data-i18n="btn_lido">Marcar como Lido</span>
                     </button>
                 </div>
             </div>
@@ -77,10 +77,10 @@
 
         <div class="container-conteudo-branco-livro">
 
-            <h3 class="titulo-sessao-livro">Sinopse</h3>
+            <h3 class="titulo-sessao-livro" data-i18n="livro_sinopse_titulo">Sinopse</h3>
 
             <div class="texto-livro">
-                <p id="livro-sinopse">Carregando descrição do livro...</p>
+                <p id="livro-sinopse" data-i18n="livro_carregando">Carregando descrição do livro...</p>
             </div>
         </div>
     </section>

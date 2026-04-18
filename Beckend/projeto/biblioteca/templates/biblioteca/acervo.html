@@ -4,26 +4,26 @@
 
 <section class="conteudo-pag {% if aba == 'lista' %}ativo{% endif %}">
     <div class="header-azul-lista">
-        <h2 class="titulo-secao-interna">Seu acervo</h2>
-        <p class="descricao-acervo">Gerencie suas leituras e reservas em um só lugar.</p>
+        <h2 class="titulo-secao-interna" data-i18n="acervo_titulo">Seu acervo</h2>
+        <p class="descricao-acervo" data-i18n="acervo_desc">Gerencie suas leituras e reservas em um só lugar.</p>
 
         <div class="abas-navegacao">
-            <a href="{% url 'minha_lista' %}" class="btn-aba {% if aba == 'lista' %}active{% endif %}">Minha Lista</a>
+            <a href="{% url 'minha_lista' %}" class="btn-aba {% if aba == 'lista' %}active{% endif %}" data-i18n="aba_lista">Minha Lista</a>
             <a href="{% url 'reservados' %}"
-                class="btn-aba {% if aba == 'reservados' %}active{% endif %}">Reservados</a>
-            <a href="{% url 'lidos' %}" class="btn-aba {% if aba == 'lidos' %}active{% endif %}">Livros Lidos</a>
+                class="btn-aba {% if aba == 'reservados' %}active{% endif %}" data-i18n="aba_reservados">Reservados</a>
+            <a href="{% url 'lidos' %}" class="btn-aba {% if aba == 'lidos' %}active{% endif %}" data-i18n="aba_lidos">Livros Lidos</a>
         </div>
     </div>
 
     <div class="container-conteudo-branco">
         <div id="conteudo-dinamico-lista"> 
-        <p class="msg-vazia" >
+        <p class="msg-vazia" data-i18n="msg_lista_vazia">
             Aqui aparecerão suas listas e os livros guardado nelas
         </p>
         </div>
 
         <button id="btn-abrir-modal" class="btn-suaLista" style="float: none; margin-bottom: 30px;">
-            <i class="fa-solid fa-plus"></i> Crie sua Lista
+            <i class="fa-solid fa-plus"></i> <span data-i18n="btn_criar_lista">Crie sua Lista</span>
         </button>
 
         <div>
@@ -46,31 +46,32 @@
 
 <div id="modal-lista" class="modal">
             <div class="modal-content">
-        <h3>Dar nome à lista</h3>
-        <input type="text" id="input-nome-lista" placeholder="Ex: Livros para o Enem...">
+        <h3 id="modal_lista_titulo" data-i18n="modal_lista_titulo">Dar nome à lista</h3>
+        <input type="text" id="input-nome-lista" data-i18n-placeholder="modal_lista_placeholder" placeholder="Ex: Livros para o Enem...">
+        
         <div class="modal-buttons">
-            <button onclick="fecharModal()" class="btn-cancelar">Cancelar</button>
-            <button id="btn-confirmar-lista" class="btn-confirmar">Criar Lista</button>
+            <button onclick="fecharModal()" class="btn-cancelar" data-i18n="btn_cancelar">Cancelar</button>
+            <button id="btn-confirmar-lista" class="btn-confirmar" data-i18n="btn_criar">Criar Lista</button>
         </div>
     </div>
 </div>
 
 <section class="conteudo-pag {% if aba == 'reservados' %}ativo{% endif %}">
     <div class="header-azul-lista">
-        <h2 class="titulo-secao-interna">Seu acervo</h2>
-        <p class="descricao-acervo">Gerencie suas leituras e reservas em um só lugar.</p>
+        <h2 class="titulo-secao-interna" data-i18n="acervo_titulo">Seu acervo</h2>
+        <p class="descricao-acervo" data-i18n="acervo_desc">Gerencie suas leituras e reservas em um só lugar.</p>
 
         <div class="abas-navegacao">
-            <a href="{% url 'minha_lista' %}" class="btn-aba {% if aba == 'lista' %}active{% endif %}">Minha Lista</a>
+            <a href="{% url 'minha_lista' %}" class="btn-aba {% if aba == 'lista' %}active{% endif %}" data-i18n="aba_lista">Minha Lista</a>
             <a href="{% url 'reservados' %}"
-                class="btn-aba {% if aba == 'reservados' %}active{% endif %}">Reservados</a>
-            <a href="{% url 'lidos' %}" class="btn-aba {% if aba == 'lidos' %}active{% endif %}">Livros Lidos</a>
+                class="btn-aba {% if aba == 'reservados' %}active{% endif %}" data-i18n="aba_reservados">Reservados</a>
+            <a href="{% url 'lidos' %}" class="btn-aba {% if aba == 'lidos' %}active{% endif %}" data-i18n="aba_lidos">Livros Lidos</a>
         </div>
     </div>
 
     <div class="container-conteudo-branco">
         <div id="conteudo-dinamico-reservados">
-            <p class="msg-vazia">Acompanhe aqui os livros que você solicitou retirada.</p>
+            <p class="msg-vazia" data-i18n="msg_reservados_vazia">Acompanhe aqui os livros que você solicitou retirada.</p>
         </div>
     </div>
 </section>
@@ -80,20 +81,20 @@
 
 
     <div class="header-azul-lista">
-        <h2 class="titulo-secao-interna">Seu acervo</h2>
-        <p class="descricao-acervo">Gerencie suas leituras e reservas em um só lugar.</p>
+        <h2 class="titulo-secao-interna" data-i18n="acervo_titulo">Seu acervo</h2>
+        <p class="descricao-acervo" data-i18n="acervo_desc">Gerencie suas leituras e reservas em um só lugar.</p>
 
         <div class="abas-navegacao">
-            <a href="{% url 'minha_lista' %}" class="btn-aba {% if aba == 'lista' %}active{% endif %}">Minha Lista</a>
+            <a href="{% url 'minha_lista' %}" class="btn-aba {% if aba == 'lista' %}active{% endif %}" data-i18n="aba_lista">Minha Lista</a>
             <a href="{% url 'reservados' %}"
-                class="btn-aba {% if aba == 'reservados' %}active{% endif %}">Reservados</a>
-            <a href="{% url 'lidos' %}" class="btn-aba {% if aba == 'lidos' %}active{% endif %}">Livros Lidos</a>
+                class="btn-aba {% if aba == 'reservados' %}active{% endif %}" data-i18n="aba_reservados">Reservados</a>
+            <a href="{% url 'lidos' %}" class="btn-aba {% if aba == 'lidos' %}active{% endif %}" data-i18n="aba_lidos">Livros Lidos</a>
         </div>
     </div>
 
     <div class="container-conteudo-branco">
         <div id="conteudo-dinamico-lidos">
-            <p class="msg-vazia">Seu histórico de leitura aparecerá aqui.</p>
+            <p class="msg-vazia" data-i18n="msg_lidos_vazia">Seu histórico de leitura aparecerá aqui.</p>
         </div>
     </div>
 </section>

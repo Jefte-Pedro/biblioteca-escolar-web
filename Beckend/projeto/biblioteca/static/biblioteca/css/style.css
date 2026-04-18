@@ -265,6 +265,7 @@ main {
 
 .idioma-container {
   position: relative;
+  z-index: 9999;
 }
 
 .idioma-menu {
@@ -281,6 +282,7 @@ main {
   pointer-events: none;
   transform: translateY(-10px);
   transition: 0.3s;
+  z-index: 9999;
 }
 
 .idioma-menu.ativo {
@@ -1146,7 +1148,7 @@ main {
   justify-content: center;
 }
 
-.titulo-model-emprestimo {
+.titulo-model-emprestimo, #modal_lista_titulo {
   margin-bottom: 20px;
   color: #1c5db1;
   text-align: center;
@@ -1184,6 +1186,10 @@ main {
   font-weight: bold;
 }
 
+.btn-confirmar:hover {
+  background-color: #113669;
+}
+
 .btn-cancelar {
   background-color: #e5e5e5;
   color: #333;
@@ -1194,6 +1200,10 @@ main {
   font-weight: bold;
 }
 
+.btn-cancelar:hover {
+  background-color: #555;
+  color: white;
+}
 
 .label-campo {
   text-align: left;
@@ -1416,7 +1426,7 @@ body.dark .qtd-livros {
 body.dark .modal-content {
   background-color: #1e1e1e;
   color: #f5f5f5;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 5px 20px #1c5db1;
 }
 
 body.dark .modal-content h3 {
@@ -1436,6 +1446,11 @@ body.dark .modal-content input:focus {
 body.dark .btn-cancelar {
   background-color: #333;
   color: #f5f5f5;
+}
+
+body.dark .btn-cancelar:hover{
+  background-color: #555;
+  color: white;
 }
 
 body.dark .btn-aba {

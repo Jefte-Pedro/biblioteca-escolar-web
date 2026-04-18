@@ -3,7 +3,7 @@
 {% block content %}
 
     <div id="pag-inicio" class="conteudo-pag" style="display: block;">
-        <h2 id="sugestoes">Sugestões de leitura</h2>
+        <h2 id="sugestoes" data-i18n="sugestoes">Sugestões de leitura</h2>
 
         <div class="carousel-wrapper">
             <button class="seta-carrossel esquerda" onclick="scrollCarrossel(-1)">
@@ -18,11 +18,11 @@
         </div>
 
         <section class="secao-branca">
-            <a href="{% url 'minha_lista' %}" class="botao-lista {% if aba == 'lista' %}active{% endif %}">
-                Minha Lista <i class="fa-solid fa-angle-right"></i>
+            <a href="{% url 'minha_lista' %}" class="botao-lista">
+                <span  data-i18n="btn_minha_lista">Minha Lista</span> <i class="fa-solid fa-angle-right"></i>
             </a>
 
-            <p id="descricao">
+            <p id="descricao" data-i18n="descricao">
                 Escolha livros que deseja ler e armazene em sua lista para acessar rapidamente quando
                 precisar.
             </p>

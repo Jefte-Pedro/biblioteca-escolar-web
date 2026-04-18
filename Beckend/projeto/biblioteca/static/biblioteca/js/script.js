@@ -1,43 +1,4 @@
-/* ===== TRADUÇÕES ===== */
 
-const traducoes = {
-  pt: {
-    idioma: "Português",
-    inicio: "Início",
-    lista: "Minha Lista",
-    reservados: "Livros Reservados",
-    lidos: "Livros Lidos",
-    prazos: "Meus Prazos",
-    busca: "Digite o nome do livro ou autor(a) que deseja buscar",
-    sugestoes: "Sugestões de leitura",
-    descricao:
-      "Escolha livros que deseja ler e armazene em sua lista para acessar rapidamente quando precisar.",
-  },
-  en: {
-    idioma: "English",
-    inicio: "Home",
-    lista: "My List",
-    reservados: "Reserved Books",
-    lidos: "Read Books",
-    prazos: "My Deadlines",
-    busca: "Type the book or author name you want to search",
-    sugestoes: "Reading Suggestions",
-    descricao:
-      "Choose books you want to read and store them in your list for quick access.",
-  },
-  es: {
-    idioma: "Español",
-    inicio: "Inicio",
-    lista: "Mi Lista",
-    reservados: "Libros Reservados",
-    lidos: "Libros Leídos",
-    prazos: "Mis Plazos",
-    busca: "Escribe el nombre del libro o autor que deseas buscar",
-    sugestoes: "Sugerencias de lectura",
-    descricao:
-      "Elige libros que deseas leer y guárdalos en tu lista para acceder rápidamente.",
-  },
-};
 
 /* ===== SISTEMA DE TEMA (DARK MODE) ===== */
 const botaoTema = document.getElementById("alternar-tema");
@@ -91,6 +52,54 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 250);
     });
   });
+
+  /* ===== SISTEMA DE IDIOMA ===== */
+
+  const botaoIdioma = document.querySelector(".idioma");
+  const menuIdioma = document.querySelector(".idioma-menu");
+  const idiomaTexto = document.getElementById("idioma-texto");
+
+  if (botaoIdioma && menuIdioma) {
+    botaoIdioma.addEventListener("click", () => {
+      menuIdioma.classList.toggle("ativo");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".idioma-container")) {
+        menuIdioma.classList.remove("ativo");
+      }
+    });
+
+    function trocarIdioma(lang) {
+      idiomaTexto.textContent = traducoes[lang].idioma;
+
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        const chave = el.dataset.i18n;
+        if (traducoes[lang][chave]) {
+          el.textContent = traducoes[lang][chave];
+        }
+      });
+
+      document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+        const chave = el.dataset.i18nPlaceholder;
+        if (traducoes[lang][chave]) {
+          el.placeholder = traducoes[lang][chave];
+        }
+      });
+
+      localStorage.setItem("idioma", lang);
+    }
+
+    document.querySelectorAll(".idioma-menu button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        trocarIdioma(btn.dataset.lang);
+        menuIdioma.classList.remove("ativo");
+      });
+    });
+
+    const idiomaSalvo = localStorage.getItem("idioma") || "pt";
+    trocarIdioma(idiomaSalvo);
+  }
 
   /* ===== SIDEBAR - SCROLL E RESPONSIVA ===== */
 
@@ -149,55 +158,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
-  }
-
-  /* ===== SISTEMA DE IDIOMA ===== */
-
-  const botaoIdioma = document.querySelector(".idioma");
-  const menuIdioma = document.querySelector(".idioma-menu");
-  const idiomaTexto = document.getElementById("idioma-texto");
-
-  if (botaoIdioma && menuIdioma) {
-    botaoIdioma.addEventListener("click", () => {
-      menuIdioma.classList.toggle("ativo");
-    });
-
-    document.addEventListener("click", (e) => {
-      if (!e.target.closest(".idioma-container")) {
-        menuIdioma.classList.remove("ativo");
-      }
-    });
-
-    function trocarIdioma(lang) {
-      idiomaTexto.textContent = traducoes[lang].idioma;
-      document.getElementById("nav-inicio").textContent =
-        traducoes[lang].inicio;
-      document.getElementById("nav-lista").textContent = traducoes[lang].lista;
-      document.getElementById("nav-reservados").textContent =
-        traducoes[lang].reservados;
-      document.getElementById("nav-lidos").textContent = traducoes[lang].lidos;
-      document.getElementById("busca-texto").placeholder =
-        traducoes[lang].busca;
-
-      const sugestoes = document.getElementById("sugestoes");
-      if (sugestoes) sugestoes.textContent = traducoes[lang].sugestoes;
-
-      document.querySelectorAll("#descricao").forEach((d) => {
-        d.textContent = traducoes[lang].descricao;
-      });
-
-      localStorage.setItem("idioma", lang);
-    }
-
-    document.querySelectorAll(".idioma-menu button").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        trocarIdioma(btn.dataset.lang);
-        menuIdioma.classList.remove("ativo");
-      });
-    });
-
-    const idiomaSalvo = localStorage.getItem("idioma") || "pt";
-    trocarIdioma(idiomaSalvo);
   }
 
   /* ===== ACESSIBILIDADE - FONTE ===== */
@@ -591,10 +551,12 @@ function criarCardLivro(livro) {
 
 async function abrirLivro(id) {
   const pagina = document.getElementById("pag-livro");
-  if (!pagina) return;
 
-  pagina.style.display = "block";
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (!pagina) {
+    // Se não está na página do livro, navega para ela
+    window.location.href = `/livro/${id}/`;
+    return;
+  }
 
   try {
     const response = await fetch(`/api/livros/${id}/`);

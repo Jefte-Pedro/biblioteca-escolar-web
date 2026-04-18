@@ -4,8 +4,8 @@
 {% block content %}
 
 <section id="pag-prazos" class="conteudo-pag ativo">
-    <h2 class="titulo-prazo">Meus Prazos</h2>
-    <p class="descricao-prazo">Acompanhe as datas de devolução e renovação dos seus livros.</p>
+    <h2 class="titulo-prazo" data-i18n="prazos_titulo">Meus Prazos</h2>
+    <p class="descricao-prazo" data-i18n="prazos_desc">Acompanhe as datas de devolução e renovação dos seus livros.</p>
 
     <div class="container-conteudo-branco-prazo">
         <div id="conteudo-dinamico-prazo">
@@ -20,7 +20,7 @@
                         Empréstimo: {{ emp.data_emprestimo }} · Devolução prevista: {{ emp.data_devolucao_prevista }}
                     </span>
                     {% if emp.esta_atrasado %}
-                    <span class="tag-atrasado">Em atraso</span>
+                    <span class="tag-atrasado"  data-i18n="tag_atraso">Em atraso</span>
                     {% endif %}
                     {% if emp.foi_renovado %}
                     <span class="tag-renovado">Renovado ({{ emp.renovacoes_concluidas }}x)</span>
@@ -28,7 +28,7 @@
                 </div>
             </div>
             {% empty %}
-            <p class="msg-vazia">Você não tem empréstimos ativos no momento.</p>
+            <p class="msg-vazia" data-i18n="prazos_vazio">Você não tem empréstimos ativos no momento.</p>
             {% endfor %}
         </div>
     </div>

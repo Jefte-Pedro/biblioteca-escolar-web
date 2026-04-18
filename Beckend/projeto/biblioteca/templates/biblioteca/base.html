@@ -30,30 +30,30 @@
             <a href="{% url 'inicio' %}"
                 class="btn-sidebar {% if request.resolver_match.url_name == 'inicio' %}ativo{% endif %}">
                 <i class="fa-solid fa-house"></i>
-                <span id="nav-inicio">Início</span>
+                <span id="nav-inicio" data-i18n="inicio">Início</span>
             </a>
         
             <a href="{% url 'minha_lista' %}"
                 class="btn-sidebar {% if request.resolver_match.url_name == 'minha_lista' %}ativo{% endif %}">
                 <i class="fa-regular fa-heart"></i>
-                <span id="nav-lista">Minha Lista</span>
+                <span id="nav-lista" data-i18n="lista">Minha Lista</span>
             </a>
         
             <a href="{% url 'reservados' %}"
                 class="btn-sidebar {% if request.resolver_match.url_name == 'reservados' %}ativo{% endif %}">
                 <i class="fa-regular fa-bookmark"></i>
-                <span id="nav-reservados">Livros Reservados</span>
+                <span id="nav-reservados" data-i18n="reservados">Livros Reservados</span>
             </a>
         
             <a href="{% url 'lidos' %}" class="btn-sidebar {% if request.resolver_match.url_name == 'lidos' %}ativo{% endif %}">
                 <i class="fa-solid fa-clock-rotate-left"></i>
-                <span id="nav-lidos">Livros Lidos</span>
+                <span id="nav-lidos" data-i18n="lidos">Livros Lidos</span>
             </a>
         
             <a href="{% url 'prazos' %}"
                 class="btn-sidebar {% if request.resolver_match.url_name == 'prazos' %}ativo{% endif %}">
                 <i class="fa-regular fa-calendar-check"></i>
-                <span id="nav-prazos">Meus Prazos</span>
+                <span id="nav-prazos" data-i18n="prazos">Meus Prazos</span>
             </a>
 
         {# TODO: adicionar % if request.user.is_staff % quando o sistema de login estiver pronto #}
@@ -104,7 +104,7 @@
 
                 <div class="busca">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input id="busca-texto" type="text" placeholder="Digite o nome do livro ou autor(a) que deseja buscar">
+                    <input id="busca-texto" type="text" data-i18n-placeholder="busca" placeholder="Digite o nome do livro ou autor(a) que deseja buscar">
                 </div>
             </section>
 
@@ -114,7 +114,7 @@
             </div>
         </main>
     </div>
-
+    <script src="{% static 'biblioteca/js/traducoes.js' %}"></script>
     <script src="{% static 'biblioteca/js/script.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
