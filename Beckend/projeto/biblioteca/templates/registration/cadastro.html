@@ -1,51 +1,332 @@
-{% extends "registration/base_auth.html" %} {% load static %}
+{% extends 'registration/base_auth.html' %}
+{% load static %}
+
+{% block title %}Primeiro Acesso – Biblioteca EREM Dr. Jaime Monteiro{% endblock %}
 
 {% block content %}
+<div class="cadastro-page">
 
-<div class="wrapper conteudo-pag" id="tela-cadastro">
-    <form action="{% url 'cadastro' %}" method="POST">
-        {% csrf_token %}
+    <!-- ══ TOP BAR ══ -->
+    <header class="cad-topbar">
+        <a class="cad-back" href="{% url 'login' %}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+            </svg>
+            Voltar para login
+        </a>
+        <span class="cad-topbar-title">Primeiro Acesso</span>
+        <div style="width:120px"></div><!-- spacer para centralizar título -->
+    </header>
 
-        <h1>Cadastre-se</h1>
+    <!-- ══ STEPPER ══ -->
+    <div class="cad-stepper">
 
-        <div class="input-box" id="campo-email">
-            <input type="email" placeholder="Email" required name="email">
-            <i class='bx bxs-envelope'></i>
+        <!-- Step 1 — começa ativo -->
+        <div class="step-item">
+            <div class="step-circle active" id="step-circle-1">1</div>
+            <div class="step-info">
+                <div class="step-label active" id="step-label-1">Identidade</div>
+                <div class="step-sub active" id="step-sub-1">Em andamento</div>
+            </div>
         </div>
 
-        
-        <div class="input-box" id="campo-numero" style="display:none;">
-            <input type="text" placeholder="Número de telefone" name="telefone"
-            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-            <i class='bx bxs-phone'></i>
+        <div class="step-line" id="step-line-1"></div>
+
+        <!-- Step 2 -->
+        <div class="step-item">
+            <div class="step-circle" id="step-circle-2">2</div>
+            <div class="step-info">
+                <div class="step-label" id="step-label-2">Criar senha</div>
+                <div class="step-sub" id="step-sub-2">Próximo</div>
+            </div>
         </div>
-        
-        <div class="register-link" style="margin-bottom: 10px;">
-            <p>Prefere usar número?
-                <a href="#" id="alternar-contato">Usar número</a>
+
+        <div class="step-line" id="step-line-2"></div>
+
+        <!-- Step 3 -->
+        <div class="step-item">
+            <div class="step-circle" id="step-circle-3">3</div>
+            <div class="step-info">
+                <div class="step-label" id="step-label-3">Canais</div>
+                <div class="step-sub" id="step-sub-3">Próximo</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══ THREE-COLUMN BODY ══ -->
+    <div class="cad-body">
+
+        <!-- ─── COLUNA 1 — Identidade (atual) ─── -->
+        <div class="cad-col current" id="cad-col-1">
+            <div class="cad-col-badge active-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+                ETAPA 1 — ATUAL
+            </div>
+            <h2 class="cad-col-h">Quem é você?</h2>
+            <p class="cad-col-p">
+                Digitou a matrícula. O sistema bateu com a lista importada pela bibliotecária.
             </p>
-        </div>
-        
-        <!-- Campo oculto que salva qual método foi escolhido -->
-        <input type="hidden" name="metodo_contato" id="metodo-contato" value="email">
 
-        <div class="input-box">
-            <input type="password" placeholder=" Digite sua Senha" required name="password">
-            <i class="bx bxs-lock-alt"></i>
-        </div>
-        <div class="input-box">
-            <input type="password" placeholder="Confirme sua Senha" required name="password_confirm">
-            <i class="bx bxs-lock-alt"></i>
+            <!-- Matrícula input row -->
+            <div class="id-input-row">
+                <div class="field-wrap" style="flex:1">
+                    <span class="field-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                    </span>
+                    <input class="field-input valid" id="cad-matricula" type="text" inputmode="numeric"
+                        placeholder="2024089" maxlength="10" oninput="cadCheckIdentity()" />
+                </div>
+            </div>
+
+            <!-- Result -->
+            <div id="cad-id-result">
+                <div class="id-result-card found">
+                    <div class="id-avatar">EM</div>
+                    <div>
+                        <div class="id-result-name">Maria Silva Costa</div>
+                        <div class="id-result-meta">3º A · Matrícula 2024089</div>
+                    </div>
+                    <div class="id-check">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="3"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="id-not-me">Se não for você, fale com a bibliotecária</div>
+            </div>
+
+            <button type="button" class="submit-btn" style="margin-top:16px" onclick="cadGoStep(2)">
+                Continuar
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                </svg>
+            </button>
         </div>
 
-        <button type="submit" class="btn">Cadastrar-se</button>
-
-        <div class="register-link">
-            <p>Você Já tem uma conta?
-                <a href="{% url 'login' %}" >Login</a>
+        <!-- ─── COLUNA 2 — Criar senha (atual) ─── -->
+        <div class="cad-col inactive" id="cad-col-2">
+            <div class="cad-col-badge active-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                ETAPA 2 — ATUAL
+            </div>
+            <h2 class="cad-col-h">Crie sua senha</h2>
+            <p class="cad-col-p">
+                Use uma senha que você consiga lembrar. Mínimo de 8 caracteres, com letras e números.
             </p>
-        </div>
-    </form>
-</div>
 
+            <form method="POST" action="{% url 'cadastro' %}">
+                {% csrf_token %}
+                <input type="hidden" name="matricula" id="hidden-matricula" value="">
+
+                <!-- Nova senha -->
+                <div class="field">
+                    <label class="field-label" for="cad-pwd">Nova Senha</label>
+                    <div class="field-wrap">
+                        <span class="field-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                        </span>
+                        <input class="field-input" id="cad-pwd" type="password" name="password1" placeholder="••••••••"
+                            oninput="cadCheckPwd()" />
+                        <button type="button" class="eye-btn"
+                            onclick="togglePwd('cad-pwd','cad-eye-off-1','cad-eye-on-1')" aria-label="Mostrar senha">
+                            <svg id="cad-eye-off-1" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                                <line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                            <svg id="cad-eye-on-1" style="display:none" width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Strength bar -->
+                    <div class="pwd-strength-bar">
+                        <div class="pwd-strength-fill" id="pwd-fill"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between">
+                        <span class="pwd-strength-lbl" id="pwd-strength-lbl"></span>
+                        <span class="pwd-char-count" id="pwd-char-count"></span>
+                    </div>
+                </div>
+
+                <!-- Confirmar senha -->
+                <div class="field">
+                    <label class="field-label" for="cad-conf">Confirmar Senha</label>
+                    <div class="field-wrap">
+                        <span class="field-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                        </span>
+                        <input class="field-input" id="cad-conf" type="password" name="password2" placeholder="••••••••"
+                            oninput="cadCheckPwd()" />
+                        <button type="button" class="eye-btn"
+                            onclick="togglePwd('cad-conf','cad-eye-off-2','cad-eye-on-2')" aria-label="Mostrar senha">
+                            <svg id="cad-eye-off-2" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                                <line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                            <svg id="cad-eye-on-2" style="display:none" width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Checklist -->
+                <div class="pwd-checks">
+                    <div class="pwd-check" id="chk-min">
+                        <div class="pwd-check-dot"></div>
+                        Mínimo 8 caracteres
+                    </div>
+                    <div class="pwd-check" id="chk-letter">
+                        <div class="pwd-check-dot"></div>
+                        Letras e números
+                    </div>
+                    <div class="pwd-check" id="chk-match">
+                        <div class="pwd-check-dot"></div>
+                        As senhas coincidem
+                    </div>
+                </div>
+
+                <button type="button" class="submit-btn" id="cad-next-2" style="margin-top:20px" disabled
+                    onclick="cadGoStep(3)">
+                    Continuar →
+                </button>
+
+            </form>
+        </div>
+
+        <!-- ─── COLUNA 3 — Canais (próximo) ─── -->
+        <div class="cad-col inactive" id="cad-col-3">
+            <div class="cad-col-badge next-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                </svg>
+                ETAPA 3 — PRÓXIMA
+            </div>
+            <h2 class="cad-col-h">Onde receber avisos?</h2>
+            <p class="cad-col-p">
+                Avisamos quando seu livro vencer, quando uma reserva chegou ou quando há novidades.
+            </p>
+
+            <!-- E-mail -->
+            <div class="channel-card selected" id="ch-card-email"
+                onclick="document.getElementById('ch-check-email').click()">
+                <input type="checkbox" id="ch-check-email" checked onchange="cadToggleChannel('email')"
+                    onclick="event.stopPropagation()" />
+                <div class="channel-icon" style="background:rgba(79,148,214,.15)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4F94D6" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                    </svg>
+                </div>
+                <div style="flex:1">
+                    <div class="channel-title">E-mail</div>
+                    <div class="channel-sub">maria@email.com</div>
+                    <div class="channel-input-wrap" id="ch-input-email">
+                        <div class="channel-input-inner">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4F94D6"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                <polyline points="22,6 12,13 2,6" />
+                            </svg>
+                            <input type="email" name="email" placeholder="maria@email.com"
+                                onclick="event.stopPropagation()" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WhatsApp -->
+            <div class="channel-card selected" id="ch-card-wa" onclick="document.getElementById('ch-check-wa').click()">
+                <input type="checkbox" id="ch-check-wa" checked onchange="cadToggleChannel('wa')"
+                    onclick="event.stopPropagation()" />
+                <div class="channel-icon" style="background:rgba(34,197,94,.12)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.11 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z" />
+                    </svg>
+                </div>
+                <div style="flex:1">
+                    <div class="channel-title">WhatsApp</div>
+                    <div class="channel-sub">(81) 9 8000-0000</div>
+                    <div class="channel-input-wrap" id="ch-input-wa">
+                        <div class="channel-input-inner">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22C55E"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.11 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z" />
+                            </svg>
+                            <input type="tel" name="whatsapp" placeholder="(81) 9 0000-0000"
+                                onclick="event.stopPropagation()" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                ⚠ Escolha pelo menos 1 canal. Você pode mudar depois nas configurações.
+            </div>
+
+            <!-- Finalizar -->
+            <button type="button" class="finalizar-btn ready" id="finalizar-btn"
+                onclick="document.querySelector('#cad-col-2 form').submit()">
+                Finalizar cadastro ✓
+            </button>
+
+        </div>
+    </div><!-- /cad-body -->
+
+</div><!-- /cadastro-page -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /* Inicia no step 1 — usuário digita a matrícula primeiro */
+    CAD.step = 1;
+    _cadRenderStepper();
+    _cadRenderCols();
+
+    document.getElementById('cad-matricula').addEventListener('input', function () {
+        document.getElementById('hidden-matricula').value = this.value;
+    });
+</script>
 {% endblock %}

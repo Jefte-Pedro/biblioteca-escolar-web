@@ -1,39 +1,193 @@
-{% extends "registration/base_auth.html" %} {% load static %}
+{% extends 'registration/base_auth.html' %}
+{% load static %}
+
+{% block title %}Recuperar Acesso – Biblioteca EREM Dr. Jaime Monteiro{% endblock %}
 
 {% block content %}
+<div class="login-page">
 
-<div class="wrapper conteudo-pag" id="tela-recuperar">
-    <form action="{% url 'recuperar_senha' %}" method="POST">
-        {% csrf_token %}
-
-        <h1>Recuperar Senha</h1>
-        <p class="instrucao">Digite seu e-mail ou número cadastrado.</p>
-
-        <!-- Campo email (padrão) -->
-        <div class="input-box" id="campo-email">
-            <input type="email" placeholder="Email cadastrado" name="recovery-email">
-            <i class='bx bxs-envelope'></i>
+    <!-- ══════════ LEFT PANEL ══════════ -->
+    <div class="left-panel">
+        <div class="lp-logo">
+            <div class="lp-logo-icon">
+                <img src="{% static 'biblioteca/img/IMG-EDJM.png' %}" alt="Logo Biblioteca" width="50" height="50">
+            </div>
+            <div>
+                <div class="lp-logo-title">Biblioteca Escolar</div>
+                <div class="lp-logo-sub">EREM Dr. Jaime Monteiro</div>
+            </div>
         </div>
 
-        <!-- Campo número (oculto) -->
-        <div class="input-box" id="campo-numero" style="display:none;">
-            <input type="text" placeholder="Número cadastrado" name="recovery-numero"
-                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-            <i class='bx bxs-phone'></i>
-        </div>
-
-        <div class="register-link" style="margin-bottom: 10px;">
-            <p>Cadastrou com número? <a href="#" id="alternar-contato">Usar número</a></p>
-        </div>
-
-        <button type="submit" class="btn">Enviar Link</button>
-
-        <div class="register-link">
-            <p>Lembrou a senha?
-                <a href="{% url 'login' %}">Voltar ao Login</a>
+        <div class="lp-hero">
+            <div class="rec-key-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
+                </svg>
+            </div>
+            <h1 class="lp-hero-h" style="margin-top:20px">Esqueceu<br>sua senha?</h1>
+            <p class="lp-hero-p">
+                Sem problema. Vamos mandar um código para o canal que você cadastrou.
             </p>
         </div>
-    </form>
-</div>
 
+        <a class="lp-back-link" href="{% url 'login' %}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+            </svg>
+            Voltar para login
+        </a>
+    </div>
+
+    <!-- ══════════ RIGHT PANEL ══════════ -->
+    <div class="right-panel">
+        <div class="rp-inner">
+
+            <h1 class="rp-title">Recuperar acesso</h1>
+            <p class="rp-sub">Selecione seu perfil para começar</p>
+
+            <!-- Role toggle -->
+            <div class="role-toggle" id="rec-role-toggle">
+                <button class="role-btn active" id="rec-btn-aluno" onclick="recSetRole('aluno')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    Aluno
+                </button>
+                <button class="role-btn" id="rec-btn-func" onclick="recSetRole('funcionario')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                    </svg>
+                    Funcionário
+                </button>
+            </div>
+
+            <!-- Formulário aluno -->
+            <div id="rec-form-aluno">
+                <form method="POST" action="{% url 'recuperar_senha' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="role" value="aluno">
+
+                    <!-- Matrícula -->
+                    <div class="field">
+                        <label class="field-label" for="rec-matricula">Sua Matrícula</label>
+                        <div class="field-wrap">
+                            <span class="field-icon">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                    <line x1="16" y1="2" x2="16" y2="6" />
+                                    <line x1="8" y1="2" x2="8" y2="6" />
+                                    <line x1="3" y1="10" x2="21" y2="10" />
+                                </svg>
+                            </span>
+                            <input class="field-input" id="rec-matricula" type="text" name="matricula"
+                                placeholder="2024089" inputmode="numeric" pattern="\d+" required />
+                        </div>
+                    </div>
+
+                    <!-- Canais (aparecem após digitar matrícula válida) -->
+                    <div class="field" id="rec-channels-wrap" style="display:none">
+                        <label class="field-label">Enviar código para</label>
+
+                        <!-- WhatsApp -->
+                        <label class="rec-channel-option" id="rec-opt-wa">
+                            <input type="radio" name="canal" value="whatsapp" checked />
+                            <div class="rec-channel-icon" style="background:rgba(34,197,94,.12)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.11 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="rec-channel-title">WhatsApp cadastrado</div>
+                                <div class="rec-channel-sub" id="rec-wa-hint">(81) 9 8000-·· ·89</div>
+                            </div>
+                        </label>
+
+                        <!-- E-mail -->
+                        <label class="rec-channel-option" id="rec-opt-email">
+                            <input type="radio" name="canal" value="email" />
+                            <div class="rec-channel-icon" style="background:rgba(79,148,214,.15)">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4F94D6"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                    <polyline points="22,6 12,13 2,6" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="rec-channel-title">E-mail cadastrado</div>
+                                <div class="rec-channel-sub" id="rec-email-hint">m••ia@email.com</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="rec-submit-btn">
+                        Enviar código de recuperação
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                            <polyline points="12 5 19 12 12 19" />
+                        </svg>
+                    </button>
+
+                    <div class="rec-no-access">
+                        Não tem acesso a nenhum dos canais?<br>
+                        <a href="#" class="rf-forgot">Fale com a bibliotecária para redefinir seu acesso.</a>
+                    </div>
+
+                </form>
+            </div>
+
+            <!-- Mensagem funcionário -->
+            <div id="rec-form-func" style="display:none">
+                <div class="rec-func-msg">
+                    <div class="rec-func-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                    </div>
+                    <div class="rec-func-title">Redefinição via administrador</div>
+                    <p class="rec-func-p">
+                        Para redefinir a senha de funcionário, entre em contato com o administrador do sistema ou com a
+                        coordenação da escola.
+                    </p>
+                    <a href="{% url 'login' %}" class="submit-btn" style="text-decoration:none;margin-top:8px">
+                        Voltar para o login
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function recSetRole(role) {
+        document.getElementById('rec-btn-aluno').classList.toggle('active', role === 'aluno');
+        document.getElementById('rec-btn-func').classList.toggle('active', role === 'funcionario');
+        document.getElementById('rec-form-aluno').style.display = role === 'aluno' ? 'block' : 'none';
+        document.getElementById('rec-form-func').style.display = role === 'funcionario' ? 'block' : 'none';
+    }
+
+    /* Mostra canais após digitar matrícula com 7+ dígitos */
+    document.getElementById('rec-matricula').addEventListener('input', function () {
+        const show = this.value.replace(/\D/g, '').length >= 7;
+        document.getElementById('rec-channels-wrap').style.display = show ? 'block' : 'none';
+    });
+</script>
 {% endblock %}
