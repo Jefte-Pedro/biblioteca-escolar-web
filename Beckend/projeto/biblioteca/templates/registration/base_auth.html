@@ -1,0 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bem vindo à Biblioteca da EREM Dr. Jaime Monteiro{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'biblioteca/css/Login.css' %}">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <header class="logotipo">
+        <img src="{% static 'biblioteca/img/IMG-EDJM.png' %}" class="img-logo" alt="Logo">
+        <div class="top">
+            <h1>Biblioteca <br> EREM Dr. Jaime Monteiro</h1>
+        </div>
+    
+        <div class="tema">
+            <button id="alternar-tema">
+                <i class='bx bx-adjust'></i>
+            </button>
+        </div>
+    </header>
+
+    {% block content %}{% endblock %}
+
+    <script src="{% static 'biblioteca/js/Login.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

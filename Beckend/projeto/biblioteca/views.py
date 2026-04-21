@@ -123,13 +123,22 @@ def devolver_emprestimo(request, pk):
     return JsonResponse({'sucesso': 'Livro devolvido com sucesso.'})
 
 def pagina_login(request):
-    return render(request, 'biblioteca/pagina_login.html')
+    return render(request, 'registration/login.html')
 
 def cadastro(request):
-    return render(request, 'biblioteca/Login.html')
+    if request.method == 'POST':
+        metodo = request.POST.get('metodo_contato')
+        # salva o metodo junto ao usuario
+    return render(request, 'registration/cadastro.html')
 
 def recuperar_senha(request):
-    return render(request, 'biblioteca/Login.html')
+    metodo = None
+    if request.method == 'POST':
+        matricula = request.POST.get('matricula')
+        usuario = Usuario.objects.filter(matricula=matricula).first()
+        if usuario:
+            metodo = usuario.metodo_contato
+    return render(request, 'registration/recuperar_senha.html', {'metodo': metodo})
 
 @require_POST
 def renovar_emprestimo(request, pk):

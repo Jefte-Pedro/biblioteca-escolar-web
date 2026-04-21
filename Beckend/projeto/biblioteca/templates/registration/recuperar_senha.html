@@ -1,0 +1,39 @@
+{% extends "registration/base_auth.html" %} {% load static %}
+
+{% block content %}
+
+<div class="wrapper conteudo-pag" id="tela-recuperar">
+    <form action="{% url 'recuperar_senha' %}" method="POST">
+        {% csrf_token %}
+
+        <h1>Recuperar Senha</h1>
+        <p class="instrucao">Digite seu e-mail ou número cadastrado.</p>
+
+        <!-- Campo email (padrão) -->
+        <div class="input-box" id="campo-email">
+            <input type="email" placeholder="Email cadastrado" name="recovery-email">
+            <i class='bx bxs-envelope'></i>
+        </div>
+
+        <!-- Campo número (oculto) -->
+        <div class="input-box" id="campo-numero" style="display:none;">
+            <input type="text" placeholder="Número cadastrado" name="recovery-numero"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <i class='bx bxs-phone'></i>
+        </div>
+
+        <div class="register-link" style="margin-bottom: 10px;">
+            <p>Cadastrou com número? <a href="#" id="alternar-contato">Usar número</a></p>
+        </div>
+
+        <button type="submit" class="btn">Enviar Link</button>
+
+        <div class="register-link">
+            <p>Lembrou a senha?
+                <a href="{% url 'login' %}">Voltar ao Login</a>
+            </p>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

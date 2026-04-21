@@ -1,5 +1,68 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap");
 
+/* ── VARIABLES ───────────────────────────────────────────────── */
+:root {
+  --font: 'Poppins', system-ui, sans-serif;
+  --sidebar-w: 240px;
+  --topbar-h: 56px;
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 18px;
+  --ease: 0.25s ease;
+}
+[data-theme="dark"] {
+  --bg:          #0F1B2E;
+  --sidebar-bg:  #0B1526;
+  --topbar-bg:   rgba(15,27,46,0.85);
+  --border:      #1E3A5F;
+  --surface:     #162B47;
+  --surface2:    #1E3A5F;
+  --text:        #F1F5F9;
+  --muted:       #94A3B8;
+  --faint:       #64748B;
+  --accent:      #1E5AA8;
+  --accent-lt:   #4F94D6;
+  --badge-bg:    #1E3A5F;
+  --badge-txt:   #4F94D6;
+  --input-bg:    #162B47;
+  --hover:       #162B47;
+  --hover2:      #1E3A5F;
+  --shadow: 0 4px 24px rgba(0,0,0,.45);
+  --carousel-fade: linear-gradient(to right, transparent, #0F1B2E);
+}
+[data-theme="light"] {
+  --bg:          #F8FAFC;
+  --sidebar-bg:  #ffffff;
+  --topbar-bg:   rgba(255,255,255,0.85);
+  --border:      #E2E8F0;
+  --surface:     #F1F5F9;
+  --surface2:    #E2E8F0;
+  --text:        #0F1B2E;
+  --muted:       #64748B;
+  --faint:       #94A3B8;
+  --accent:      #1E5AA8;
+  --accent-lt:   #4F94D6;
+  --badge-bg:    #E2E8F0;
+  --badge-txt:   #1E5AA8;
+  --input-bg:    #ffffff;
+  --hover:       #F1F5F9;
+  --hover2:      #E8F0FB;
+  --shadow: 0 4px 20px rgba(0,0,0,.08);
+  --carousel-fade: linear-gradient(to right, transparent, #F8FAFC);
+}
+
+/* ── RESET ───────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--font);-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--text);transition:background var(--ease),color var(--ease)}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;background:none;border:none;font-family:inherit}
+input{font-family:inherit}
+svg{display:block;flex-shrink:0}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.hide-scroll{scrollbar-width:none;-ms-overflow-style:none}
+.hide-scroll::-webkit-scrollbar{display:none}
+
 * {
     margin: 0;
     padding: 0;
@@ -11,7 +74,6 @@
     height: 100%;
 }
 
-
 body {
     display: flex;
     flex-direction: column; 
@@ -20,6 +82,7 @@ body {
     background: linear-gradient(to bottom right, #1c5db1, 65%, #fff );
     background-attachment: fixed;
 }
+ 
 .img-logo {
     width: 80px;
     height: auto;
@@ -289,9 +352,9 @@ body {
 }
 
 .wrapper .register-link {
-    font-size: 14.5px;
+    font-size: 16px;
     text-align: center;
-    margin: 20px 0 15px;
+    margin: 10px 0 15px;
 }
 
 .register-link p a {

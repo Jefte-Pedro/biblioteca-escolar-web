@@ -1,0 +1,51 @@
+{% extends "registration/base_auth.html" %} {% load static %}
+
+{% block content %}
+
+<div class="wrapper conteudo-pag" id="tela-cadastro">
+    <form action="{% url 'cadastro' %}" method="POST">
+        {% csrf_token %}
+
+        <h1>Cadastre-se</h1>
+
+        <div class="input-box" id="campo-email">
+            <input type="email" placeholder="Email" required name="email">
+            <i class='bx bxs-envelope'></i>
+        </div>
+
+        
+        <div class="input-box" id="campo-numero" style="display:none;">
+            <input type="text" placeholder="Número de telefone" name="telefone"
+            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <i class='bx bxs-phone'></i>
+        </div>
+        
+        <div class="register-link" style="margin-bottom: 10px;">
+            <p>Prefere usar número?
+                <a href="#" id="alternar-contato">Usar número</a>
+            </p>
+        </div>
+        
+        <!-- Campo oculto que salva qual método foi escolhido -->
+        <input type="hidden" name="metodo_contato" id="metodo-contato" value="email">
+
+        <div class="input-box">
+            <input type="password" placeholder=" Digite sua Senha" required name="password">
+            <i class="bx bxs-lock-alt"></i>
+        </div>
+        <div class="input-box">
+            <input type="password" placeholder="Confirme sua Senha" required name="password_confirm">
+            <i class="bx bxs-lock-alt"></i>
+        </div>
+
+        <button type="submit" class="btn">Cadastrar-se</button>
+
+        <div class="register-link">
+            <p>Você Já tem uma conta?
+                <a href="{% url 'login' %}" >Login</a>
+            </p>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

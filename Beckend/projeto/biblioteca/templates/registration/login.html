@@ -1,0 +1,37 @@
+{% extends "registration/base_auth.html" %} {% load static %}
+
+{% block content %}
+
+    <!--  Pagina de Login  -->
+
+    <div class="wrapper conteudo-pag" id="tela-login" style="display: block;">
+        <form action="{% url 'login' %}" method="POST"> 
+            {% csrf_token %}
+
+            <h1>Conecte-se</h1>
+            <div class="input-box">
+                <input type="text" placeholder="Número de matricula" required name="matricula" pattern="\d+">
+                <i class="bx bxs-user"></i>
+            </div>
+            <div class="input-box">
+                <input type="password" placeholder="Senha" required name="password">
+                <i class="bx bxs-lock-alt"></i>
+            </div>
+
+            <div class="remember-forgot">
+                <label><input type="checkbox"> Lembre-se de Mim </label>
+
+                <a href="{% url 'recuperar_senha' %}"> Esqueci minha Senha</a>
+            </div>
+
+            <button type="submit" class="btn">Login</button>
+
+            <div class="register-link">
+                <p>Não tem uma conta?
+                    <a href="{% url 'cadastro' %}">Cadastrar-se</a>
+                </p>
+            </div>
+        </form>
+    </div>
+
+{% endblock %}

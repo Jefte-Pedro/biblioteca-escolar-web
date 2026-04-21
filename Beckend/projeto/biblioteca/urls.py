@@ -30,8 +30,8 @@ urlpatterns = [
     path('livro/<int:livro_id>/', views.detalhes_livro, name='detalhes_livro'),
 
     path('login/', views.pagina_login, name='login'),
-    path('cadastro/', views.cadastro, name='cadastro'),
-    path('recuperar-senha/', views.recuperar_senha, name='recuperar_senha'),
+    path('login/cadastro/', views.cadastro, name='cadastro'),
+    path('login/recuperar_senha/', views.recuperar_senha, name='recuperar_senha'),
 
     path('api/', include(router.urls)),
 

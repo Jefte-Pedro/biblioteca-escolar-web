@@ -1,101 +1,69 @@
+// Custom Select (Cargo)
+const selectWrapper = document.querySelector(".custom-select-wrapper");
+if (selectWrapper) {
+  selectWrapper.addEventListener("click", function () {
+    this.classList.toggle("open");
+  });
 
-function mostrarPagina(idPagina, event) {
-
-    if (event) {
-        event.preventDefault();
-    }
-
-
-    const paginas = document.querySelectorAll('.conteudo-pag');
-
-
-    paginas.forEach(pag => {
-        pag.style.display = 'none';
-
-
-        const formulario = pag.querySelector('form');
-        if (formulario) {
-            formulario.reset();
-        }
+  for (const option of document.querySelectorAll(".custom-option")) {
+    option.addEventListener("click", function () {
+      if (!this.classList.contains("selected")) {
+        const parent = this.closest(".custom-select-wrapper");
+        const realSelect = document.getElementById("Cargo");
+        parent.querySelector(".custom-select-trigger span").textContent =
+          this.textContent;
+        realSelect.value = this.getAttribute("data-value");
+        parent
+          .querySelectorAll(".custom-option")
+          .forEach((el) => el.classList.remove("selected"));
+        this.classList.add("selected");
+      }
     });
+  }
 
-
-    const paginaAlvo = document.getElementById(idPagina);
-    if (paginaAlvo) {
-        paginaAlvo.style.display = 'block';
-
-
-        localStorage.setItem('ultimaPagina', idPagina);
+  window.addEventListener("click", function (e) {
+    if (!selectWrapper.contains(e.target)) {
+      selectWrapper.classList.remove("open");
     }
+  });
 }
 
-window.onload = function () {
-    const ultimaPagina = localStorage.getItem('ultimaPagina');
-
-
-    if (ultimaPagina === 'tela-cadastro') {
-        mostrarPagina('tela-cadastro');
-    } else {
-        mostrarPagina('tela-login');
-    }
-};
-
-document.querySelectorAll('form').forEach(form => {
-    form.onsubmit = function (e) {
-        e.preventDefault();
-        console.log("Formulário enviado com sucesso (simulação)");
-    };
-});
-
-document.querySelector('.custom-select-wrapper').addEventListener('click', function() {
-    this.classList.toggle('open');
-});
-
-for (const option of document.querySelectorAll(".custom-option")) {
-    option.addEventListener('click', function() {
-        if (!this.classList.contains('selected')) {
-            const parent = this.closest('.custom-select-wrapper');
-            const realSelect = document.getElementById('Cargo');
-            
-            // Atualiza o texto visível
-            parent.querySelector('.custom-select-trigger span').textContent = this.textContent;
-            
-            // Atualiza o valor no Select escondido (funcionalidade)
-            realSelect.value = this.getAttribute('data-value');
-            
-            // Remove 'selected' dos outros e adiciona neste
-            parent.querySelectorAll('.custom-option').forEach(el => el.classList.remove('selected'));
-            this.classList.add('selected');
-        }
-    });
-}
-
-// Fecha o menu se clicar fora dele
-window.addEventListener('click', function(e) {
-    const select = document.querySelector('.custom-select-wrapper');
-    if (!select.contains(e.target)) {
-        select.classList.remove('open');
-    }
-});
-
-
+// Tema Dark Mode
 const botaoTema = document.getElementById("alternar-tema");
 const temaSalvo = localStorage.getItem("tema");
 
-// 1. Aplica o tema imediatamente ao carregar a página
 if (temaSalvo === "dark") {
-    document.body.classList.add("dark");
+  document.body.classList.add("dark");
 }
 
-// 2. Faz o botão funcionar e salvar a escolha do usuário
 if (botaoTema) {
-    botaoTema.addEventListener("click", () => {
-        document.body.classList.toggle("dark");
-        
-        if (document.body.classList.contains("dark")) {
-            localStorage.setItem("tema", "dark");
-        } else {
-            localStorage.setItem("tema", "light");
-        }
-    });
+  botaoTema.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    localStorage.setItem(
+      "tema",
+      document.body.classList.contains("dark") ? "dark" : "light",
+    );
+  });
+}
+
+const alternar = document.getElementById("alternar-contato");
+if (alternar) {
+  alternar.addEventListener("click", function (e) {
+    e.preventDefault();
+    const campoEmail = document.getElementById("campo-email");
+    const campoNumero = document.getElementById("campo-numero");
+    const metodo = document.getElementById("metodo-contato"); // só existe no cadastro
+
+    if (campoNumero.style.display === "none") {
+      campoEmail.style.display = "none";
+      campoNumero.style.display = "block";
+      alternar.textContent = "Usar email";
+      if (metodo) metodo.value = "numero"; // só atualiza se existir
+    } else {
+      campoEmail.style.display = "block";
+      campoNumero.style.display = "none";
+      alternar.textContent = "Usar número";
+      if (metodo) metodo.value = "email"; // só atualiza se existir
+    }
+  });
 }
