@@ -1,121 +1,244 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Biblioteca EREM Dr. Jaime Monteiro{% endblock %}</title>
+<html lang="pt-BR" data-theme="dark">
 
-    <script src="https://kit.fontawesome.com/496892164a.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="{% static 'biblioteca/css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'biblioteca/css/responsive.css' %}">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Biblioteca – EREM Dr. Jaime Monteiro{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'biblioteca/css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'biblioteca/css/responsive.css' %}" />
+    
 </head>
 
 <body>
-    <button id="menu-toggle" class="menu-mobile">
-        <i class="fa-solid fa-bars"></i>
-    </button>
+    <div id="app">
 
-    <div class="container">
-        <nav class="sidebar">
-            <div class="nav-logo">
-                <img src="{% static 'biblioteca/img/IMG-BIBLIOTECA.png' %}" alt="Logo">
-                <h2 id="nav-biblioteca">Biblioteca</h2>
-            </div>
-        
-            <div class="nav-Esc">
-                <h2>EREM Dr. Jaime Monteiro</h2>
-            </div>
-        
-            <a href="{% url 'inicio' %}"
-                class="btn-sidebar {% if request.resolver_match.url_name == 'inicio' %}ativo{% endif %}">
-                <i class="fa-solid fa-house"></i>
-                <span id="nav-inicio" data-i18n="inicio">Início</span>
-            </a>
-        
-            <a href="{% url 'minha_lista' %}"
-                class="btn-sidebar {% if request.resolver_match.url_name == 'minha_lista' %}ativo{% endif %}">
-                <i class="fa-regular fa-heart"></i>
-                <span id="nav-lista" data-i18n="lista">Minha Lista</span>
-            </a>
-        
-            <a href="{% url 'reservados' %}"
-                class="btn-sidebar {% if request.resolver_match.url_name == 'reservados' %}ativo{% endif %}">
-                <i class="fa-regular fa-bookmark"></i>
-                <span id="nav-reservados" data-i18n="reservados">Livros Reservados</span>
-            </a>
-        
-            <a href="{% url 'lidos' %}" class="btn-sidebar {% if request.resolver_match.url_name == 'lidos' %}ativo{% endif %}">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-                <span id="nav-lidos" data-i18n="lidos">Livros Lidos</span>
-            </a>
-        
-            <a href="{% url 'prazos' %}"
-                class="btn-sidebar {% if request.resolver_match.url_name == 'prazos' %}ativo{% endif %}">
-                <i class="fa-regular fa-calendar-check"></i>
-                <span id="nav-prazos" data-i18n="prazos">Meus Prazos</span>
-            </a>
-
-        {# TODO: adicionar % if request.user.is_staff % quando o sistema de login estiver pronto #}
-
-            <div class="Adm">
-                <p>Área da Bibliotecaria</p>
-                <a href="{% url 'cadastrar-livro' %}"
-                    class="btn-sidebar {% if request.resolver_match.url_name == 'cadastrar-livro' %}ativo{% endif %}">
-                    <i class="fa-solid fa-book"></i>
-                    <span id="nav-cadastro">Cadastro de livros</span>
-                </a>
-
-                <a href="{% url 'emprestimos' %}"
-                    class="btn-sidebar {% if request.resolver_match.url_name == 'emprestimos' %}ativo{% endif %}">
-                    <i class="fa-solid fa-handshake"></i>
-                    <span id="nav-emprestimos">Empréstimos</span>
-                </a>
-            </div>
-            {# TODO: fechar % endif % aqui #}
-        </nav>
-
-        <main>
-            <section class="banner-superior">
-                <header class="topo">
-                    <div class="acoes-topo">
-                        <div class="tema">
-                            <button id="alternar-tema">
-                                <i class="fa-solid fa-circle-half-stroke"></i>
-                            </button>
-                        </div>
-                        <div class="acessibilidade">
-                            <button id="aumentar-fonte">A+</button>
-                            <button id="diminuir-fonte">A-</button>
-                        </div>
-                        <div class="idioma-container">
-                            <button class="idioma">
-                                <span id="idioma-texto">Português</span>
-                                <i class="fa-solid fa-angle-down"></i>
-                            </button>
-                            <div class="idioma-menu">
-                                <button data-lang="pt">Português</button>
-                                <button data-lang="en">English</button>
-                                <button data-lang="es">Español</button>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-
-                <div class="busca">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input id="busca-texto" type="text" data-i18n-placeholder="busca" placeholder="Digite o nome do livro ou autor(a) que deseja buscar">
+        <!-- ═══════════ SIDEBAR ═══════════ -->
+        <aside id="sidebar">
+            <div class="s-logo">
+                <div class="s-logo-icon">
+                    <img src="{% static 'biblioteca/img/IMG-EDJM.png' %}" alt="Logo Biblioteca" width="50" height="50">
                 </div>
-            </section>
-
-            <div class="conteudo-dinamico">
-                {% block content %}
-                {% endblock %}
+                <div>
+                    <div class="s-logo-title">Biblioteca</div>
+                    <div class="s-logo-sub">EREM Dr. Jaime Monteiro</div>
+                </div>
             </div>
-        </main>
+
+            <nav id="s-nav">
+                <div class="ns">
+                    <div class="ns-title">PRINCIPAL</div>
+                    <div class="nl">
+                        <a href="{% url 'inicio' %}"
+                            class="nl-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                <polyline points="9 22 9 12 15 12 15 22" />
+                            </svg>
+                            Início
+                        </a>
+                    </div>
+                </div>
+
+                <div class="ns">
+                    <div class="ns-title">MINHA BIBLIOTECA</div>
+                    <div class="nl">
+                        <a href="{% url 'minha_lista' %}"
+                            class="nl-link {% if request.resolver_match.url_name == 'minha_lista' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
+                            Minha Lista
+                        </a>
+                        <a href="{% url 'reservados' %}"
+                            class="nl-link {% if request.resolver_match.url_name == 'reservados' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                            </svg>
+                            Reservados
+                        </a>
+                        <a href="{% url 'lidos' %}"
+                            class="nl-link {% if request.resolver_match.url_name == 'lidos' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                <polyline points="22 4 12 14.01 9 11.01" />
+                            </svg>
+                            Livros Lidos
+                        </a>
+                        <a href="{% url 'prazos' %}"
+                            class="nl-link {% if request.resolver_match.url_name == 'prazos' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                            Meus Prazos
+                            {% if prazos_urgentes_count %}
+                            <span class="badge">{{ prazos_urgentes_count }}</span>
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+
+                {% if request.user.is_staff %}
+                <div class="ns">
+                    <div class="ns-title accent">BIBLIOTECÁRIA</div>
+                    <div class="nl">
+                        <a href="{% url 'cadastrar-livro' %}"
+                            class="nl-link {% if request.resolver_match.url_name == 'cadastrar-livro' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                            </svg>
+                            Cadastro de Livros
+                        </a>
+                        <a href="{% url 'emprestimos' %}"
+                            class="nl-link {% if request.resolver_match.url_name == 'emprestimos' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                            </svg>
+                            Empréstimos
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </nav>
+
+            <div class="s-foot">
+                <div class="av md ring" style="background:#4F94D6">
+                    {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                </div>
+                <div class="s-foot-info">
+                    <div class="s-foot-name">{{ request.user.get_full_name }}</div>
+                    <div class="s-foot-role">{{ request.user.perfil.turma }} · Aluno{% if request.user.is_staff %}a /
+                        Staff{% endif %}</div>
+                </div>
+                <a href="{% url 'configuracoes' %}" class="icon-btn sm" aria-label="Configurações">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    </svg>
+                </a>
+            </div>
+        </aside>
+
+        <div id="overlay" onclick="closeSidebar()"></div>
+
+        <!-- ═══════════ MAIN ═══════════ -->
+        <div id="main-col">
+
+            <header id="topbar">
+                <button id="menu-btn" class="icon-btn" onclick="openSidebar()" aria-label="Menu">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                </button>
+
+                <div class="search-wrap">
+                    <span class="search-ico">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                    </span>
+                    <input class="search-inp" type="search" placeholder="Buscar livros, autores, categorias…" />
+                </div>
+
+                <div style="flex:1"></div>
+
+                <div style="display:flex;align-items:center;gap:8px">
+                    <button class="icon-btn" aria-label="Notificações">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                        {% if prazos_urgentes_count %}<span class="notif-dot"></span>{% endif %}
+                    </button>
+
+                    <button class="icon-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Alternar tema">
+                        <svg id="ico-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                        </svg>
+                        <svg id="ico-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+                            <circle cx="12" cy="12" r="5" />
+                            <line x1="12" y1="1" x2="12" y2="3" />
+                            <line x1="12" y1="21" x2="12" y2="23" />
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                            <line x1="1" y1="12" x2="3" y2="12" />
+                            <line x1="21" y1="12" x2="23" y2="12" />
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                        </svg>
+                    </button>
+
+                    <button class="lang-btn">PT <span class="a">⌄</span></button>
+                </div>
+            </header>
+
+            <main id="content">
+                {% block content %}{% endblock %}
+            </main>
+
+        </div>
     </div>
+
     <script src="{% static 'biblioteca/js/traducoes.js' %}"></script>
     <script src="{% static 'biblioteca/js/script.js' %}"></script>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            document.getElementById('ico-moon').style.display = isDark ? 'block' : 'none';
+            document.getElementById('ico-sun').style.display = isDark ? 'none' : 'block';
+            localStorage.setItem('tema', isDark ? 'light' : 'dark');
+        }
+
+        function openSidebar() {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('overlay').classList.add('show');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('overlay').classList.remove('show');
+        }
+
+        // Restaurar tema salvo
+        const temaSalvo = localStorage.getItem('tema');
+        if (temaSalvo) {
+            document.documentElement.setAttribute('data-theme', temaSalvo);
+            document.getElementById('ico-moon').style.display = temaSalvo === 'dark' ? 'block' : 'none';
+            document.getElementById('ico-sun').style.display = temaSalvo === 'light' ? 'block' : 'none';
+        }
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>

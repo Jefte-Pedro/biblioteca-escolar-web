@@ -180,7 +180,8 @@ def detalhes_livro(request, livro_id):
     disponivel = livro.esta_disponivel()
     return render(request, 'biblioteca/detalhes_livro.html', {'livro': livro, 'disponivel': disponivel})
 
-
+def configuracoes(request):
+    return render(request, 'biblioteca/configuracoes.html')
 
 class LivroViewset(viewsets.ModelViewSet):
     queryset = Livro.objects.all()

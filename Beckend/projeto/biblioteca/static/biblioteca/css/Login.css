@@ -179,7 +179,7 @@ svg {
   height: 44px;
   border-radius: 13px;
   background: none;
-  box-shadow: 0 8px 20px rgba(30, 90, 168, 0.4);
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -644,13 +644,13 @@ svg {
 /* ── Three-column body ── */
 .cad-body {
   flex: 1;
-  display: flex;          
+  display: flex;
   gap: 20px;
   padding: 24px;
   overflow: hidden;
   align-items: start;
-  background: linear-gradient(180deg, #0f1b2e 0%, #0b1526 100%);
-  align-items: stretch; 
+  background: var(--left-bg);
+  align-items: stretch;
 }
 
 .cad-col {
@@ -659,33 +659,33 @@ svg {
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   transition: all 0.35s ease;
-  flex: 0.7;              /* largura padrão (inativa) */
+  flex: 0.6;
+  max-width: 580px;
   min-width: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 100%; /* 👈 força ocupar tudo */
-  min-height: 520px; /* 👈 altura mínima estilo "celular" */
+  height: 100%;
+  min-height: 740px;
+  gap: 14px;
+  padding: 18px;
 }
-
 
 .cad-col:last-child {
   border-right: none;
 }
 
-
 .cad-col.inactive {
-  flex: 0.9;              /* laterais menores */
+  flex: 0.7; /* laterais menores */
   pointer-events: none;
   opacity: 0.5;
-  filter: blur(1.5px) brightness(0.6);
+  filter: blur(0.5px) brightness(0.9);
   transform: scale(0.97);
   transform-origin: top center;
 }
 
-
 .cad-col.current {
-  flex: 1.2;              /* coluna ativa = maior */
+  flex: 1; /* coluna ativa = maior */
   opacity: 1;
   transform: none;
   filter: none;
@@ -699,9 +699,10 @@ svg {
 
 .cad-col-badge {
   display: flex;
+  padding: 10px;
   align-items: center;
   gap: 6px;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -721,6 +722,7 @@ svg {
 }
 .cad-col-h {
   font-size: 18px;
+  margin: 0;
   font-weight: 800;
   color: var(--text);
   margin-bottom: 6px;
@@ -730,12 +732,14 @@ svg {
   color: var(--muted);
   line-height: 1.6;
   margin-bottom: 24px;
+  margin: 0;
 }
 /* ── Identity card (etapa 1) ── */
 .id-input-row {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
+  margin: 0;
 }
 .id-input-row .field-input {
   border-radius: var(--r-lg);

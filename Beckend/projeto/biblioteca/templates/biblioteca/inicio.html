@@ -1,32 +1,295 @@
-{% extends "biblioteca/base.html" %} {% load static %}
+{% extends 'biblioteca/base.html' %}
+{% block title %}Início – Biblioteca{% endblock %}
+{% load custom_filters %}
 
 {% block content %}
 
-    <div id="pag-inicio" class="conteudo-pag" style="display: block;">
-        <h2 id="sugestoes" data-i18n="sugestoes">Sugestões de leitura</h2>
-
-        <div class="carousel-wrapper">
-            <button class="seta-carrossel esquerda" onclick="scrollCarrossel(-1)">
-                <i class="fa-solid fa-chevron-left"></i>
-            </button>
-
-            <div id="lista-livros"></div>
-
-            <button class="seta-carrossel direita" onclick="scrollCarrossel(1)">
-                <i class="fa-solid fa-chevron-right"></i>
-            </button>
+<!-- ════ HERO ════ -->
+<div class="hero">
+    <div class="hero-blob1"></div>
+    <div class="hero-blob2"></div>
+    <div class="hero-inner">
+        <div class="hero-text">
+            <div class="hero-eyebrow">{{ dia_semana }} · {{ data_hoje }}</div>
+            <h1 class="hero-h1">Olá, {{ request.user.first_name }}! 👋</h1>
+            <p class="hero-sub">
+                {% if prazo_urgente %}
+                Sua próxima leitura está esperando. Você tem
+                <strong>1 livro que vence em {{ prazo_urgente.dias_restantes }} dias</strong>
+                 — é o <em>{{ prazo_urgente.livro.titulo }}</em>.
+                {% else %}
+                Explore o acervo e encontre sua próxima leitura!
+                {% endif %}
+            </p>
         </div>
 
-        <section class="secao-branca">
-            <a href="{% url 'minha_lista' %}" class="botao-lista">
-                <span  data-i18n="btn_minha_lista">Minha Lista</span> <i class="fa-solid fa-angle-right"></i>
-            </a>
+        <div class="hero-chips">
+            <!-- Lidos -->
+            <div class="chip">
+                <div class="chip-header">
+                    <div class="chip-icon" style="background:#22C55E">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                            <polyline points="17 6 23 6 23 12" />
+                        </svg>
+                    </div>
+                    <span class="chip-lbl">Lidos</span>
+                </div>
+                <div class="chip-val">{{ total_lidos }}</div>
+                <div class="chip-sub">livros este ano</div>
+            </div>
 
-            <p id="descricao" data-i18n="descricao">
-                Escolha livros que deseja ler e armazene em sua lista para acessar rapidamente quando
-                precisar.
-            </p>
-        </section>
+            <!-- Emprestados -->
+            <div class="chip">
+                <div class="chip-header">
+                    <div class="chip-icon" style="background:#4F94D6">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                        </svg>
+                    </div>
+                    <span class="chip-lbl">Emprestados</span>
+                </div>
+                <div class="chip-val">{{ total_emprestados }}</div>
+                <div class="chip-sub">agora com você</div>
+            </div>
+
+            <!-- Devolver (urgente) -->
+            {% if prazo_urgente %}
+            <div class="chip">
+                <div class="chip-header">
+                    <div class="chip-icon" style="background:#F59E0B">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+                        </svg>
+                    </div>
+                    <span class="chip-lbl">Devolver</span>
+                    <div class="chip-dot"></div>
+                </div>
+                <div class="chip-val">{{ prazo_urgente.data_devolucao|date:"d M" }}</div>
+                <div class="chip-sub">daqui {{ prazo_urgente.dias_restantes }} dias</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ════ SUGESTÕES ════ -->
+<div class="sec-head">
+    <div class="sec-head-l">
+        <div class="sec-title-row">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-lt)" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path
+                    d="m12 3-1.9 5.8a2 2 0 0 1-1.287 1.288L3 12l5.8 1.9a2 2 0 0 1 1.288 1.287L12 21l1.9-5.8a2 2 0 0 1 1.287-1.288L21 12l-5.8-1.9a2 2 0 0 1-1.288-1.287Z" />
+            </svg>
+            <span class="sec-title">Sugestões de leitura</span>
+        </div>
+        <div class="sec-sub">Escolhidas pela bibliotecária pro seu perfil</div>
+    </div>
+    <div class="sec-action">
+        <button class="scroll-btn" onclick="scrollCarousel(-1)" aria-label="Anterior">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+            </svg>
+        </button>
+        <button class="scroll-btn" onclick="scrollCarousel(1)" aria-label="Próximo">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<div class="carousel-wrap">
+    <div class="carousel hide-scroll" id="carousel">
+        {% for livro in sugestoes %}
+        <div class="bcard">
+            <div class="bcard-cover-wrap">
+                <div class="bcard-cover"
+                    style="background:linear-gradient(135deg,{{ livro.cover_from }},{{ livro.cover_to }})">
+                    <div class="bc-inner">
+                        <div class="bc-title">{{ livro.titulo|truncatechars:22 }}</div>
+                        <div class="bc-author">{{ livro.autor_sobrenome }}</div>
+                    </div>
+                </div>
+                {% if forloop.first %}
+                <div class="bcard-feat">★ DESTAQUE</div>
+                {% endif %}
+            <div class="bcard-avail {% if livro.unidades_disponiveis > 0 %}av{% else %}unav{% endif %}">
+                {% if livro.unidades_disponiveis > 0 %}
+                ● {{ livro.unidades_disponiveis }} disp.
+                {% else %}
+                ● em fila
+                {% endif %}
+            </div>
+            </div>
+            <div class="bcard-title">{{ livro.titulo }}</div>
+            <div class="bcard-author">{{ livro.autor }}</div>
+            <div class="bcard-tags">
+                {% if livro.tag_principal %}<span class="tag">{{ livro.tag_principal }}</span>{% endif %}
+                <span class="tag-cat">· {{ livro.categoria }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ════ TWO-COL: LISTAS + PRAZOS ════ -->
+<div class="two-col">
+
+    <!-- Minha Lista -->
+    <div>
+        <div class="sec-head">
+            <div class="sec-head-l">
+                <div class="sec-title-row">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-lt)"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                    </svg>
+                    <span class="sec-title">Minha Lista</span>
+                </div>
+                <div class="sec-sub">{{ listas|length }} coleções suas</div>
+            </div>
+            <a class="link-action" href="{% url 'minha_lista' %}">
+                Ver todas
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                </svg>
+            </a>
+        </div>
+        <div class="lists-grid">
+            {% for lista in listas %}
+            <a class="lcard" href="{% url 'minha_lista' %}">
+                <div class="lcard-stacked">
+                    {% for livro in lista.livros_preview %}
+                    <div class="lcard-stacked-book"
+                        style="left:{{ forloop.counter0|multiply:22 }}px;transform:rotate({{ livro.rot }}deg);background:linear-gradient(135deg,{{ livro.cover_from }},{{ livro.cover_to }});z-index:{{ forloop.counter0 }}">
+                    </div>
+            {% endfor %}
+                </div>
+                <div class="lcard-info">
+                    <div class="lcard-name-row">
+                        <span class="lcard-emoji">{{ lista.icone }}</span>
+                        <span class="lcard-name">{{ lista.nome }}</span>
+                    </div>
+                    <div class="lcard-meta">{{ lista.livros.count }} livros · criada em {{ lista.criada|date:"d/m/Y" }}
+                    </div>
+                    <div class="lcard-vis">
+                        <div class="vis-dot" style="background:{{ lista.cor }}"></div>
+                        <span class="vis-lbl">{% if lista.vis == 'privada' %}🔒 privada{% else %}🌐 compartilhável
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="lcard-arrow">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
     </div>
 
+    <!-- Seus Prazos -->
+    <div>
+        <div class="sec-head">
+            <div class="sec-head-l">
+                <div class="sec-title-row">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <span class="sec-title">Seus prazos</span>
+                </div>
+                <div class="sec-sub">Devoluções próximas</div>
+            </div>
+            <a class="link-action" href="{% url 'prazos' %}">
+                Todos
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                </svg>
+            </a>
+        </div>
+        <div class="loans-col">
+            {% for emprestimo in emprestimos_recentes %}
+            <a class="loan-card {% if emprestimo.urgente %}urgent{% endif %}" href="{% url 'prazos' %}">
+                <div class="loan-top">
+                    <div class="bc sm"
+                        style="background:linear-gradient(135deg,{{ emprestimo.livro.cover_from }},{{ emprestimo.livro.cover_to }})">
+                        <div class="bc-inner">
+                            <div class="bc-title">{{ emprestimo.livro.titulo|truncatechars:22 }}</div>
+                            <div class="bc-author">{{ emprestimo.livro.autor_sobrenome }}</div>
+                        </div>
+                    </div>
+                    <div class="loan-info">
+                        <div class="loan-title">{{ emprestimo.livro.titulo }}</div>
+                        <div class="loan-author">{{ emprestimo.livro.autor }}</div>
+                        <div class="loan-status {% if emprestimo.urgente %}warn{% else %}ok{% endif %}">
+                            {% if emprestimo.urgente %}
+                            ⏱ Vence em {{ emprestimo.dias_restantes }} dias
+                            {% else %}
+                            ✓ {{ emprestimo.dias_restantes }} dias restantes
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="loan-bar-wrap">
+                    <div class="loan-bar">
+                        <div class="loan-bar-fill {% if emprestimo.urgente %}warn{% else %}ok{% endif %}"
+                            style="width:{{ emprestimo.percentual_usado }}%"></div>
+                    </div>
+                    <div class="loan-bar-meta">
+                        <span>{{ emprestimo.dias_usados }}/{{ emprestimo.dias_total }} dias usados</span>
+                        <span>Renovações: {{ emprestimo.renovacoes_usadas }}/{{ emprestimo.renovacoes_max }}</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+
+            <!-- CTA -->
+            <a class="cta-card" href="{% url 'minha_lista' %}">
+                <div class="cta-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                </div>
+                <div class="cta-text">
+                    <div class="cta-title">Busque sua próxima leitura</div>
+                    <div class="cta-sub">Mais de 1.200 livros esperando por você.</div>
+                </div>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.9)"
+                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                </svg>
+            </a>
+        </div>
+    </div>
+
+</div><!-- /two-col -->
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function scrollCarousel(dir) {
+        document.getElementById('carousel').scrollBy({ left: dir * 400, behavior: 'smooth' });
+    }
+</script>
 {% endblock %}

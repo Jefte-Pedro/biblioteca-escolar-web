@@ -1,22 +1,28 @@
 
 
-/* ===== SISTEMA DE TEMA (DARK MODE) ===== */
-const botaoTema = document.getElementById("alternar-tema");
-const temaSalvo = localStorage.getItem("tema");
-
-if (temaSalvo === "dark") {
-  document.body.classList.add("dark");
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute("data-theme") === "dark";
+  html.setAttribute("data-theme", isDark ? "light" : "dark");
+  const moon = document.getElementById("ico-moon");
+  const sun = document.getElementById("ico-sun");
+  if (moon) moon.style.display = isDark ? "none" : "block";
+  if (sun) sun.style.display = isDark ? "block" : "none";
+  localStorage.setItem("theme", isDark ? "light" : "dark");
 }
 
-if (botaoTema) {
-  botaoTema.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-    localStorage.setItem(
-      "tema",
-      document.body.classList.contains("dark") ? "dark" : "light",
-    );
-  });
-}
+/* Restore saved theme on load */
+(function () {
+  const saved = localStorage.getItem("theme");
+  if (saved) {
+    document.documentElement.setAttribute("data-theme", saved);
+    const moon = document.getElementById("ico-moon");
+    const sun = document.getElementById("ico-sun");
+    if (moon) moon.style.display = saved === "dark" ? "block" : "none";
+    if (sun) sun.style.display = saved === "dark" ? "none" : "block";
+  }
+})();
+
 
 /* ===== UTILITÁRIO: CSRF ===== */
 

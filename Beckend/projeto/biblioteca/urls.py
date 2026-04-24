@@ -35,6 +35,8 @@ urlpatterns = [
 
     path('api/', include(router.urls)),
 
+    path('configuracoes/', views.configuracoes, name='configuracoes'),
+
 
     path('cancelar-reserva/<int:pk>/', views.cancelar_reserva, name='cancelar_reserva'),
 ]

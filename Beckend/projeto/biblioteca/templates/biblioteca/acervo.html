@@ -1,102 +1,260 @@
-{% extends "biblioteca/base.html" %} {% load static %}
+{% extends "biblioteca/base.html" %}
+{% load static %}
+
+{% block title %}Acervo – Biblioteca{% endblock %}
 
 {% block content %}
 
-<section class="conteudo-pag {% if aba == 'lista' %}ativo{% endif %}">
-    <div class="header-azul-lista">
-        <h2 class="titulo-secao-interna" data-i18n="acervo_titulo">Seu acervo</h2>
-        <p class="descricao-acervo" data-i18n="acervo_desc">Gerencie suas leituras e reservas em um só lugar.</p>
-
-        <div class="abas-navegacao">
-            <a href="{% url 'minha_lista' %}" class="btn-aba {% if aba == 'lista' %}active{% endif %}" data-i18n="aba_lista">Minha Lista</a>
-            <a href="{% url 'reservados' %}"
-                class="btn-aba {% if aba == 'reservados' %}active{% endif %}" data-i18n="aba_reservados">Reservados</a>
-            <a href="{% url 'lidos' %}" class="btn-aba {% if aba == 'lidos' %}active{% endif %}" data-i18n="aba_lidos">Livros Lidos</a>
-        </div>
+<!-- ── PAGE HEADER ─────────────────────────────────────────────── -->
+<div class="acervo-header">
+    <div class="acervo-header-left">
+        <h1 class="acervo-titulo">Meu Acervo</h1>
+        <p class="acervo-sub">Acesse sua lista de desejos, acompanhe suas reservas e gerencie seus livros lidos.</p>
     </div>
-
-    <div class="container-conteudo-branco">
-        <div id="conteudo-dinamico-lista"> 
-        <p class="msg-vazia" data-i18n="msg_lista_vazia">
-            Aqui aparecerão suas listas e os livros guardado nelas
-        </p>
-        </div>
-
-        <button id="btn-abrir-modal" class="btn-suaLista" style="float: none; margin-bottom: 30px;">
-            <i class="fa-solid fa-plus"></i> <span data-i18n="btn_criar_lista">Crie sua Lista</span>
+    <div class="acervo-header-right">
+        <button class="btn-ordem">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="21" y1="10" x2="7" y2="10" />
+                <line x1="21" y1="6" x2="3" y2="6" />
+                <line x1="21" y1="14" x2="3" y2="14" />
+                <line x1="21" y1="18" x2="7" y2="18" />
+            </svg>
+            Ordem
         </button>
+        <button class="btn-nova-lista" id="btn-abrir-modal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Nova lista
+        </button>
+    </div>
+</div>
 
-        <div>
-            {% for lista in listas %}
-            <div class="card-lista">
-                <div class="info-lista" style="cursor:pointer; flex-grow: 1;">
-                    <h3>{{ lista.nome }}</h3>
-                    <span class="qtd-livros">0 livros</span>
-                </div>
-                <button class="btn-add-livro" onclick="event.stopPropagation();">
-                    <i class="fa-solid fa-plus"></i>
-                </button>
+<!-- ── ABAS ───────────────────────────────────────────────────── -->
+<div class="acervo-abas">
+    <a href="{% url 'minha_lista' %}" class="aba {% if aba == 'lista' %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24"
+            fill="{% if aba == 'lista' %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+        </svg>
+        Minha Lista
+        <span class="aba-count">{{ listas|length }}</span>
+    </a>
+    <a href="{% url 'reservados' %}" class="aba {% if aba == 'reservados' %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+        </svg>
+        Reservados
+        <span class="aba-count">{{ reservas_count|default:0 }}</span>
+    </a>
+    <a href="{% url 'lidos' %}" class="aba {% if aba == 'lidos' %}active{% endif %}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+        </svg>
+        Livros Lidos
+        <span class="aba-count">{{ lidos_count|default:0 }}</span>
+    </a>
+</div>
+
+<!-- ── CONTEÚDO DAS ABAS ──────────────────────────────────────── -->
+
+{% if aba == 'lista' %}
+<div class="acervo-grid">
+
+    {% for lista in listas %}
+    <div class="lista-card">
+        <!-- Capas empilhadas -->
+        <div class="lista-card-capas">
+            {% for livro in lista.livros_preview %}
+            <div class="capa-livro capa-{{ forloop.counter }}"
+                style="background: linear-gradient(135deg, {{ livro.cover_from }}, {{ livro.cover_to }})">
             </div>
             {% empty %}
+            <div class="capa-vazia">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round" style="opacity:.3">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
+            </div>
             {% endfor %}
+            {% if lista.livros.count == 0 %}
+            <button class="capa-add-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+            </button>
+            {% endif %}
+        </div>
+
+        <!-- Info -->
+        <div class="lista-card-body">
+            <div class="lista-card-top">
+                <div>
+                    <div class="lista-card-nome">{{ lista.nome }}</div>
+                    <div class="lista-card-meta">
+                        {{ lista.livros.count }} livro{% if lista.livros.count != 1 %}s{% endif %}
+                        {% if lista.atualizada %}· Atualizado {{ lista.atualizada }}{% endif %}
+                    </div>
+                </div>
+                <button class="lista-card-menu" aria-label="Opções">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="5" r="1.5" />
+                        <circle cx="12" cy="12" r="1.5" />
+                        <circle cx="12" cy="19" r="1.5" />
+                    </svg>
+                </button>
+            </div>
+
+            {% if lista.livros.count == 0 %}
+            <a href="#" class="lista-card-add-link">+ Adicionar primeiro livro →</a>
+            {% else %}
+            <div class="lista-card-tags">
+                {% for tag in lista.tags_preview %}
+                <span class="tag">{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
     </div>
+    {% endfor %}
 
-</section>
+    <!-- Card: Criar nova lista -->
+    <div class="lista-card lista-card-criar" id="btn-abrir-modal-2">
+        <div class="criar-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+        </div>
+        <div class="criar-titulo">Criar nova lista</div>
+        <div class="criar-sub">Organize seus livros por tema, disciplina ou humor</div>
+    </div>
 
-<div id="modal-lista" class="modal">
-            <div class="modal-content">
-        <h3 id="modal_lista_titulo" data-i18n="modal_lista_titulo">Dar nome à lista</h3>
-        <input type="text" id="input-nome-lista" data-i18n-placeholder="modal_lista_placeholder" placeholder="Ex: Livros para o Enem...">
-        
-        <div class="modal-buttons">
-            <button onclick="fecharModal()" class="btn-cancelar" data-i18n="btn_cancelar">Cancelar</button>
-            <button id="btn-confirmar-lista" class="btn-confirmar" data-i18n="btn_criar">Criar Lista</button>
+</div>
+{% endif %}
+
+{% if aba == 'reservados' %}
+<div class="loans-col" style="margin-top:24px">
+    {% for reserva in reservas %}
+    <div class="loan-card">
+        <div class="loan-top">
+            <div class="bc sm"
+                style="background:linear-gradient(135deg,{{ reserva.livro.cover_from }},{{ reserva.livro.cover_to }})">
+                <div class="bc-inner">
+                    <div class="bc-title">{{ reserva.livro.titulo|truncatechars:22 }}</div>
+                    <div class="bc-author">{{ reserva.livro.autor_sobrenome }}</div>
+                </div>
+            </div>
+            <div class="loan-info">
+                <div class="loan-title">{{ reserva.livro.titulo }}</div>
+                <div class="loan-author">{{ reserva.livro.autor }}</div>
+                <div class="loan-status ok">🔖 Reservado em {{ reserva.data_reserva|date:"d/m/Y" }}</div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="ph-page">
+        <div class="ph-icon">🔖</div>
+        <div class="ph-title">Nenhum livro reservado</div>
+        <div class="ph-sub">Quando um livro estiver indisponível, você poderá reservá-lo aqui.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if aba == 'lidos' %}
+<div class="carousel-wrap" style="margin-top:24px">
+    <div class="carousel hide-scroll">
+        {% for lido in livros_lidos %}
+        <div class="bcard">
+            <div class="bcard-cover-wrap">
+                <div class="bcard-cover"
+                    style="background:linear-gradient(135deg,{{ lido.livro.cover_from }},{{ lido.livro.cover_to }})">
+                    <div class="bc-inner">
+                        <div class="bc-title">{{ lido.livro.titulo|truncatechars:22 }}</div>
+                        <div class="bc-author">{{ lido.livro.autor_sobrenome }}</div>
+                    </div>
+                </div>
+                <div class="bcard-avail av">● Lido</div>
+            </div>
+            <div class="bcard-title">{{ lido.livro.titulo }}</div>
+            <div class="bcard-author">{{ lido.livro.autor }}</div>
+            <div class="bcard-tags">
+                <span class="tag-cat">{{ lido.data_devolucao|date:"d/m/Y" }}</span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="ph-page">
+            <div class="ph-icon">✅</div>
+            <div class="ph-title">Nenhum livro lido ainda</div>
+            <div class="ph-sub">Os livros devolvidos aparecerão aqui.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- ── MODAL CRIAR LISTA ──────────────────────────────────────── -->
+<div id="modal-lista" class="modal-overlay" style="display:none">
+    <div class="modal-box">
+        <div class="modal-head">
+            <span class="modal-titulo">Nova lista</span>
+            <button class="modal-fechar" onclick="fecharModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <p class="modal-sub">Dê um nome para sua nova coleção de livros.</p>
+        <input type="text" id="input-nome-lista" class="modal-input" placeholder="Ex: Livros para o ENEM..."
+            data-i18n-placeholder="modal_lista_placeholder" />
+        <div class="modal-btns">
+            <button onclick="fecharModal()" class="modal-btn-cancel">Cancelar</button>
+            <button id="btn-confirmar-lista" class="modal-btn-confirm">Criar Lista</button>
         </div>
     </div>
 </div>
 
-<section class="conteudo-pag {% if aba == 'reservados' %}ativo{% endif %}">
-    <div class="header-azul-lista">
-        <h2 class="titulo-secao-interna" data-i18n="acervo_titulo">Seu acervo</h2>
-        <p class="descricao-acervo" data-i18n="acervo_desc">Gerencie suas leituras e reservas em um só lugar.</p>
-
-        <div class="abas-navegacao">
-            <a href="{% url 'minha_lista' %}" class="btn-aba {% if aba == 'lista' %}active{% endif %}" data-i18n="aba_lista">Minha Lista</a>
-            <a href="{% url 'reservados' %}"
-                class="btn-aba {% if aba == 'reservados' %}active{% endif %}" data-i18n="aba_reservados">Reservados</a>
-            <a href="{% url 'lidos' %}" class="btn-aba {% if aba == 'lidos' %}active{% endif %}" data-i18n="aba_lidos">Livros Lidos</a>
-        </div>
-    </div>
-
-    <div class="container-conteudo-branco">
-        <div id="conteudo-dinamico-reservados">
-            <p class="msg-vazia" data-i18n="msg_reservados_vazia">Acompanhe aqui os livros que você solicitou retirada.</p>
-        </div>
-    </div>
-</section>
 
 
-<section id="pag-lidos" class="conteudo-pag {% if aba == 'lidos' %}ativo{% endif %}">
+{% block extra_js %}
+<script>
+    function abrirModal() {
+        document.getElementById('modal-lista').style.display = 'flex';
+        document.getElementById('input-nome-lista').focus();
+    }
+    function fecharModal() {
+        document.getElementById('modal-lista').style.display = 'none';
+        document.getElementById('input-nome-lista').value = '';
+    }
 
+    document.getElementById('btn-abrir-modal').addEventListener('click', abrirModal);
+    document.getElementById('btn-abrir-modal-2').addEventListener('click', abrirModal);
 
-    <div class="header-azul-lista">
-        <h2 class="titulo-secao-interna" data-i18n="acervo_titulo">Seu acervo</h2>
-        <p class="descricao-acervo" data-i18n="acervo_desc">Gerencie suas leituras e reservas em um só lugar.</p>
+    // Fechar clicando fora
+    document.getElementById('modal-lista').addEventListener('click', function (e) {
+        if (e.target === this) fecharModal();
+    });
 
-        <div class="abas-navegacao">
-            <a href="{% url 'minha_lista' %}" class="btn-aba {% if aba == 'lista' %}active{% endif %}" data-i18n="aba_lista">Minha Lista</a>
-            <a href="{% url 'reservados' %}"
-                class="btn-aba {% if aba == 'reservados' %}active{% endif %}" data-i18n="aba_reservados">Reservados</a>
-            <a href="{% url 'lidos' %}" class="btn-aba {% if aba == 'lidos' %}active{% endif %}" data-i18n="aba_lidos">Livros Lidos</a>
-        </div>
-    </div>
-
-    <div class="container-conteudo-branco">
-        <div id="conteudo-dinamico-lidos">
-            <p class="msg-vazia" data-i18n="msg_lidos_vazia">Seu histórico de leitura aparecerá aqui.</p>
-        </div>
-    </div>
-</section>
+    // Fechar com Esc
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') fecharModal();
+    });
+</script>
+{% endblock %}
 
 {% endblock %}
