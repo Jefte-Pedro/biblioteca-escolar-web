@@ -1,0 +1,45 @@
+{% extends "biblioteca/base.html" %}
+{% load static %}
+
+{% block title %}Busca – Biblioteca{% endblock %}
+
+{% block content %}
+
+<div class="acervo-header">
+    <div class="acervo-header-left">
+        <h1 class="acervo-titulo">
+            {% if q %}Resultados para "{{ q }}"{% else %}Acervo completo{% endif %}
+        </h1>
+        <p class="acervo-sub">{{ livros|length }} livro(s) encontrado(s)</p>
+    </div>
+</div>
+
+<div class="carousel-wrap" style="margin-top:24px">
+    <div style="display:flex;flex-wrap:wrap;gap:16px">
+        {% for livro in livros %}
+        <a href="{% url 'detalhes_livro' livro.id_livro %}" class="bcard" style="text-decoration:none">
+            <div class="bcard-cover-wrap">
+                <div class="bcard-cover" style="background:linear-gradient(135deg,#4F94D6,#1a3a5c)">
+                    <div class="bc-inner">
+                        <div class="bc-title">{{ livro.titulo|truncatechars:22 }}</div>
+                        <div class="bc-author">{{ livro.autor }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bcard-title">{{ livro.titulo }}</div>
+            <div class="bcard-author">{{ livro.autor }}</div>
+            <div class="bcard-tags">
+                <span class="tag-cat">· {{ livro.categoria }}</span>
+            </div>
+        </a>
+        {% empty %}
+        <div class="ph-page">
+            <div class="ph-icon">🔍</div>
+            <div class="ph-title">Nenhum livro encontrado</div>
+            <div class="ph-sub">Tente buscar por outro título ou autor.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

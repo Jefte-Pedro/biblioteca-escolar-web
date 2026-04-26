@@ -15,7 +15,26 @@ from .models import Usuario
 
 
 def inicio(request):
-    return render(request, 'biblioteca/inicio.html')
+    from datetime import date
+    usuario = Usuario.objects.first()
+    
+    sugestoes = Livro.objects.order_by('?')[:10]
+    listas = Lista.objects.filter(usuario=usuario) if usuario else []
+    emprestimos_recentes = Emprestimo.objects.filter(
+        usuario=usuario,
+        data_devolucao_real__isnull=True
+    )[:3] if usuario else []
+
+    return render(request, 'biblioteca/inicio.html', {
+        'sugestoes': sugestoes,
+        'listas': listas,
+        'emprestimos_recentes': emprestimos_recentes,
+        'total_lidos': 0,
+        'total_emprestados': emprestimos_recentes.count() if usuario else 0,
+        'dia_semana': date.today().strftime('%A'),
+        'data_hoje': date.today().strftime('%d/%m/%Y'),
+        'prazo_urgente': None,
+    })
 
 def lista(request):
     usuario = Usuario.objects.first()
@@ -23,6 +42,18 @@ def lista(request):
     return render(request, 'biblioteca/acervo.html', {
         'aba': 'lista',
         'listas': listas
+    })
+
+def acervo(request):
+    q = request.GET.get('q', '')
+    livros = Livro.objects.filter(
+        titulo__icontains=q
+    ) | Livro.objects.filter(
+        autor__icontains=q
+    ) if q else Livro.objects.all()[:50]
+    return render(request, 'biblioteca/acervo_busca.html', {
+        'livros': livros,
+        'q': q
     })
 
 @require_POST
@@ -176,7 +207,7 @@ def cancelar_reserva(request, pk):
     return JsonResponse({"sucesso": "Reserva cancelada com sucesso"})
 
 def detalhes_livro(request, livro_id):
-    livro = get_object_or_404(Livro, id=livro_id)
+    livro = get_object_or_404(Livro, id_livro=livro_id)
     disponivel = livro.esta_disponivel()
     return render(request, 'biblioteca/detalhes_livro.html', {'livro': livro, 'disponivel': disponivel})
 

@@ -4,24 +4,26 @@ from datetime import timedelta
 
 # Cria os modelos e classes de cada entidade.
 class Livro(models.Model):
+    id_livro = models.AutoField(primary_key=True)
+    titulo = models.CharField(max_length=300)
+    autor = models.CharField(max_length=200)
+    editora = models.CharField(max_length=150, blank=True, null=True)
+    categoria = models.CharField(max_length=100, blank=True, null=True)
+    colecao = models.CharField(max_length=150, blank=True, null=True)
+    quantidade = models.IntegerField(blank=True, null=True)
+    codigo_base = models.CharField(max_length=50, blank=True, null=True)
+    prateleira = models.CharField(max_length=100, blank=True, null=True)
+    observacoes = models.TextField(blank=True, null=True)
+    data_cadastro = models.DateTimeField(blank=True, null=True)
 
-    titulo = models.CharField(max_length=200)
-    autor = models.CharField(max_length=150)
-    editora = models.CharField(max_length=150)
-    genero =  models.CharField(max_length=100)
-    edicao = models.CharField(max_length=50)
-    sinopse = models.TextField()
-    capa = models.ImageField(upload_to='capas/')
-    quantidade = models.IntegerField()
-    endereco_prateleira = models.CharField(max_length=100)
-    observacoes = models.TextField()
+    class Meta:
+        db_table = 'livro'
 
     def __str__(self):
         return self.titulo
-    
+
     def esta_disponivel(self):
-        # Verifica se há cópias disponíveis para empréstimo
-        total_exemplares = self.quantidade
+        total_exemplares = self.quantidade or 0
         emprestimos_ativos = Emprestimo.objects.filter(livro=self, data_devolucao_real__isnull=True).count()
         reservas_ativas = Reserva.objects.filter(livro=self, status='pendente').count()
         return total_exemplares > (emprestimos_ativos + reservas_ativas)

@@ -17,6 +17,8 @@ urlpatterns = [
     path('acervo/lista/criar/', views.criar_lista, name='criar_lista'),
     path('acervo/lista/deletar/<int:pk>/', views.deletar_lista, name='deletar_lista'),
 
+    path('acervo/', views.acervo, name='acervo'),
+
 
     path('prazos/', views.prazos, name='prazos'),
     path('emprestimos/criar/', views.criar_emprestimo, name='criar_emprestimo'),

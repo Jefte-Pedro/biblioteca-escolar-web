@@ -161,7 +161,8 @@
                             <line x1="21" y1="21" x2="16.65" y2="16.65" />
                         </svg>
                     </span>
-                    <input class="search-inp" type="search" placeholder="Buscar livros, autores, categorias…" />
+                    <input class="search-inp" type="search" placeholder="Buscar livros, autores, categorias…"
+                        onkeydown="if(event.key==='Enter') window.location.href='/biblioteca/acervo/?q='+this.value" />
                 </div>
 
                 <div style="flex:1"></div>
