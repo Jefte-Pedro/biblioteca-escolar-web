@@ -73,11 +73,16 @@ class Emprestimo(models.Model):
 class Reserva(models.Model):
     livro = models.ForeignKey('Livro', on_delete=models.CASCADE)
     usuario = models.ForeignKey('Usuario', on_delete=models.CASCADE)
-    data_reserva = models.DateTimeField(auto_now_add=True) # Define a data de reserva como o momento em que a reserva é criada
+    data_reserva = models.DateTimeField(auto_now_add=True)
     data_expiracao = models.DateTimeField(default=timezone.now() + timedelta(days=15))
     data_notificacao = models.DateTimeField(null=True, blank=True)
     observacoes = models.TextField(blank=True)
     lembrete_enviado = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=[
+        ('pendente', 'Pendente'),
+        ('cancelada', 'Cancelada'),
+        ('concluida', 'Concluída'),
+    ], default='pendente')
 
     def __str__(self):
         return f"Reserva:{self.livro.titulo} para {self.usuario.nome}"

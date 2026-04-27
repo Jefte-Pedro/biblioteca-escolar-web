@@ -109,7 +109,7 @@
 <div class="carousel-wrap">
     <div class="carousel hide-scroll" id="carousel">
         {% for livro in sugestoes %}
-        <div class="bcard">
+        <a href="{% url 'detalhes_livro' livro.id_livro %}" class="bcard">
             <div class="bcard-cover-wrap">
                 <div class="bcard-cover"
                     style="background:linear-gradient(135deg,{{ livro.cover_from }},{{ livro.cover_to }})">
@@ -135,7 +135,7 @@
                 {% if livro.tag_principal %}<span class="tag">{{ livro.tag_principal }}</span>{% endif %}
                 <span class="tag-cat">· {{ livro.categoria }}</span>
             </div>
-        </div>
+        </a>
         {% endfor %}
     </div>
 </div>

@@ -1,0 +1,68 @@
+{% extends "biblioteca/base.html" %}
+{% load static %}
+
+{% block title %}{{ livro.titulo }} – Biblioteca{% endblock %}
+
+{% block content %}
+
+<div class="detalhe-wrap">
+
+    <button class="detalhe-voltar" onclick="history.back()">← Voltar</button>
+
+    <div class="detalhe-main">
+
+        <div class="detalhe-capa bc xl" style="background:linear-gradient(135deg,#1e5aa8,#0f1b2e)">
+            <div class="bc-inner">
+                <div class="bc-title">{{ livro.titulo|truncatechars:30 }}</div>
+            </div>
+            <div style="position:absolute;bottom:8px;right:8px">
+                {% if disponivel %}
+                <span class="bcard-avail av">Disponível</span>
+                {% else %}
+                <span class="bcard-avail unav">Indisponível</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="detalhe-infos">
+
+            <div class="detalhe-tags">
+                {% if livro.categoria %}<span class="tag">{{ livro.categoria }}</span>{% endif %}
+                {% if livro.colecao %}<span class="tag">{{ livro.colecao }}</span>{% endif %}
+            </div>
+
+            <h1 class="detalhe-titulo">{{ livro.titulo }}</h1>
+            <p class="detalhe-autor">{{ livro.autor }}</p>
+            <p class="detalhe-editora">{{ livro.editora }}</p>
+
+            <div class="detalhe-grid">
+                <div class="detalhe-grid-item">
+                    <div class="detalhe-grid-label">Unidades</div>
+                    <div class="detalhe-grid-valor">{{ livro.quantidade }}</div>
+                </div>
+                <div class="detalhe-grid-item">
+                    <div class="detalhe-grid-label">Prateleira</div>
+                    <div class="detalhe-grid-valor">{{ livro.prateleira|default:"—" }}</div>
+                </div>
+                <div class="detalhe-grid-item">
+                    <div class="detalhe-grid-label">Cód. Catálogo</div>
+                    <div class="detalhe-grid-valor sm">{{ livro.codigo_base|default:"—" }}</div>
+                </div>
+            </div>
+
+            <div class="detalhe-botoes">
+                <button class="btn-emprestar">📚 Solicitar Empréstimo</button>
+                <button class="btn-secundario">♡ Lista</button>
+                <button class="btn-secundario">🔖 Reservar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="detalhe-sinopse">
+        <h3>Sinopse</h3>
+        <p><span style="font-size:20px">📖</span> Sinopse não disponível no momento.</p>
+    </div>
+
+</div>
+
+{% endblock %}

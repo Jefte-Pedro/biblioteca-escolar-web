@@ -30,13 +30,13 @@ from mysql.connector import Error
 DB_CONFIG = {
     "host":     "localhost",       # ex: "127.0.0.1" ou IP do servidor
     "port":     3306,
-    "database": "nome_do_banco",   # ← altere
-    "user":     "seu_usuario",     # ← altere
-    "password": "sua_senha",       # ← altere
+    "database": "acervo_escolar",   # ← altere
+    "user":     "root",     # ← altere
+    "password": "1234",       # ← altere
 }
 
-TABLE_NAME = "livros"              # nome da sua tabela
-COL_ID     = "id"                  # coluna PK
+TABLE_NAME = "livro"              # nome da sua tabela
+COL_ID     = "id_livro"            # coluna PK
 COL_TITULO = "titulo"              # coluna título
 COL_AUTOR  = "autor"               # coluna autor
 COL_ISBN   = "isbn"                # será criada se não existir
