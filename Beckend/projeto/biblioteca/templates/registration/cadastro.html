@@ -16,13 +16,12 @@
             Voltar para login
         </a>
         <span class="cad-topbar-title">Primeiro Acesso</span>
-        <div style="width:120px"></div><!-- spacer para centralizar título -->
+        <div style="width:120px"></div>
     </header>
 
     <!-- ══ STEPPER ══ -->
     <div class="cad-stepper">
 
-        <!-- Step 1 — começa ativo -->
         <div class="step-item">
             <div class="step-circle active" id="step-circle-1">1</div>
             <div class="step-info">
@@ -33,7 +32,6 @@
 
         <div class="step-line" id="step-line-1"></div>
 
-        <!-- Step 2 -->
         <div class="step-item">
             <div class="step-circle" id="step-circle-2">2</div>
             <div class="step-info">
@@ -44,7 +42,6 @@
 
         <div class="step-line" id="step-line-2"></div>
 
-        <!-- Step 3 -->
         <div class="step-item">
             <div class="step-circle" id="step-circle-3">3</div>
             <div class="step-info">
@@ -58,7 +55,7 @@
     <!-- ══ THREE-COLUMN BODY ══ -->
     <div class="cad-body">
 
-        <!-- ─── COLUNA 1 — Identidade (atual) ─── -->
+        <!-- ─── COLUNA 1 — Identidade ─── -->
         <div class="cad-col current" id="cad-col-1">
             <div class="cad-col-badge active-badge">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -73,7 +70,7 @@
                 Digitou a matrícula. O sistema bateu com a lista importada pela bibliotecária.
             </p>
 
-            <!-- Matrícula input row -->
+            <!-- Matrícula (readonly — já vem preenchida) -->
             <div class="id-input-row">
                 <div class="field-wrap" style="flex:1">
                     <span class="field-icon">
@@ -86,17 +83,17 @@
                         </svg>
                     </span>
                     <input class="field-input valid" id="cad-matricula" type="text" inputmode="numeric"
-                        placeholder="2024089" maxlength="10" oninput="cadCheckIdentity()" />
+                        placeholder="2024089" maxlength="10" value="{{ matricula }}" readonly />
                 </div>
             </div>
 
-            <!-- Result -->
+            <!-- Resultado já confirmado -->
             <div id="cad-id-result">
                 <div class="id-result-card found">
-                    <div class="id-avatar">EM</div>
+                    <div class="id-avatar">{{ iniciais }}</div>
                     <div>
-                        <div class="id-result-name">Maria Silva Costa</div>
-                        <div class="id-result-meta">3º A · Matrícula 2024089</div>
+                        <div class="id-result-name">{{ nome }}</div>
+                        <div class="id-result-meta">{{ serie }} · Matrícula {{ matricula }}</div>
                     </div>
                     <div class="id-check">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="3"
@@ -118,7 +115,7 @@
             </button>
         </div>
 
-        <!-- ─── COLUNA 2 — Criar senha (atual) ─── -->
+        <!-- ─── COLUNA 2 — Criar senha ─── -->
         <div class="cad-col inactive" id="cad-col-2">
             <div class="cad-col-badge active-badge">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -133,9 +130,9 @@
                 Use uma senha que você consiga lembrar. Mínimo de 8 caracteres, com letras e números.
             </p>
 
-            <form method="POST" action="{% url 'cadastro' %}">
+            <form id="form-cadastro">
                 {% csrf_token %}
-                <input type="hidden" name="matricula" id="hidden-matricula" value="">
+                <input type="hidden" name="matricula" id="hidden-matricula" value="{{ matricula }}">
 
                 <!-- Nova senha -->
                 <div class="field">
@@ -166,7 +163,6 @@
                             </svg>
                         </button>
                     </div>
-                    <!-- Strength bar -->
                     <div class="pwd-strength-bar">
                         <div class="pwd-strength-fill" id="pwd-fill"></div>
                     </div>
@@ -231,7 +227,7 @@
             </form>
         </div>
 
-        <!-- ─── COLUNA 3 — Canais (próximo) ─── -->
+        <!-- ─── COLUNA 3 — Canais ─── -->
         <div class="cad-col inactive" id="cad-col-3">
             <div class="cad-col-badge next-badge">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -259,7 +255,7 @@
                 </div>
                 <div style="flex:1">
                     <div class="channel-title">E-mail</div>
-                    <div class="channel-sub">maria@email.com</div>
+                    <div class="channel-sub">Informe seu e-mail</div>
                     <div class="channel-input-wrap" id="ch-input-email">
                         <div class="channel-input-inner">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4F94D6"
@@ -267,7 +263,7 @@
                                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                                 <polyline points="22,6 12,13 2,6" />
                             </svg>
-                            <input type="email" name="email" placeholder="maria@email.com"
+                            <input type="email" id="input-email" placeholder="seu@email.com"
                                 onclick="event.stopPropagation()" />
                         </div>
                     </div>
@@ -287,7 +283,7 @@
                 </div>
                 <div style="flex:1">
                     <div class="channel-title">WhatsApp</div>
-                    <div class="channel-sub">(81) 9 8000-0000</div>
+                    <div class="channel-sub">Informe seu número</div>
                     <div class="channel-input-wrap" id="ch-input-wa">
                         <div class="channel-input-inner">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22C55E"
@@ -295,7 +291,7 @@
                                 <path
                                     d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.11 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z" />
                             </svg>
-                            <input type="tel" name="whatsapp" placeholder="(81) 9 0000-0000"
+                            <input type="tel" id="input-whatsapp" placeholder="(81) 9 0000-0000"
                                 onclick="event.stopPropagation()" />
                         </div>
                     </div>
@@ -306,27 +302,73 @@
                 ⚠ Escolha pelo menos 1 canal. Você pode mudar depois nas configurações.
             </div>
 
-            <!-- Finalizar -->
-            <button type="button" class="finalizar-btn ready" id="finalizar-btn"
-                onclick="document.querySelector('#cad-col-2 form').submit()">
+            <button type="button" class="finalizar-btn ready" id="finalizar-btn" onclick="finalizarCadastro()">
                 Finalizar cadastro ✓
             </button>
 
         </div>
-    </div><!-- /cad-body -->
+    </div>
 
-</div><!-- /cadastro-page -->
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    /* Inicia no step 1 — usuário digita a matrícula primeiro */
+    // Dados vindos do servidor
+    const CAD_MATRICULA = '{{ matricula }}';
+
+    // Inicia no step 1
     CAD.step = 1;
     _cadRenderStepper();
     _cadRenderCols();
 
-    document.getElementById('cad-matricula').addEventListener('input', function () {
-        document.getElementById('hidden-matricula').value = this.value;
-    });
+    // Finalizar — envia tudo via AJAX para a view primeiro_acesso
+    async function finalizarCadastro() {
+        const senha = document.getElementById('cad-pwd').value;
+        const email = document.getElementById('input-email').value.trim();
+        const whatsapp = document.getElementById('input-whatsapp').value.trim();
+
+        const emailSelecionado = document.getElementById('ch-check-email').checked;
+        const waSelecionado = document.getElementById('ch-check-wa').checked;
+
+        if (!emailSelecionado && !waSelecionado) {
+            alert('Escolha pelo menos 1 canal de contato.');
+            return;
+        }
+
+        const btn = document.getElementById('finalizar-btn');
+        btn.disabled = true;
+        btn.textContent = 'Salvando...';
+
+        const res = await fetch('/biblioteca/login/primeiro-acesso/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                matricula: CAD_MATRICULA,
+                senha: senha,
+                email: emailSelecionado ? email : '',
+                telefone: waSelecionado ? whatsapp : '',
+            })
+        });
+
+        const data = await res.json();
+
+        if (data.sucesso) {
+            window.location.href = data.redirect;
+        } else {
+            alert(data.erro || 'Erro ao finalizar cadastro.');
+            btn.disabled = false;
+            btn.textContent = 'Finalizar cadastro ✓';
+        }
+    }
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
 </script>
 {% endblock %}

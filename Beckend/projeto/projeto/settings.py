@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'biblioteca'
 ]
 
+AUTH_USER_MODEL = 'biblioteca.Usuario'
+
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_BEAT_SCHEDULE = {
     'verificar-reservas-diaria' : {

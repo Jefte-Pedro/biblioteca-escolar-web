@@ -41,4 +41,10 @@ urlpatterns = [
 
 
     path('cancelar-reserva/<int:pk>/', views.cancelar_reserva, name='cancelar_reserva'),
+
+    path('login/verificar-matricula/', views.verificar_matricula, name='verificar_matricula'),
+    path('login/primeiro-acesso/', views.primeiro_acesso, name='primeiro_acesso'),
+    path('login/entrar/', views.fazer_login, name='fazer_login'),
+    path('logout/', views.fazer_logout, name='logout'),
+    
 ]

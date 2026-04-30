@@ -13,7 +13,6 @@
         rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'biblioteca/css/style.css' %}" />
     <link rel="stylesheet" href="{% static 'biblioteca/css/responsive.css' %}" />
-    
 </head>
 
 <body>
@@ -47,13 +46,14 @@
                     </div>
                 </div>
 
+                
                 <div class="ns">
                     <div class="ns-title">MINHA BIBLIOTECA</div>
                     <div class="nl">
                         <a href="{% url 'minha_lista' %}"
                             class="nl-link {% if request.resolver_match.url_name == 'minha_lista' %}active{% endif %}">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
                                 <path
                                     d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                             </svg>
@@ -61,16 +61,16 @@
                         </a>
                         <a href="{% url 'reservados' %}"
                             class="nl-link {% if request.resolver_match.url_name == 'reservados' %}active{% endif %}">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
                                 <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
                             </svg>
                             Reservados
                         </a>
                         <a href="{% url 'lidos' %}"
                             class="nl-link {% if request.resolver_match.url_name == 'lidos' %}active{% endif %}">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                                 <polyline points="22 4 12 14.01 9 11.01" />
                             </svg>
@@ -78,8 +78,8 @@
                         </a>
                         <a href="{% url 'prazos' %}"
                             class="nl-link {% if request.resolver_match.url_name == 'prazos' %}active{% endif %}">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10" />
                                 <polyline points="12 6 12 12 16 14" />
                             </svg>
@@ -90,8 +90,9 @@
                         </a>
                     </div>
                 </div>
+                
 
-                {% if request.user.is_staff %}
+                {% if user.is_authenticated and user.is_bibliotecario %}
                 <div class="ns">
                     <div class="ns-title accent">BIBLIOTECÁRIA</div>
                     <div class="nl">
@@ -116,16 +117,23 @@
                     </div>
                 </div>
                 {% endif %}
+
             </nav>
 
             <div class="s-foot">
+                {% if user.is_authenticated %}
                 <div class="av md ring" style="background:#4F94D6">
-                    {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                    {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
                 </div>
                 <div class="s-foot-info">
-                    <div class="s-foot-name">{{ request.user.get_full_name }}</div>
-                    <div class="s-foot-role">{{ request.user.perfil.turma }} · Aluno{% if request.user.is_staff %}a /
-                        Staff{% endif %}</div>
+                    <div class="s-foot-name">{{ user.get_full_name }}</div>
+                    <div class="s-foot-role">
+                        {% if user.is_bibliotecario %}
+                        Bibliotecária
+                        {% else %}
+                        {{ user.serie }} · Aluno
+                        {% endif %}
+                    </div>
                 </div>
                 <a href="{% url 'configuracoes' %}" class="icon-btn sm" aria-label="Configurações">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -135,6 +143,17 @@
                             d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                     </svg>
                 </a>
+                {% else %}
+                <a href="{% url 'login' %}" class="btn-login-sidebar">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                        <polyline points="10 17 15 12 10 7" />
+                        <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                    Entrar na biblioteca
+                </a>
+                {% endif %}
             </div>
         </aside>
 
@@ -168,6 +187,7 @@
                 <div style="flex:1"></div>
 
                 <div style="display:flex;align-items:center;gap:8px">
+                    {% if user.is_authenticated %}
                     <button class="icon-btn" aria-label="Notificações">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -176,6 +196,7 @@
                         </svg>
                         {% if prazos_urgentes_count %}<span class="notif-dot"></span>{% endif %}
                     </button>
+                    {% endif %}
 
                     <button class="icon-btn" id="theme-btn" onclick="toggleTheme()" aria-label="Alternar tema">
                         <svg id="ico-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -205,6 +226,37 @@
             </main>
 
         </div>
+        <!-- ═══════════ MODAL LOGIN REQUIRED ═══════════ -->
+        <div id="modal-login" class="modal-overlay" style="display:none" onclick="fecharModalLogin(event)">
+            <div class="modal-box">
+                <div class="modal-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4F94D6" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                </div>
+                <h2 class="modal-title">Faça login para continuar</h2>
+                <p class="modal-desc" id="modal-login-msg">
+                    Você precisa estar logado para realizar esta ação.
+                </p>
+                <div class="modal-actions">
+                    <a href="{% url 'login' %}" class="modal-btn-primary">
+                        Entrar na biblioteca
+                    </a>
+                    <a href="{% url 'cadastro' %}" class="modal-btn-secondary">
+                        Criar minha senha
+                    </a>
+                </div>
+                <button class="modal-close" onclick="fecharModalLogin()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+        </div>
     </div>
 
     <script src="{% static 'biblioteca/js/traducoes.js' %}"></script>
@@ -230,13 +282,25 @@
             document.getElementById('overlay').classList.remove('show');
         }
 
-        // Restaurar tema salvo
         const temaSalvo = localStorage.getItem('tema');
         if (temaSalvo) {
             document.documentElement.setAttribute('data-theme', temaSalvo);
             document.getElementById('ico-moon').style.display = temaSalvo === 'dark' ? 'block' : 'none';
             document.getElementById('ico-sun').style.display = temaSalvo === 'light' ? 'block' : 'none';
         }
+
+        function abrirModalLogin(mensagem) {
+                if (mensagem) {
+                    document.getElementById('modal-login-msg').textContent = mensagem;
+                }
+                document.getElementById('modal-login').style.display = 'flex';
+            }
+
+            function fecharModalLogin(event) {
+                if (event && event.target !== document.getElementById('modal-login')) return;
+                document.getElementById('modal-login').style.display = 'none';
+            }
+            
     </script>
 
     {% block extra_js %}{% endblock %}

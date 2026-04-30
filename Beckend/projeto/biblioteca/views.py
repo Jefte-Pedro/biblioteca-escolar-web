@@ -1,30 +1,154 @@
-from django.shortcuts import render
-from rest_framework import viewsets, filters
-from .models import Livro
-from .serializers import LivroSerializer
-from django.shortcuts import get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
-from .models import Emprestimo
-from .models import Reserva
-from django.utils import timezone
-import json
 from django.views.decorators.http import require_POST
-from .models import Lista
-from .models import Usuario
+from django.utils import timezone
+from rest_framework import viewsets, filters
+from datetime import date
+import json
+
+from .models import Livro, Emprestimo, Reserva, Lista, Usuario
+from .serializers import LivroSerializer
 
 
+# ──────────────────────────────────────────
+# AUTENTICAÇÃO
+# ──────────────────────────────────────────
+
+def pagina_login(request):
+    if request.user.is_authenticated:
+        return redirect('inicio')
+    return render(request, 'registration/login.html')
+
+
+def verificar_matricula(request):
+    if request.method != 'POST':
+        return JsonResponse({'erro': 'Método inválido'}, status=405)
+    data = json.loads(request.body)
+    matricula = data.get('matricula', '').strip()
+    try:
+        usuario = Usuario.objects.get(matricula=matricula)
+        return JsonResponse({
+            'existe': True,
+            'primeiro_acesso': usuario.primeiro_acesso,
+            'nome': usuario.get_full_name() or usuario.username,
+        })
+    except Usuario.DoesNotExist:
+        return JsonResponse({'existe': False})
+
+
+def fazer_login(request):
+    if request.method != 'POST':
+        return JsonResponse({'erro': 'Método inválido'}, status=405)
+    data = json.loads(request.body)
+    matricula = data.get('matricula', '').strip()
+    senha = data.get('senha', '').strip()
+    try:
+        usuario = Usuario.objects.get(matricula=matricula)
+    except Usuario.DoesNotExist:
+        return JsonResponse({'erro': 'Matrícula não encontrada.'}, status=404)
+    user = authenticate(request, username=usuario.username, password=senha)
+    if user is not None:
+        login(request, user)
+        destino = '/biblioteca/emprestimos/' if user.is_bibliotecario else '/biblioteca/'
+        return JsonResponse({'sucesso': True, 'redirect': destino})
+    return JsonResponse({'erro': 'Senha incorreta.'}, status=401)
+
+
+def primeiro_acesso(request):
+    if request.method != 'POST':
+        return JsonResponse({'erro': 'Método inválido'}, status=405)
+    data = json.loads(request.body)
+    matricula = data.get('matricula', '').strip()
+    senha = data.get('senha', '').strip()
+    email = data.get('email', '').strip()
+    telefone = data.get('telefone', '').strip()
+    try:
+        usuario = Usuario.objects.get(matricula=matricula)
+    except Usuario.DoesNotExist:
+        return JsonResponse({'erro': 'Matrícula não encontrada.'}, status=404)
+    if not usuario.primeiro_acesso:
+        return JsonResponse({'erro': 'Essa conta já foi ativada.'}, status=400)
+    if len(senha) < 8:
+        return JsonResponse({'erro': 'Senha deve ter pelo menos 8 caracteres.'}, status=400)
+    if not email and not telefone:
+        return JsonResponse({'erro': 'Informe ao menos um canal de contato.'}, status=400)
+    usuario.set_password(senha)
+    if email:
+        usuario.email = email
+    if telefone:
+        usuario.telefone = telefone
+    usuario.primeiro_acesso = False
+    usuario.save()
+    user = authenticate(request, username=usuario.username, password=senha)
+    login(request, user)
+    return JsonResponse({'sucesso': True, 'redirect': '/biblioteca/'})
+
+
+def fazer_logout(request):
+    logout(request)
+    return redirect('login')
+
+
+def cadastro(request):
+    matricula = request.GET.get('matricula', '').strip()
+    
+    if not matricula:
+        return redirect('login')
+    
+    try:
+        usuario = Usuario.objects.get(matricula=matricula)
+    except Usuario.DoesNotExist:
+        return redirect('login')
+    
+    if not usuario.primeiro_acesso:
+        return redirect('login')
+    
+    iniciais = ''
+    partes = usuario.get_full_name().split()
+    if len(partes) >= 2:
+        iniciais = partes[0][0].upper() + partes[-1][0].upper()
+    elif partes:
+        iniciais = partes[0][0].upper()
+
+    return render(request, 'registration/cadastro.html', {
+        'matricula': matricula,
+        'nome': usuario.get_full_name(),
+        'serie': usuario.serie or '',
+        'iniciais': iniciais,
+    })
+
+def recuperar_senha(request):
+    metodo = None
+    if request.method == 'POST':
+        matricula = request.POST.get('matricula')
+        usuario = Usuario.objects.filter(matricula=matricula).first()
+        if usuario:
+            metodo = usuario.telefone or usuario.email
+    return render(request, 'registration/recuperar_senha.html', {'metodo': metodo})
+
+
+# ──────────────────────────────────────────
+# PÁGINAS PRINCIPAIS
+# ──────────────────────────────────────────
 
 def inicio(request):
-    from datetime import date
-    usuario = Usuario.objects.first()
+    usuario = request.user if request.user.is_authenticated else None
+    livros_emprestados_ids = Emprestimo.objects.filter(
+        data_devolucao_real__isnull=True
+    ).values_list('livro_id', flat=True)
+
+    sugestoes = Livro.objects.filter(
+        quantidade__gt=0
+    ).exclude(
+        id_livro__in=livros_emprestados_ids
+    ).order_by('?')[:10]
     
-    sugestoes = Livro.objects.order_by('?')[:10]
     listas = Lista.objects.filter(usuario=usuario) if usuario else []
     emprestimos_recentes = Emprestimo.objects.filter(
         usuario=usuario,
         data_devolucao_real__isnull=True
     )[:3] if usuario else []
-
     return render(request, 'biblioteca/inicio.html', {
         'sugestoes': sugestoes,
         'listas': listas,
@@ -36,13 +160,11 @@ def inicio(request):
         'prazo_urgente': None,
     })
 
+
 def lista(request):
-    usuario = Usuario.objects.first()
-    listas = Lista.objects.filter(usuario=usuario) if usuario else []
-    return render(request, 'biblioteca/acervo.html', {
-        'aba': 'lista',
-        'listas': listas
-    })
+    listas = Lista.objects.filter(usuario=request.user) if request.user.is_authenticated else []
+    return render(request, 'biblioteca/acervo.html', {'aba': 'lista', 'listas': listas})
+
 
 def acervo(request):
     q = request.GET.get('q', '')
@@ -51,80 +173,80 @@ def acervo(request):
     ) | Livro.objects.filter(
         autor__icontains=q
     ) if q else Livro.objects.all()[:50]
-    return render(request, 'biblioteca/acervo_busca.html', {
-        'livros': livros,
-        'q': q
-    })
+    return render(request, 'biblioteca/acervo_busca.html', {'livros': livros, 'q': q})
+
 
 @require_POST
 def criar_lista(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'erro': 'login_required', 'mensagem': 'Você precisa estar logado para criar listas.'}, status=401)
     data = json.loads(request.body)
     nome = data.get('nome', '').strip()
-
     if not nome:
         return JsonResponse({'erro': 'Nome não pode ser vazio.'}, status=400)
+    nova_lista = Lista.objects.create(usuario=request.user, nome=nome)
+    return JsonResponse({'id': nova_lista.id, 'nome': nova_lista.nome, 'qtd_livros': 0})
 
-    usuario = Usuario.objects.first()
-    nova_lista = Lista.objects.create(usuario=usuario, nome=nome)
-
-    return JsonResponse({
-        'id': nova_lista.id,
-        'nome': nova_lista.nome,
-        'qtd_livros': 0
-    })
 
 def lidos(request):
-    return render(request, 'biblioteca/acervo.html', { 'aba': 'lidos' })
+    return render(request, 'biblioteca/acervo.html', {'aba': 'lidos'})
+
 
 def reservados(request):
-    return render(request, 'biblioteca/acervo.html', { 'aba': 'reservados' })
+    return render(request, 'biblioteca/acervo.html', {'aba': 'reservados'})
+
 
 def prazos(request):
-    usuario = Usuario.objects.first()
     emprestimos_usuario = Emprestimo.objects.filter(
-        usuario=usuario,
+        usuario=request.user,
         data_devolucao_real__isnull=True
-    ) if usuario else []
-    return render(request, 'biblioteca/prazo.html', {
-        'emprestimos': emprestimos_usuario
-    })
+    ) if request.user.is_authenticated else []
+    return render(request, 'biblioteca/prazo.html', {'emprestimos': emprestimos_usuario})
+
+
+def configuracoes(request):
+    return render(request, 'biblioteca/configuracoes.html')
+
+
+def detalhes_livro(request, livro_id):
+    livro = get_object_or_404(Livro, id_livro=livro_id)
+    disponivel = livro.esta_disponivel()
+    return render(request, 'biblioteca/detalhes_livro.html', {'livro': livro, 'disponivel': disponivel})
+
+
+# ──────────────────────────────────────────
+# ADMIN / BIBLIOTECÁRIA
+# ──────────────────────────────────────────
 
 def cadastrar_livro(request):
     return render(request, 'biblioteca/cad-livro.html')
 
+
 def emprestimos(request):
     emprestimos_ativos = Emprestimo.objects.filter(data_devolucao_real__isnull=True)
-    return render(request, 'biblioteca/emp-livro.html', {
-        'emprestimos': emprestimos_ativos
-    })
+    return render(request, 'biblioteca/emp-livro.html', {'emprestimos': emprestimos_ativos})
+
 
 @require_POST
 def criar_emprestimo(request):
     data = json.loads(request.body)
-
     titulo = data.get('titulo', '').strip()
     codigo = data.get('codigo_catalografico', '').strip()
     nome_aluno = data.get('nome_aluno', '').strip()
     turma = data.get('turma', '').strip()
     data_emp = data.get('data_emprestimo', '').strip()
     data_dev = data.get('data_devolucao_prevista', '').strip()
-
     if not all([titulo, codigo, nome_aluno, turma, data_emp]):
         return JsonResponse({'erro': 'Preencha todos os campos obrigatórios.'}, status=400)
-
     livro = Livro.objects.filter(titulo__icontains=titulo).first()
     if not livro:
         return JsonResponse({'erro': 'Livro não encontrado.'}, status=404)
-
-    usuario = Usuario.objects.first()
-
-    from datetime import date
-    data_emprestimo = date.fromisoformat(data_emp)
-    data_devolucao = date.fromisoformat(data_dev) if data_dev else None
-
+    from datetime import date as d
+    data_emprestimo = d.fromisoformat(data_emp)
+    data_devolucao = d.fromisoformat(data_dev) if data_dev else None
     emp = Emprestimo.objects.create(
         livro=livro,
-        usuario=usuario,
+        usuario=request.user if request.user.is_authenticated else Usuario.objects.first(),
         codigo_catalografico=codigo,
         nome_aluno=nome_aluno,
         turma=turma,
@@ -132,7 +254,6 @@ def criar_emprestimo(request):
         data_devolucao_prevista=data_devolucao,
         observacoes=data.get('observacoes', '')
     )
-
     return JsonResponse({
         'id': emp.pk,
         'titulo': livro.titulo,
@@ -146,6 +267,7 @@ def criar_emprestimo(request):
         'observacoes': emp.observacoes,
     })
 
+
 @require_POST
 def devolver_emprestimo(request, pk):
     emprestimo = get_object_or_404(Emprestimo, pk=pk)
@@ -153,72 +275,48 @@ def devolver_emprestimo(request, pk):
     emprestimo.save()
     return JsonResponse({'sucesso': 'Livro devolvido com sucesso.'})
 
-def pagina_login(request):
-    return render(request, 'registration/login.html')
-
-def cadastro(request):
-    if request.method == 'POST':
-        metodo = request.POST.get('metodo_contato')
-        # salva o metodo junto ao usuario
-    return render(request, 'registration/cadastro.html')
-
-def recuperar_senha(request):
-    metodo = None
-    if request.method == 'POST':
-        matricula = request.POST.get('matricula')
-        usuario = Usuario.objects.filter(matricula=matricula).first()
-        if usuario:
-            metodo = usuario.metodo_contato
-    return render(request, 'registration/recuperar_senha.html', {'metodo': metodo})
 
 @require_POST
 def renovar_emprestimo(request, pk):
     emprestimo = get_object_or_404(Emprestimo, pk=pk)
     hoje = timezone.now().date()
     if emprestimo.data_devolucao_prevista < hoje:
-        return JsonResponse({
-            "Erro": "Não é possível renovar um empréstimo atrasado",
-            "status": "Erro"
-        }, status=400)
+        return JsonResponse({'Erro': 'Não é possível renovar um empréstimo atrasado.', 'status': 'Erro'}, status=400)
     if emprestimo.renovacoes_concluidas >= 3:
-        return JsonResponse({
-            "Erro": "Limite de renovações atingido para este empréstimo",
-            "status": "Erro"
-        }, status=400)
+        return JsonResponse({'Erro': 'Limite de renovações atingido.', 'status': 'Erro'}, status=400)
     emprestimo.data_devolucao_prevista += timezone.timedelta(days=15)
     emprestimo.renovacoes_concluidas += 1
     emprestimo.foi_renovado = True
     emprestimo.save()
     return JsonResponse({
-        "sucesso": f"Renovado com sucesso. A nova data é: {emprestimo.data_devolucao_prevista}",
-        "nova_data": str(emprestimo.data_devolucao_prevista),
-        "status": "Sucesso"
+        'sucesso': f'Renovado com sucesso. Nova data: {emprestimo.data_devolucao_prevista}',
+        'nova_data': str(emprestimo.data_devolucao_prevista),
+        'status': 'Sucesso'
     })
+
 
 @require_POST
 def cancelar_reserva(request, pk):
-    reserva = get_object_or_404(Reserva, pk=pk)  # ← salva na variável
+    reserva = get_object_or_404(Reserva, pk=pk)
     if reserva.usuario != request.user:
-        return JsonResponse({"Erro": "Você não tem permissão para cancelar esta reserva"}, status=403)
+        return JsonResponse({'Erro': 'Sem permissão.'}, status=403)
     if reserva.status != 'pendente':
-        return JsonResponse({"Erro": "Esta reserva não pode mais ser cancelada"}, status=400)
+        return JsonResponse({'Erro': 'Reserva não pode ser cancelada.'}, status=400)
     reserva.status = 'cancelada'
     reserva.save()
-    return JsonResponse({"sucesso": "Reserva cancelada com sucesso"})
+    return JsonResponse({'sucesso': 'Reserva cancelada com sucesso.'})
 
-def detalhes_livro(request, livro_id):
-    livro = get_object_or_404(Livro, id_livro=livro_id)
-    disponivel = livro.esta_disponivel()
-    return render(request, 'biblioteca/detalhes_livro.html', {'livro': livro, 'disponivel': disponivel})
 
-def configuracoes(request):
-    return render(request, 'biblioteca/configuracoes.html')
+# ──────────────────────────────────────────
+# API
+# ──────────────────────────────────────────
 
 class LivroViewset(viewsets.ModelViewSet):
     queryset = Livro.objects.all()
     serializer_class = LivroSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['titulo', 'autor']  # busca por título ou autor
+    search_fields = ['titulo', 'autor']
+
 
 @require_POST
 def deletar_lista(request, pk):

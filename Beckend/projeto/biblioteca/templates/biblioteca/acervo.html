@@ -230,13 +230,19 @@
 </div>
 
 
-
 {% block extra_js %}
 <script>
+   const usuarioLogado = {{ user.is_authenticated| lower }};
+
     function abrirModal() {
+        if (!usuarioLogado) {
+            abrirModalLogin('Você precisa estar logado para criar e gerenciar suas listas.');
+            return;
+        }
         document.getElementById('modal-lista').style.display = 'flex';
         document.getElementById('input-nome-lista').focus();
     }
+
     function fecharModal() {
         document.getElementById('modal-lista').style.display = 'none';
         document.getElementById('input-nome-lista').value = '';
@@ -254,6 +260,44 @@
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') fecharModal();
     });
+
+    // Criar lista via AJAX
+    document.getElementById('btn-confirmar-lista').addEventListener('click', async function () {
+        const nome = document.getElementById('input-nome-lista').value.trim();
+        if (!nome) return;
+
+        this.disabled = true;
+        this.textContent = 'Criando...';
+
+        const res = await fetch('/biblioteca/acervo/lista/criar/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ nome })
+        });
+
+        const data = await res.json();
+
+        if (res.status === 401) {
+            fecharModal();
+            abrirModalLogin('Você precisa estar logado para criar listas.');
+        } else if (data.id) {
+            // Recarrega a página para mostrar a nova lista
+            window.location.reload();
+        } else {
+            alert(data.erro || 'Erro ao criar lista.');
+            this.disabled = false;
+            this.textContent = 'Criar Lista';
+        }
+    });
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
 </script>
 {% endblock %}
 

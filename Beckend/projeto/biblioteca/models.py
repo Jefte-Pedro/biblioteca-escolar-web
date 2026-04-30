@@ -1,8 +1,37 @@
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
+from django.contrib.auth.models import AbstractUser
 
-# Cria os modelos e classes de cada entidade.
+
+class Usuario(AbstractUser):
+    # Campos do AbstractUser que já vêm prontos:
+    # username, password, first_name, last_name, email, is_staff, is_active
+
+    matricula = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    telefone = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    serie = models.CharField(max_length=50, blank=True, null=True)
+    primeiro_acesso = models.BooleanField(default=True)  # True = ainda não criou senha
+
+    tipo_usuario = models.CharField(choices=[
+        ('aluno', 'Aluno'),
+        ('exaluno', 'Ex-aluno'),
+        ('bibliotecario', 'Bibliotecário'),
+    ], max_length=20, default='aluno')
+
+    observacoes = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'usuario'
+
+    def __str__(self):
+        return self.get_full_name() or self.username
+
+    @property
+    def is_bibliotecario(self):
+        return self.tipo_usuario == 'bibliotecario'
+
+
 class Livro(models.Model):
     id_livro = models.AutoField(primary_key=True)
     titulo = models.CharField(max_length=300)
@@ -27,22 +56,15 @@ class Livro(models.Model):
         emprestimos_ativos = Emprestimo.objects.filter(livro=self, data_devolucao_real__isnull=True).count()
         reservas_ativas = Reserva.objects.filter(livro=self, status='pendente').count()
         return total_exemplares > (emprestimos_ativos + reservas_ativas)
+    
+    @property
+    def unidades_disponiveis(self):
+        total = self.quantidade or 0
+        emprestimos_ativos = Emprestimo.objects.filter(livro=self, data_devolucao_real__isnull=True).count()
+        reservas_ativas = Reserva.objects.filter(livro=self, status='pendente').count()
+        return max(0, total - emprestimos_ativos - reservas_ativas)
 
-class Usuario(models.Model):
-    nome = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    senha = models.CharField(max_length=100)
-    telefone = models.CharField(max_length=20, unique=True)
-        
-    tipo_usuario = models.CharField(choices=[
-        ('aluno', 'Aluno'),
-        ('exaluno', 'Ex-aluno')
-    ], max_length=20)
-    observacoes = models.TextField()
 
-    def __str__(self):
-        return self.nome
-        
 class Emprestimo(models.Model):
     livro = models.ForeignKey('Livro', on_delete=models.CASCADE)
     usuario = models.ForeignKey('Usuario', on_delete=models.CASCADE)
@@ -65,11 +87,11 @@ class Emprestimo(models.Model):
         return timezone.now().date() > self.data_devolucao_prevista
 
     def save(self, *args, **kwargs):
-        # Se não tiver data de devolução, soma 15 dias automaticamente
         if not self.data_devolucao_prevista:
             self.data_devolucao_prevista = self.data_emprestimo + timedelta(days=15)
         super().save(*args, **kwargs)
-        
+
+
 class Reserva(models.Model):
     livro = models.ForeignKey('Livro', on_delete=models.CASCADE)
     usuario = models.ForeignKey('Usuario', on_delete=models.CASCADE)
@@ -85,8 +107,9 @@ class Reserva(models.Model):
     ], default='pendente')
 
     def __str__(self):
-        return f"Reserva:{self.livro.titulo} para {self.usuario.nome}"
-    
+        return f"Reserva: {self.livro.titulo} para {self.usuario}"
+
+
 class Lista(models.Model):
     usuario = models.ForeignKey('Usuario', on_delete=models.CASCADE)
     nome = models.CharField(max_length=200)
