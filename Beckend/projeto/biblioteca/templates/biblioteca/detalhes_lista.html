@@ -1,0 +1,13 @@
+{% extends "biblioteca/base.html" %}
+
+{% block content %}
+<h1>{{ lista.nome }}</h1>
+
+<div class="grid-livros">
+    {% for livro in lista.livros.all %}
+    <div>{{ livro.titulo }}</div>
+    {% empty %}
+    <p>Essa lista está vazia.</p>
+    {% endfor %}
+</div>
+{% endblock %}

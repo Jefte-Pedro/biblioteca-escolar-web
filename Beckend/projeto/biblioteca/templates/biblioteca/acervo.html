@@ -70,7 +70,7 @@
 <div class="acervo-grid">
 
     {% for lista in listas %}
-    <div class="lista-card">
+    <a href="{% url 'detalhe_lista' lista.id %}" class="lista-card">
         <!-- Capas empilhadas -->
         <div class="lista-card-capas">
             {% for livro in lista.livros_preview %}
@@ -114,6 +114,7 @@
                         <circle cx="12" cy="19" r="1.5" />
                     </svg>
                 </button>
+
             </div>
 
             {% if lista.livros.count == 0 %}
@@ -126,7 +127,11 @@
             </div>
             {% endif %}
         </div>
-    </div>
+        <div class="lista-menu-dropdown" style="display: none;">
+            <button class="menu-item renomear">Renomear</button>
+            <button class="menu-item excluir">Excluir</button>
+        </div>
+    </a>
     {% endfor %}
 
     <!-- Card: Criar nova lista -->
@@ -232,7 +237,7 @@
 
 {% block extra_js %}
 <script>
-   const usuarioLogado = {{ user.is_authenticated| lower }};
+    const usuarioLogado = {{ user.is_authenticated| lower }};
 
     function abrirModal() {
         if (!usuarioLogado) {
@@ -298,6 +303,46 @@
         const parts = value.split(`; ${name}=`);
         if (parts.length === 2) return parts.pop().split(';').shift();
     }
+
+    // Ação do botão de três pontinhos (menu)
+    document.querySelectorAll('.lista-card-menu').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();  // 🌟 OBRIGATÓRIO: Impede que o <a> (card) te redirecione de página
+            e.stopPropagation(); // Impede que o clique "vaze" para o card
+
+            // Fecha outros menus abertos (comportamento de sanfona)
+            document.querySelectorAll('.lista-menu-dropdown').forEach(menu => {
+                if (menu !== this.closest('.lista-card').querySelector('.lista-menu-dropdown')) {
+                    menu.style.display = 'none';
+                }
+            });
+
+            // Abre ou fecha o menu desse card específico (Toggle)
+            const menu = this.closest('.lista-card').querySelector('.lista-menu-dropdown');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        });
+    });
+
+    // Ação para os botões dentro do dropdown (Renomear / Excluir)
+    document.querySelectorAll('.lista-menu-dropdown').forEach(menu => {
+        menu.addEventListener('click', function (e) {
+            e.preventDefault(); // 🌟 Impede que clicar em "Renomear" acione o link do card
+            e.stopPropagation();
+
+            // Aqui você pode adicionar no futuro a lógica de renomear e excluir
+            // Exemplo: se clicou no botão excluir...
+            if (e.target.classList.contains('excluir')) {
+                console.log("Clicou em excluir!");
+            }
+        });
+    });
+
+    // Fechar o menu ao clicar fora dele em qualquer lugar da tela
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.lista-menu-dropdown').forEach(menu => {
+            menu.style.display = 'none';
+        });
+    });
 </script>
 {% endblock %}
 

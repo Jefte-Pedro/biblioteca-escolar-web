@@ -1,5 +1,3 @@
-
-
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.getAttribute("data-theme") === "dark";
@@ -22,7 +20,6 @@ function toggleTheme() {
     if (sun) sun.style.display = saved === "dark" ? "none" : "block";
   }
 })();
-
 
 /* ===== UTILITÁRIO: CSRF ===== */
 
@@ -176,8 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const FONTE_MAX = 24;
 
   function aplicarFonte(tamanho) {
-    // Aplica como porcentagem no html — afeta TUDO que usa rem/em
-    // E sobrescreve px via variável CSS — afeta elementos com px fixo
     const escala = tamanho / FONTE_PADRAO;
     document.documentElement.style.fontSize = tamanho + "px";
     document.documentElement.style.setProperty("--escala-fonte", escala);
@@ -290,7 +285,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (btnAbrirModal) {
     btnAbrirModal.onclick = () => {
-      document.getElementById("modal-lista").classList.add("aberto"); // ← CORRIGIDO
+      document.getElementById("modal-lista").classList.add("aberto");
       inputNomeLista.focus();
     };
   }
@@ -341,90 +336,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  /* ===== MODAL EMPRÉSTIMO ===== */
-
-  const btnAbrirModalEmp = document.getElementById("btn-abrir-modal-emp");
-
-  if (btnAbrirModalEmp) {
-    btnAbrirModalEmp.onclick = () => {
-      const hoje = new Date().toISOString().split("T")[0];
-      document.getElementById("emp-data-emp").value = hoje;
-      document.getElementById("modal-emprestimo").classList.add("aberto"); // ← CORRIGIDO
-    };
-  }
-
-  const btnConfirmarEmp = document.getElementById("btn-confirmar-emp");
-  if (btnConfirmarEmp) {
-    btnConfirmarEmp.onclick = async () => {
-      const payload = {
-        titulo: document.getElementById("emp-titulo").value.trim(),
-        codigo_catalografico: document
-          .getElementById("emp-codigo")
-          .value.trim(),
-        nome_aluno: document.getElementById("emp-nome").value.trim(),
-        turma: document.getElementById("emp-turma").value.trim(),
-        data_emprestimo: document.getElementById("emp-data-emp").value,
-        data_devolucao_prevista: document.getElementById("emp-data-dev").value,
-        observacoes: document.getElementById("emp-obs").value.trim(),
-      };
-
-      if (
-        !payload.titulo ||
-        !payload.codigo_catalografico ||
-        !payload.nome_aluno ||
-        !payload.turma ||
-        !payload.data_emprestimo
-      ) {
-        alert("Preencha todos os campos obrigatórios.");
-        return;
-      }
-
-      const response = await fetch("/emprestimos/criar/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCookie("csrftoken"),
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.ok) {
-        const emp = await response.json();
-        fecharModalEmp();
-
-        const msgVazia = document.getElementById("msg-sem-emprestimos");
-        if (msgVazia) msgVazia.remove();
-
-        const container = document.getElementById(
-          "conteudo-dinamico-emprestimo",
-        );
-        const div = document.createElement("div");
-        div.className = "card-lista";
-        div.id = `emp-${emp.id}`;
-        div.innerHTML = `
-          <span class="bolinha ${emp.atrasado ? "bolinha-vermelha" : "bolinha-verde"}"></span>
-          <div class="info-lista" style="flex-grow:1;">
-            <h3>${emp.titulo}</h3>
-            <span class="qtd-livros">${emp.nome_aluno} · ${emp.turma} · ${emp.codigo_catalografico}</span>
-            <span class="qtd-livros">Empréstimo: ${emp.data_emprestimo} · Devolução prevista: ${emp.data_devolucao_prevista}</span>
-            ${emp.observacoes ? `<span class="qtd-livros">Obs: ${emp.observacoes}</span>` : ""}
-          </div>
-          <div style="display:flex; gap:10px;">
-            <button class="btn-add-livro" onclick="renovarEmprestimo(${emp.id})">
-              <i class="fa-solid fa-rotate-right"></i> Renovar
-            </button>
-            <button class="btn-devolver" onclick="devolverEmprestimo(${emp.id})">
-              <i class="fa-solid fa-check"></i> Devolver
-            </button>
-          </div>
-        `;
-        container.appendChild(div);
-      } else {
-        const err = await response.json();
-        alert(err.erro || "Erro ao criar empréstimo.");
-      }
-    };
-  }
+  // NOTA: O modal de empréstimo é gerenciado pelo próprio emp-livro.html
+  // Não há código de empréstimo aqui para evitar conflitos.
 }); // <- fecha o DOMContentLoaded
 
 /* ===== CARROSSEL ===== */
@@ -510,9 +423,7 @@ async function carregarLivros() {
     if (!response.ok) throw new Error("Erro ao buscar livros");
 
     const livros = await response.json();
-
     livros.sort(() => Math.random() - 0.5);
-
     lista.innerHTML = "";
 
     if (livros.length === 0) {
@@ -549,7 +460,6 @@ async function buscarLivros(termo) {
     if (!response.ok) throw new Error("Erro na busca");
 
     const livros = await response.json();
-
     lista.innerHTML = "";
 
     if (livros.length === 0) {
@@ -589,7 +499,6 @@ async function abrirLivro(id) {
   const pagina = document.getElementById("pag-livro");
 
   if (!pagina) {
-    // Se não está na página do livro, navega para ela
     window.location.href = `/livro/${id}/`;
     return;
   }
@@ -646,14 +555,6 @@ function voltarPagina() {
   if (pagina) pagina.style.display = "none";
 }
 
-/* ===== MODAL DE LISTA - FECHAR ===== */
-
-function fecharModal() {
-  const modal = document.getElementById("modal-lista");
-  const input = document.getElementById("input-nome-lista");
-  if (modal) modal.classList.remove("aberto"); // ← CORRIGIDO
-  if (input) input.value = "";
-}
 
 /* ===== DELETAR LISTA ===== */
 
@@ -673,72 +574,49 @@ async function deletarLista(id, btn) {
   }
 }
 
-/* ===== MODAL EMPRÉSTIMO - FECHAR ===== */
+/* ===== EMPRÉSTIMOS - RENOVAR E DEVOLVER (fallback para outras páginas) ===== */
+// Estas funções são sobrescritas pelo emp-livro.html quando estiver nessa página.
+// Aqui ficam apenas como fallback para evitar erros em outras páginas.
 
-function fecharModalEmp() {
-  const modal = document.getElementById("modal-emprestimo");
-  if (modal) modal.classList.remove("aberto"); // ← CORRIGIDO
-  [
-    "emp-titulo",
-    "emp-codigo",
-    "emp-nome",
-    "emp-turma",
-    "emp-data-emp",
-    "emp-data-dev",
-    "emp-obs",
-  ].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.value = "";
-  });
-}
-
-/* ===== EMPRÉSTIMOS - RENOVAR E DEVOLVER ===== */
-
-async function renovarEmprestimo(pk) {
-  if (!confirm("Confirmar renovação deste empréstimo?")) return;
-
-  const response = await fetch(`/emprestimos/renovar/${pk}/`, {
-    method: "POST",
-    headers: { "X-CSRFToken": getCookie("csrftoken") },
-  });
-
-  if (response.ok) {
-    const data = await response.json();
-    const card = document.getElementById(`emp-${pk}`);
-    if (card) {
-      card.querySelectorAll(".qtd-livros").forEach((s) => {
-        if (s.textContent.includes("Devolução prevista")) {
-          s.textContent = s.textContent.replace(
-            /Devolução prevista: [\d-]+/,
-            `Devolução prevista: ${data.nova_data}`,
-          );
-        }
-      });
-      if (!card.querySelector(".tag-renovado")) {
-        const tag = document.createElement("span");
-        tag.className = "tag-renovado";
-        tag.textContent = "Renovado";
-        card.querySelector(".info-lista").appendChild(tag);
+if (typeof renovarEmprestimo === "undefined") {
+  async function renovarEmprestimo(pk) {
+    if (!confirm("Confirmar renovação deste empréstimo?")) return;
+    const response = await fetch(`/biblioteca/emprestimos/renovar/${pk}/`, {
+      method: "POST",
+      headers: { "X-CSRFToken": getCookie("csrftoken") },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      const card = document.getElementById(`emp-${pk}`);
+      if (card) {
+        card.querySelectorAll(".qtd-livros").forEach((s) => {
+          if (s.textContent.includes("Devolução prevista")) {
+            s.textContent = s.textContent.replace(
+              /Devolução prevista: [\d-]+/,
+              `Devolução prevista: ${data.nova_data}`,
+            );
+          }
+        });
       }
+    } else {
+      const err = await response.json();
+      alert(err.erro || "Erro ao renovar.");
     }
-  } else {
-    const err = await response.json();
-    alert(err.Erro || "Erro ao renovar.");
   }
 }
 
-async function devolverEmprestimo(pk) {
-  if (!confirm("Confirmar devolução? O card será removido.")) return;
-
-  const response = await fetch(`/emprestimos/devolver/${pk}/`, {
-    method: "POST",
-    headers: { "X-CSRFToken": getCookie("csrftoken") },
-  });
-
-  if (response.ok) {
-    const card = document.getElementById(`emp-${pk}`);
-    if (card) card.remove();
-  } else {
-    alert("Erro ao registrar devolução.");
+if (typeof devolverEmprestimo === "undefined") {
+  async function devolverEmprestimo(pk) {
+    if (!confirm("Confirmar devolução?")) return;
+    const response = await fetch(`/biblioteca/emprestimos/devolver/${pk}/`, {
+      method: "POST",
+      headers: { "X-CSRFToken": getCookie("csrftoken") },
+    });
+    if (response.ok) {
+      const card = document.getElementById(`emp-${pk}`);
+      if (card) card.remove();
+    } else {
+      alert("Erro ao registrar devolução.");
+    }
   }
 }

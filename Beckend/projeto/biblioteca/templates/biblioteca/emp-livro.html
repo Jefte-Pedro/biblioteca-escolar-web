@@ -5,94 +5,968 @@
 
 <section class="conteudo-pag ativo">
     <div id="pag-emprestimos">
-        <h2 class="titulo-cadastro">Empréstimos de Livros</h2>
-        <p class="descricao-cad-livro">Empreste livros e monitore devoluções em tempo real.</p>
 
-        <div class="container-conteudo-branco">
-
-            <button id="btn-abrir-modal-emp" class="btn-suaLista" style="float: none; margin-bottom: 30px;">
-                <i class="fa-solid fa-plus"></i> Emprestar Livro
+        <!-- HEADER -->
+        <div class="emp-header">
+            <div>
+                <h2 class="titulo-cadastro">Empréstimos</h2>
+                <p class="descricao-cad-livro">Gerência de empréstimos, devoluções e renovações em tempo real.</p>
+            </div>
+            <button id="btn-abrir-modal-emp" class="btn-novo-emp">
+                <i class="fa-solid fa-plus"></i> Novo Empréstimo
             </button>
+        </div>
+
+        <!-- CARDS DE RESUMO -->
+        <div class="emp-resumo-grid">
+            <div class="emp-resumo-card emp-resumo-ativos">
+                <span class="emp-resumo-label">ATIVOS AGORA</span>
+                <span class="emp-resumo-valor" id="total-ativos">{{ emprestimos|length }}</span>
+                <span class="emp-resumo-sub">empréstimos em aberto</span>
+            </div>
+            <div class="emp-resumo-card emp-resumo-vencem">
+                <span class="emp-resumo-label">VENCEM HOJE</span>
+                <span class="emp-resumo-valor" id="total-vencem">{{ vencem_hoje }}</span>
+                <span class="emp-resumo-sub">devoluções previstas</span>
+            </div>
+            <div class="emp-resumo-card emp-resumo-atrasados">
+                <span class="emp-resumo-label">ATRASADOS</span>
+                <span class="emp-resumo-valor" id="total-atrasados">{{ atrasados }}</span>
+                <span class="emp-resumo-sub">fora do prazo</span>
+            </div>
+            <div class="emp-resumo-card emp-resumo-devolvidos">
+                <span class="emp-resumo-label">DEVOLVIDOS HOJE</span>
+                <span class="emp-resumo-valor">{{ devolvidos_hoje }}</span>
+                <span class="emp-resumo-sub">neste dia</span>
+            </div>
+        </div>
+
+        <!-- ABAS + FILTROS -->
+        <div class="emp-controles">
+            <div class="emp-abas">
+                <button class="emp-aba ativa" data-aba="ativos">
+                    Ativos <span class="emp-aba-badge" id="badge-ativos">{{ emprestimos|length }}</span>
+                </button>
+                <button class="emp-aba" data-aba="atrasados">
+                    Atrasados <span class="emp-aba-badge emp-badge-red" id="badge-atrasados">{{ atrasados }}</span>
+                </button>
+                <button class="emp-aba" data-aba="historico">
+                    Histórico
+                </button>
+            </div>
+            <div class="emp-filtros">
+                <div class="emp-busca-wrap">
+                    <i class="fa-solid fa-magnifying-glass emp-busca-ico"></i>
+                    <input type="text" id="emp-busca" class="emp-busca-input" placeholder="Buscar aluno ou livro...">
+                </div>
+                <select class="emp-select" id="filtro-turma">
+                    <option value="">Turma ↓</option>
+                </select>
+                <select class="emp-select" id="filtro-periodo">
+                    <option value="">Período ↓</option>
+                    <option value="hoje">Hoje</option>
+                    <option value="semana">Esta semana</option>
+                    <option value="mes">Este mês</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- TABELA -->
+        <div class="container-conteudo-branco emp-tabela-wrap">
+            <div class="emp-tabela-header">
+                <span>LIVRO</span>
+                <span>ALUNO</span>
+                <span>EMPRESTADO</span>
+                <span>DEVOLVER</span>
+                <span>STATUS</span>
+                <span>AÇÕES</span>
+            </div>
 
             <div id="conteudo-dinamico-emprestimo">
                 {% for emp in emprestimos %}
-                <div class="card-lista" id="emp-{{ emp.pk }}">
-                    <span
-                        class="bolinha {% if emp.esta_atrasado %}bolinha-vermelha{% else %}bolinha-verde{% endif %}"></span>
-                    <div class="info-lista" style="flex-grow: 1;">
-                        <h3>{{ emp.livro.titulo }}</h3>
-                        <span class="qtd-livros">
-                            {{ emp.nome_aluno }} · {{ emp.turma }} · {{ emp.codigo_catalografico }}
+                <div class="emp-linha" id="emp-{{ emp.pk }}" data-turma="{{ emp.turma }}"
+                    data-atrasado="{% if emp.esta_atrasado %}1{% else %}0{% endif %}"
+                    data-nome="{{ emp.nome_aluno|lower }}" data-titulo="{{ emp.livro_obj.titulo|lower }}">
+
+                    <!-- LIVRO -->
+                    <div class="emp-cell-livro">
+                        <div class="emp-capa" style="background: linear-gradient(135deg, #1e5aa8, #0b1526);">
+                            <span>{{ emp.livro_obj.titulo|slice:":1" }}</span>
+                        </div>
+                        <div>
+                            <div class="emp-livro-titulo">{{ emp.livro_obj.titulo }}</div>
+                            <div class="emp-livro-codigo">{{ emp.codigo_catalografico }}</div>
+                        </div>
+                    </div>
+
+                    <!-- ALUNO -->
+                    <div class="emp-cell-aluno">
+                        <div class="emp-av" style="background: {{ emp.cor_avatar|default:'#1e5aa8' }};">
+                            {{ emp.iniciais_av }}
+                        </div>
+                        <div>
+                            <div class="emp-aluno-nome">{{ emp.nome_aluno }}</div>
+                            <div class="emp-aluno-info">{{ emp.turma }} · {{ emp.matricula_aluno|default:"" }}</div>
+                        </div>
+                    </div>
+
+                    <!-- DATA EMPRÉSTIMO -->
+                    <div class="emp-cell-data">{{ emp.data_emprestimo }}</div>
+
+                    <!-- DATA DEVOLUÇÃO -->
+                    <div class="emp-cell-devolver">
+                        <span
+                            class="emp-data-dev {% if emp.esta_atrasado %}emp-data-atrasado{% elif emp.vence_hoje %}emp-data-vence{% else %}emp-data-ok{% endif %}">
+                            {{ emp.data_devolucao_prevista }}
+                            {% if emp.esta_atrasado %}
+                            <span class="emp-days-badge emp-badge-red">{{ emp.dias_atraso }}d atraso</span>
+                            {% elif emp.vence_hoje %}
+                            <span class="emp-days-badge emp-badge-yellow">hoje</span>
+                            {% else %}
+                            <span class="emp-days-badge emp-badge-green">+{{ emp.dias_restantes }}d</span>
+                            {% endif %}
                         </span>
-                        <span class="qtd-livros">
-                            Empréstimo: {{ emp.data_emprestimo }} · Devolução prevista: {{ emp.data_devolucao_prevista
-                            }}
+                    </div>
+
+                    <!-- STATUS -->
+                    <div class="emp-cell-status">
+                        {% if emp.esta_atrasado %}
+                        <span class="emp-status emp-status-atrasado">
+                            <i class="fa-solid fa-triangle-exclamation"></i> ATRASADO
                         </span>
-                        {% if emp.foi_renovado %}
-                        <span class="tag-renovado">Renovado ({{ emp.renovacoes_concluidas }}x)</span>
+                        {% elif emp.vence_hoje %}
+                        <span class="emp-status emp-status-vence">
+                            <i class="fa-solid fa-clock"></i> VENCE
+                        </span>
+                        {% else %}
+                        <span class="emp-status emp-status-ok">
+                            <i class="fa-solid fa-check"></i> EM DIA
+                        </span>
                         {% endif %}
-                        {% if emp.observacoes %}
-                        <span class="qtd-livros">Obs: {{ emp.observacoes }}</span>
+                        {% if emp.foi_renovado %}
+                        <span class="emp-tag-renovado">Renovado ({{ emp.renovacoes_concluidas }}x)</span>
                         {% endif %}
                     </div>
-                    <div style="display:flex; gap:10px;">
-                        <button class="btn-add-livro" onclick="renovarEmprestimo({{ emp.pk }})">
+
+                    <!-- AÇÕES -->
+                    <div class="emp-cell-acoes">
+                        {% if emp.esta_atrasado %}
+                        <button class="emp-btn-notificar" title="Notificar aluno">
+                            <i class="fa-solid fa-bell"></i> Notificar
+                        </button>
+                        {% else %}
+                        <button class="emp-btn-renovar" onclick="renovarEmprestimo({{ emp.pk }})" title="Renovar">
                             <i class="fa-solid fa-rotate-right"></i> Renovar
                         </button>
-                        <button class="btn-devolver" onclick="devolverEmprestimo({{ emp.pk }})">
+                        {% endif %}
+                        <button class="emp-btn-devolver" onclick="devolverEmprestimo({{ emp.pk }})" title="Devolver">
                             <i class="fa-solid fa-check"></i> Devolver
+                        </button>
+                        <button class="emp-btn-mais" onclick="abrirMenuEmp(this, {{ emp.pk }})" title="Mais opções">
+                            <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
                     </div>
                 </div>
                 {% empty %}
-                <p class="msg-vazia" id="msg-sem-emprestimos">Nenhum empréstimo ativo no momento.</p>
+                <div class="emp-vazia">
+                    <i class="fa-solid fa-book-open-reader emp-vazia-ico"></i>
+                    <p>Nenhum empréstimo ativo no momento.</p>
+                </div>
                 {% endfor %}
             </div>
+
+            <!-- PAGINAÇÃO -->
+            <div class="emp-paginacao" id="emp-paginacao">
+                <span id="emp-paginacao-info">Mostrando {{ emprestimos|length }} ativo{% if emprestimos|length != 1 %}s 
+                    {% endif %} </span>
+                <div class="emp-paginacao-btns">
+                    <button class="emp-pag-btn" id="btn-pag-prev" disabled><i
+                            class="fa-solid fa-chevron-left"></i></button>
+                    <span id="emp-pag-atual">1/1</span>
+                    <button class="emp-pag-btn" id="btn-pag-next" disabled><i
+                            class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
         </div>
+
     </div>
-    
 </section>
 
-<!-- MODAL EMPRESTAR -->
-<div id="modal-emprestimo" class="modal">
-    <div class="modal-content" style="max-width: 520px;">
-        <h3 class="titulo-model-emprestimo">Novo Empréstimo</h3>
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL NOVO EMPRÉSTIMO (com autocomplete + pré-visualização)
+═══════════════════════════════════════════════════════════ -->
+<div id="modal-emprestimo" class="emp-modal-overlay" style="display:none;">
+    <div class="emp-modal-box">
 
-        <label class="label-campo">
-            Título do livro <span class="obrigatorio">*</span>
-        </label>
-        <input type="text" id="emp-titulo" placeholder="Digite o título">
-        
-        <label class="label-campo">
-            Código catalográfico <span class="obrigatorio">*</span>
-        </label>
-        <input type="text" id="emp-codigo" placeholder="Ex: A0001/V1">
-        
-        <label class="label-campo">
-            Nome completo do aluno <span class="obrigatorio">*</span>
-        </label>
-        <input type="text" id="emp-nome" placeholder="Digite o nome Completo">
-        
-        <label class="label-campo">
-            Turma <span class="obrigatorio">*</span>
-        </label>
-        <input type="text" id="emp-turma" placeholder="Ex: 3º A">
-        
-        <label style="text-align:left; display:block; margin-bottom:4px; color:#555;font-size: 16px; font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;">Data do empréstimo <span class="obrigatorio">*</span></label>
-        <input type="date" id="emp-data-emp">
-
-        <label style="text-align:left; display:block; margin-bottom:4px; color:#555;">
-            Data de devolução <span style="font-size:12px; color:#888;">(opcional — padrão: 15 dias)</span>
-        </label>
-        <input type="date" id="emp-data-dev">
-
-        <input type="text" id="emp-obs" placeholder="Observações (opcional)">
-
-        <div class="modal-buttons">
-            <button onclick="fecharModalEmp()" class="btn-cancelar">Cancelar</button>
-            <button id="btn-confirmar-emp" class="btn-confirmar">Confirmar Empréstimo</button>
+        <div class="emp-modal-head">
+            <div>
+                <h3 class="emp-modal-titulo">Novo Empréstimo</h3>
+                <p class="emp-modal-sub">Registrar um empréstimo para um aluno</p>
+            </div>
+            <button onclick="fecharModalEmp()" class="emp-modal-fechar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
+
+        <!-- ── SEÇÃO LIVRO ── -->
+        <div class="emp-modal-secao">
+            <label class="emp-modal-label">
+                <i class="fa-solid fa-book"></i> LIVRO <span class="obrigatorio">*</span>
+            </label>
+
+            <!-- Campo de busca do livro -->
+            <div class="emp-ac-wrap" id="wrap-livro">
+                <input type="text" id="emp-titulo" class="emp-modal-input" placeholder="Digite o título do livro..."
+                    autocomplete="off" oninput="onLivroInput(this.value)">
+                <div class="emp-ac-lista" id="ac-livro" style="display:none;"></div>
+            </div>
+
+            <!-- Pré-visualização do livro selecionado -->
+            <div class="emp-preview-card" id="preview-livro" style="display:none;">
+                <div class="emp-preview-capa" id="preview-livro-capa">L</div>
+                <div class="emp-preview-info">
+                    <div class="emp-preview-titulo" id="preview-livro-titulo">—</div>
+                    <div class="emp-preview-sub" id="preview-livro-sub">—</div>
+                    <div class="emp-preview-badge-wrap" id="preview-livro-badges"></div>
+                </div>
+                <button class="emp-preview-trocar" onclick="trocarLivro()" title="Trocar livro">
+                    Trocar
+                </button>
+            </div>
+
+            <!-- Seletor de volume (aparece quando há múltiplos exemplares) -->
+            <div id="wrap-volume" style="display:none;">
+                <label class="emp-modal-label" style="margin-top:8px;">
+                    <i class="fa-solid fa-layer-group"></i> EXEMPLAR <span class="obrigatorio">*</span>
+                </label>
+                <select id="emp-volume" class="emp-select-volume" onchange="onVolumeChange()">
+                    <option value="">Selecione o exemplar...</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- ── SEÇÃO ALUNO ── -->
+        <div class="emp-modal-secao">
+            <label class="emp-modal-label">
+                <i class="fa-solid fa-user-graduate"></i> ALUNO <span class="obrigatorio">*</span>
+            </label>
+
+            <!-- Campo de busca do aluno -->
+            <div class="emp-ac-wrap" id="wrap-aluno">
+                <input type="text" id="emp-nome" class="emp-modal-input"
+                    placeholder="Digite o nome completo do aluno..." autocomplete="off"
+                    oninput="onAlunoInput(this.value)">
+                <div class="emp-ac-lista" id="ac-aluno" style="display:none;"></div>
+            </div>
+
+            <!-- Pré-visualização do aluno selecionado -->
+            <div class="emp-preview-card" id="preview-aluno" style="display:none;">
+                <div class="emp-preview-av" id="preview-aluno-av">?</div>
+                <div class="emp-preview-info">
+                    <div class="emp-preview-titulo" id="preview-aluno-nome">—</div>
+                    <div class="emp-preview-sub" id="preview-aluno-sub">—</div>
+                    <div class="emp-preview-badge-wrap" id="preview-aluno-badges"></div>
+                </div>
+                <button class="emp-preview-trocar" onclick="trocarAluno()" title="Trocar aluno">
+                    Trocar
+                </button>
+            </div>
+        </div>
+
+        <!-- ── DATAS ── -->
+        <div class="emp-modal-secao">
+            <div class="emp-modal-datas-grid">
+                <div>
+                    <label class="emp-modal-label">
+                        <i class="fa-regular fa-calendar"></i> DATA DO EMPRÉSTIMO <span class="obrigatorio">*</span>
+                    </label>
+                    <div class="emp-modal-data-wrap">
+                        <input type="date" id="emp-data-emp" class="emp-modal-input emp-modal-input-data"
+                            onchange="calcularDevolucao()">
+                        <span class="emp-modal-data-hint" id="hint-emp-data"></span>
+                    </div>
+                </div>
+                <div>
+                    <label class="emp-modal-label">
+                        <i class="fa-regular fa-calendar-check"></i> DEVOLVER ATÉ
+                        <span class="emp-opcional">(padrão: +15 dias)</span>
+                    </label>
+                    <div class="emp-modal-data-wrap">
+                        <input type="date" id="emp-data-dev" class="emp-modal-input emp-modal-input-data"
+                            onchange="onDataDevChange()">
+                        <span class="emp-modal-data-hint emp-hint-auto" id="hint-dev-data">+15d automático</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── OBSERVAÇÕES ── -->
+        <div class="emp-modal-secao emp-modal-secao-obs">
+            <input type="text" id="emp-obs" class="emp-modal-input" placeholder="Observações (opcional)">
+        </div>
+
+        <!-- ── STATUS "PRONTO PARA REGISTRAR" ── -->
+        <div class="emp-modal-status" id="emp-modal-status-wrap" style="display:none;">
+            <i class="fa-solid fa-circle-check emp-modal-status-ico"></i>
+            <span id="emp-modal-status-msg">Pronto para registrar.</span>
+        </div>
+
+        <!-- ── BOTÕES ── -->
+        <div class="emp-modal-btns">
+            <button onclick="fecharModalEmp()" class="emp-modal-btn-cancel">Cancelar</button>
+            <button id="btn-confirmar-emp" class="emp-modal-btn-confirm" onclick="confirmarEmprestimo()">
+                <i class="fa-solid fa-check"></i> Registrar Empréstimo
+            </button>
+        </div>
+
     </div>
 </div>
+
+<!-- MENU CONTEXTO -->
+<div id="emp-ctx-menu" class="emp-ctx-menu" style="display:none;">
+    <button onclick="ctxObservacoes()"><i class="fa-solid fa-note-sticky"></i> Ver observações</button>
+    <button onclick="ctxHistorico()"><i class="fa-solid fa-clock-rotate-left"></i> Histórico do aluno</button>
+    <hr>
+    <button onclick="ctxDevolver()" class="ctx-danger"><i class="fa-solid fa-rotate-left"></i> Devolver</button>
+</div>
+
+<style>
+    
+</style>
+
+<script>
+    // ═══════════════════════════════════════════════════════════
+    // ESTADO DO MODAL
+    // ═══════════════════════════════════════════════════════════
+    let livroSelecionado = null;   // objeto do livro escolhido
+    let exemplarSelecionado = null; // { id, codigo_completo, codigo_variante }
+    let alunoSelecionado = null;   // objeto do aluno escolhido
+    let timerLivro = null;
+    let timerAluno = null;
+
+    const CORES_AV = ['#1e5aa8', '#7c3aed', '#059669', '#b45309', '#dc2626', '#0891b2'];
+
+    function corAvatar(id) {
+        return CORES_AV[id % CORES_AV.length];
+    }
+
+    function iniciaisNome(nome) {
+        const p = (nome || '').split(' ').filter(Boolean);
+        if (p.length >= 2) return p[0][0].toUpperCase() + p[p.length - 1][0].toUpperCase();
+        if (p.length === 1) return p[0][0].toUpperCase();
+        return '?';
+    }
+
+    function formatarData(iso) {
+        if (!iso) return '';
+        const [y, m, d] = iso.split('-');
+        return `${d}/${m}/${y}`;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // MODAL ABRIR / FECHAR
+    // ═══════════════════════════════════════════════════════════
+    document.getElementById('btn-abrir-modal-emp').addEventListener('click', abrirModalEmp);
+
+    function abrirModalEmp() {
+        const modal = document.getElementById('modal-emprestimo');
+        modal.style.setProperty('display', 'flex', 'important');
+        const hoje = new Date().toISOString().split('T')[0];
+        document.getElementById('emp-data-emp').value = hoje;
+        calcularDevolucao();
+        document.getElementById('emp-modal-status-wrap').style.display = 'none';
+    }
+
+    function fecharModalEmp() {
+        const modal = document.getElementById('modal-emprestimo');
+        modal.style.setProperty('display', 'none', 'important');
+        resetModal();
+    }
+
+    function resetModal() {
+        livroSelecionado = null;
+        exemplarSelecionado = null;
+        alunoSelecionado = null;
+
+        document.getElementById('emp-titulo').value = '';
+        document.getElementById('emp-titulo').style.display = '';
+        document.getElementById('emp-nome').value = '';
+        document.getElementById('emp-nome').style.display = '';
+        document.getElementById('emp-obs').value = '';
+        document.getElementById('emp-data-dev').value = '';
+        document.getElementById('hint-dev-data').textContent = '+15d automático';
+
+        document.getElementById('preview-livro').style.display = 'none';
+        document.getElementById('preview-aluno').style.display = 'none';
+        document.getElementById('wrap-volume').style.display = 'none';
+        document.getElementById('ac-livro').style.display = 'none';
+        document.getElementById('ac-aluno').style.display = 'none';
+        document.getElementById('emp-modal-status-wrap').style.display = 'none';
+
+        const btn = document.getElementById('btn-confirmar-emp');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Registrar Empréstimo';
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // AUTOCOMPLETE — LIVRO
+    // ═══════════════════════════════════════════════════════════
+    function onLivroInput(val) {
+        clearTimeout(timerLivro);
+        if (val.length < 2) {
+            document.getElementById('ac-livro').style.display = 'none';
+            return;
+        }
+        timerLivro = setTimeout(() => buscarLivro(val), 300);
+    }
+
+    function buscarLivro(q) {
+        fetch(`/biblioteca/buscar-livro/?q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
+            .then(data => renderAcLivro(data.livros));
+    }
+
+    function renderAcLivro(livros) {
+        const lista = document.getElementById('ac-livro');
+        lista.innerHTML = '';
+
+        if (!livros.length) {
+            lista.innerHTML = '<div class="emp-ac-vazio">Nenhum livro encontrado.</div>';
+            lista.style.display = 'block';
+            return;
+        }
+
+        livros.forEach(livro => {
+            const item = document.createElement('div');
+            item.className = 'emp-ac-item';
+            const cor = corAvatar(livro.id);
+            const dispBadge = livro.qtd_disponivel > 0
+                ? `<span class="emp-ac-badge emp-ac-badge-green">${livro.qtd_disponivel} disponível</span>`
+                : `<span class="emp-ac-badge emp-ac-badge-red">Indisponível</span>`;
+
+            item.innerHTML = `
+            <div class="emp-ac-mini-capa" style="background:linear-gradient(135deg,${cor},#0b1526);">
+                ${livro.titulo[0]}
+            </div>
+            <div class="emp-ac-info">
+                <div class="emp-ac-nome">${livro.titulo}</div>
+                <div class="emp-ac-sub">${livro.autor || 'Autor desconhecido'} · Prateleira ${livro.prateleira || '—'}</div>
+            </div>
+            ${dispBadge}
+        `;
+            item.addEventListener('click', () => selecionarLivro(livro));
+            lista.appendChild(item);
+        });
+
+        lista.style.display = 'block';
+    }
+
+    function selecionarLivro(livro) {
+        livroSelecionado = livro;
+        exemplarSelecionado = null;
+
+        // Esconde campo de busca e dropdown
+        document.getElementById('emp-titulo').style.display = 'none';
+        document.getElementById('ac-livro').style.display = 'none';
+
+        // Mostra pré-visualização
+        const cor = corAvatar(livro.id);
+        document.getElementById('preview-livro-capa').style.background = `linear-gradient(135deg,${cor},#0b1526)`;
+        document.getElementById('preview-livro-capa').textContent = livro.titulo[0];
+        document.getElementById('preview-livro-titulo').textContent = livro.titulo;
+        document.getElementById('preview-livro-sub').textContent =
+            `${livro.autor || 'Autor desconhecido'} · Prateleira ${livro.prateleira || '—'}`;
+
+        const badges = document.getElementById('preview-livro-badges');
+        const dispTxt = livro.qtd_disponivel > 0
+            ? `<span class="emp-ac-badge emp-ac-badge-green">${livro.qtd_disponivel} exemplar${livro.qtd_disponivel > 1 ? 'es' : ''} disponível${livro.qtd_disponivel > 1 ? 'is' : ''}</span>`
+            : `<span class="emp-ac-badge emp-ac-badge-red">Sem exemplares disponíveis</span>`;
+        badges.innerHTML = dispTxt;
+
+        document.getElementById('preview-livro').style.display = 'flex';
+
+        // Seletor de volume
+        const wrapVol = document.getElementById('wrap-volume');
+        const selectVol = document.getElementById('emp-volume');
+        selectVol.innerHTML = '<option value="">Selecione o exemplar...</option>';
+
+        if (livro.exemplares_disponiveis.length === 1) {
+            // Seleciona automaticamente se houver só 1
+            exemplarSelecionado = livro.exemplares_disponiveis[0];
+            const opt = document.createElement('option');
+            opt.value = livro.exemplares_disponiveis[0].id_exemplar;
+            opt.textContent = livro.exemplares_disponiveis[0].codigo_completo;
+            opt.selected = true;
+            selectVol.appendChild(opt);
+            wrapVol.style.display = 'block';
+        } else if (livro.exemplares_disponiveis.length > 1) {
+            livro.exemplares_disponiveis.forEach(ex => {
+                const opt = document.createElement('option');
+                opt.value = ex.id_exemplar;
+                opt.textContent = ex.codigo_completo;
+                selectVol.appendChild(opt);
+            });
+            wrapVol.style.display = 'block';
+        } else {
+            wrapVol.style.display = 'none';
+        }
+
+        checkFormStatus();
+    }
+
+    function onVolumeChange() {
+        const select = document.getElementById('emp-volume');
+        const idSel = parseInt(select.value);
+        exemplarSelecionado = livroSelecionado?.exemplares_disponiveis.find(e => e.id_exemplar === idSel) || null;
+        checkFormStatus();
+    }
+
+    function trocarLivro() {
+        livroSelecionado = null;
+        exemplarSelecionado = null;
+        document.getElementById('preview-livro').style.display = 'none';
+        document.getElementById('wrap-volume').style.display = 'none';
+        const input = document.getElementById('emp-titulo');
+        input.style.display = '';
+        input.value = '';
+        input.focus();
+        checkFormStatus();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // AUTOCOMPLETE — ALUNO
+    // ═══════════════════════════════════════════════════════════
+    function onAlunoInput(val) {
+        clearTimeout(timerAluno);
+        if (val.length < 2) {
+            document.getElementById('ac-aluno').style.display = 'none';
+            return;
+        }
+        timerAluno = setTimeout(() => buscarAluno(val), 300);
+    }
+
+    function buscarAluno(q) {
+        fetch(`/biblioteca/buscar-usuario/?q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
+            .then(data => renderAcAluno(data.usuarios));
+    }
+
+    function renderAcAluno(usuarios) {
+        const lista = document.getElementById('ac-aluno');
+        lista.innerHTML = '';
+
+        if (!usuarios.length) {
+            lista.innerHTML = '<div class="emp-ac-vazio">Nenhum usuário encontrado.</div>';
+            lista.style.display = 'block';
+            return;
+        }
+
+        usuarios.forEach(u => {
+            const item = document.createElement('div');
+            item.className = 'emp-ac-item';
+            const cor = corAvatar(u.id);
+            const ini = iniciaisNome(u.nome);
+
+            const statusBadge = !u.pode_emprestar
+                ? `<span class="emp-ac-badge emp-ac-badge-red">Limite atingido</span>`
+                : u.emprestimos_ativos > 0
+                    ? `<span class="emp-ac-badge emp-ac-badge-blue">${u.emprestimos_ativos}/2 livros</span>`
+                    : `<span class="emp-ac-badge emp-ac-badge-green">Sem empréstimos</span>`;
+
+            item.innerHTML = `
+            <div class="emp-ac-mini-av" style="background:${cor};">${ini}</div>
+            <div class="emp-ac-info">
+                <div class="emp-ac-nome">${u.nome}</div>
+                <div class="emp-ac-sub">${u.serie || 'Sem turma'} · Matrícula ${u.matricula || '—'}</div>
+            </div>
+            ${statusBadge}
+        `;
+            item.addEventListener('click', () => selecionarAluno(u));
+            lista.appendChild(item);
+        });
+
+        lista.style.display = 'block';
+    }
+
+    function selecionarAluno(u) {
+        alunoSelecionado = u;
+
+        // Esconde campo de busca e dropdown
+        document.getElementById('emp-nome').style.display = 'none';
+        document.getElementById('ac-aluno').style.display = 'none';
+
+        // Pré-visualização
+        const cor = corAvatar(u.id);
+        const ini = iniciaisNome(u.nome);
+        document.getElementById('preview-aluno-av').style.background = cor;
+        document.getElementById('preview-aluno-av').textContent = ini;
+        document.getElementById('preview-aluno-nome').textContent = u.nome;
+        document.getElementById('preview-aluno-sub').textContent =
+            `${u.serie || 'Sem turma'} · Matrícula ${u.matricula || '—'}`;
+
+        const badges = document.getElementById('preview-aluno-badges');
+        let badgeHtml = '';
+        if (!u.pode_emprestar) {
+            badgeHtml = `<span class="emp-ac-badge emp-ac-badge-red">Limite de 2 livros atingido</span>`;
+        } else if (u.emprestimos_ativos > 0) {
+            badgeHtml = `<span class="emp-ac-badge emp-ac-badge-blue">${u.emprestimos_ativos} empréstimo${u.emprestimos_ativos > 1 ? 's' : ''} ativo${u.emprestimos_ativos > 1 ? 's' : ''} · ainda pode pegar ${2 - u.emprestimos_ativos}</span>`;
+        } else {
+            badgeHtml = `<span class="emp-ac-badge emp-ac-badge-green">Nenhum empréstimo ativo</span>`;
+        }
+        badges.innerHTML = badgeHtml;
+
+        document.getElementById('preview-aluno').style.display = 'flex';
+        checkFormStatus();
+    }
+
+    function trocarAluno() {
+        alunoSelecionado = null;
+        document.getElementById('preview-aluno').style.display = 'none';
+        const input = document.getElementById('emp-nome');
+        input.style.display = '';
+        input.value = '';
+        input.focus();
+        checkFormStatus();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // DATAS
+    // ═══════════════════════════════════════════════════════════
+    function calcularDevolucao() {
+        const dataEmp = document.getElementById('emp-data-emp').value;
+        const dataDevInput = document.getElementById('emp-data-dev');
+        if (dataEmp && !dataDevInput.value) {
+            const d = new Date(dataEmp + 'T12:00:00');
+            d.setDate(d.getDate() + 15);
+            const iso = d.toISOString().split('T')[0];
+            document.getElementById('hint-dev-data').textContent = '+15d automático → ' + formatarData(iso);
+        }
+    }
+
+    function onDataDevChange() {
+        const val = document.getElementById('emp-data-dev').value;
+        const hint = document.getElementById('hint-dev-data');
+        if (val) {
+            hint.textContent = 'personalizado';
+            hint.style.color = 'var(--accent-lt)';
+        } else {
+            hint.textContent = '+15d automático';
+            hint.style.color = '';
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // VERIFICAÇÃO DO FORMULÁRIO
+    // ═══════════════════════════════════════════════════════════
+    function checkFormStatus() {
+        const statusWrap = document.getElementById('emp-modal-status-wrap');
+        const statusMsg = document.getElementById('emp-modal-status-msg');
+
+        // Verifica se livro tem exemplar selecionado
+        const livroOk = livroSelecionado &&
+            (livroSelecionado.exemplares_disponiveis.length === 0 ||
+                exemplarSelecionado !== null);
+
+        // Aluno deve existir e poder emprestar
+        const alunoOk = alunoSelecionado && alunoSelecionado.pode_emprestar;
+
+        if (livroSelecionado && alunoSelecionado && !alunoSelecionado.pode_emprestar) {
+            statusWrap.style.display = 'flex';
+            statusWrap.style.background = 'rgba(239,68,68,.08)';
+            statusWrap.style.borderColor = 'rgba(239,68,68,.25)';
+            statusMsg.style.color = '#ef4444';
+            statusMsg.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Este aluno já atingiu o limite de 2 empréstimos.';
+            document.getElementById('btn-confirmar-emp').disabled = true;
+            return;
+        }
+
+        if (livroOk && alunoOk) {
+            statusWrap.style.display = 'flex';
+            statusWrap.style.background = 'rgba(34,197,94,.08)';
+            statusWrap.style.borderColor = 'rgba(34,197,94,.25)';
+            statusMsg.style.color = '#22c55e';
+            statusMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> Pronto para registrar.';
+            document.getElementById('btn-confirmar-emp').disabled = false;
+        } else {
+            statusWrap.style.display = 'none';
+            document.getElementById('btn-confirmar-emp').disabled = false;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CONFIRMAR EMPRÉSTIMO
+    // ═══════════════════════════════════════════════════════════
+    function confirmarEmprestimo() {
+        if (!livroSelecionado) { alert('Selecione um livro.'); return; }
+        if (!exemplarSelecionado && livroSelecionado.exemplares_disponiveis.length > 0) {
+            alert('Selecione o exemplar (volume) do livro.'); return;
+        }
+        if (!alunoSelecionado) { alert('Selecione um aluno.'); return; }
+        if (!alunoSelecionado.pode_emprestar) {
+            alert('Este aluno já atingiu o limite de 2 empréstimos.'); return;
+        }
+
+        const dataEmp = document.getElementById('emp-data-emp').value;
+        const dataDev = document.getElementById('emp-data-dev').value;
+        const obs = document.getElementById('emp-obs').value.trim();
+
+        if (!dataEmp) { alert('Informe a data do empréstimo.'); return; }
+
+        const payload = {
+            codigo_completo: exemplarSelecionado ? exemplarSelecionado.codigo_completo : '',
+            nome_aluno: alunoSelecionado.nome,
+            turma: alunoSelecionado.serie || '',
+            data_emprestimo: dataEmp,
+            data_devolucao_prevista: dataDev || '',
+            observacoes: obs,
+            usuario_id: alunoSelecionado.id,
+        };
+
+        const btn = document.getElementById('btn-confirmar-emp');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registrando...';
+
+        fetch('/biblioteca/emprestimos/criar/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify(payload)
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.erro) {
+                    alert('Erro: ' + data.erro);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Registrar Empréstimo';
+                    return;
+                }
+                fecharModalEmp();
+                inserirLinhaEmprestimo(data);
+                atualizarContadores();
+            })
+            .catch(() => {
+                alert('Erro de conexão. Tente novamente.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Registrar Empréstimo';
+            });
+    }
+
+    function inserirLinhaEmprestimo(data) {
+        const container = document.getElementById('conteudo-dinamico-emprestimo');
+        const vazia = container.querySelector('.emp-vazia');
+        if (vazia) vazia.remove();
+
+        const cor = CORES_AV[Math.floor(Math.random() * CORES_AV.length)];
+        const ini = iniciaisNome(data.usuario);
+
+        const linha = document.createElement('div');
+        linha.className = 'emp-linha';
+        linha.id = `emp-${data.id}`;
+        linha.dataset.atrasado = '0';
+        linha.dataset.nome = (data.usuario || '').toLowerCase();
+        linha.dataset.titulo = (data.titulo || '').toLowerCase();
+        linha.dataset.turma = (data.turma || '').toLowerCase();
+        linha.innerHTML = `
+        <div class="emp-cell-livro">
+            <div class="emp-capa" style="background:linear-gradient(135deg,${cor},#0b1526);">${(data.titulo || '?')[0]}</div>
+            <div>
+                <div class="emp-livro-titulo">${data.titulo}</div>
+                <div class="emp-livro-codigo">${data.codigo_completo || ''}</div>
+            </div>
+        </div>
+        <div class="emp-cell-aluno">
+            <div class="emp-av" style="background:${cor};">${ini}</div>
+            <div>
+                <div class="emp-aluno-nome">${data.usuario}</div>
+                <div class="emp-aluno-info">${data.turma || ''}</div>
+            </div>
+        </div>
+        <div class="emp-cell-data">${formatarData(data.data_emprestimo)}</div>
+        <div class="emp-cell-devolver">
+            <span class="emp-data-ok">
+                ${formatarData(data.data_devolucao_prevista)}
+                <span class="emp-days-badge emp-badge-green">+15d</span>
+            </span>
+        </div>
+        <div class="emp-cell-status">
+            <span class="emp-status emp-status-ok"><i class="fa-solid fa-check"></i> EM DIA</span>
+        </div>
+        <div class="emp-cell-acoes">
+            <button class="emp-btn-renovar" onclick="renovarEmprestimo(${data.id})">
+                <i class="fa-solid fa-rotate-right"></i> Renovar
+            </button>
+            <button class="emp-btn-devolver" onclick="devolverEmprestimo(${data.id})">
+                <i class="fa-solid fa-check"></i> Devolver
+            </button>
+            <button class="emp-btn-mais" onclick="abrirMenuEmp(this,${data.id})">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+        </div>
+    `;
+        container.prepend(linha);
+        linha.style.opacity = '0';
+        linha.style.transform = 'translateY(-8px)';
+        requestAnimationFrame(() => {
+            linha.style.transition = 'opacity .3s, transform .3s';
+            linha.style.opacity = '1';
+            linha.style.transform = 'translateY(0)';
+        });
+        atualizarContadores();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // DEVOLVER / RENOVAR
+    // ═══════════════════════════════════════════════════════════
+    function devolverEmprestimo(pk) {
+        if (!confirm('Confirmar devolução deste livro?')) return;
+        fetch(`/biblioteca/emprestimos/devolver/${pk}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.sucesso) {
+                    const linha = document.getElementById(`emp-${pk}`);
+                    if (linha) {
+                        linha.style.transition = 'opacity .3s, transform .3s';
+                        linha.style.opacity = '0';
+                        linha.style.transform = 'translateX(20px)';
+                        setTimeout(() => { linha.remove(); atualizarContadores(); verificarVazio(); }, 300);
+                    }
+                } else alert('Erro: ' + (data.erro || 'Falha ao devolver.'));
+            });
+    }
+
+    function renovarEmprestimo(pk) {
+        fetch(`/biblioteca/emprestimos/renovar/${pk}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.sucesso) {
+                    const linha = document.getElementById(`emp-${pk}`);
+                    if (linha && data.nova_data) {
+                        linha.querySelector('.emp-cell-devolver').innerHTML = `
+                    <span class="emp-data-ok">
+                        ${formatarData(data.nova_data)}
+                        <span class="emp-days-badge emp-badge-green">Renovado</span>
+                    </span>`;
+                        linha.style.transition = 'background .3s';
+                        linha.style.background = 'rgba(34,197,94,.08)';
+                        setTimeout(() => { linha.style.background = ''; }, 800);
+                    }
+                    alert(data.sucesso);
+                } else alert('Erro: ' + (data.erro || 'Não foi possível renovar.'));
+            });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // FILTROS / ABAS / CONTADORES
+    // ═══════════════════════════════════════════════════════════
+    document.querySelectorAll('.emp-aba').forEach(aba => {
+        aba.addEventListener('click', function () {
+            document.querySelectorAll('.emp-aba').forEach(a => a.classList.remove('ativa'));
+            this.classList.add('ativa');
+            filtrarLinhas();
+        });
+    });
+
+    document.getElementById('emp-busca').addEventListener('input', filtrarLinhas);
+    document.getElementById('filtro-turma').addEventListener('change', filtrarLinhas);
+
+    function filtrarLinhas() {
+        const abaAtiva = document.querySelector('.emp-aba.ativa')?.dataset.aba || 'ativos';
+        const busca = document.getElementById('emp-busca').value.toLowerCase();
+        const turma = document.getElementById('filtro-turma').value.toLowerCase();
+        let visiveis = 0;
+
+        document.querySelectorAll('.emp-linha').forEach(linha => {
+            const atrasado = linha.dataset.atrasado === '1';
+            let show = true;
+            if (abaAtiva === 'atrasados' && !atrasado) show = false;
+            if (busca && !linha.dataset.nome?.includes(busca) && !linha.dataset.titulo?.includes(busca)) show = false;
+            if (turma && !(linha.dataset.turma || '').toLowerCase().includes(turma)) show = false;
+            linha.style.display = show ? '' : 'none';
+            if (show) visiveis++;
+        });
+
+        document.getElementById('emp-paginacao-info').textContent =
+            `Mostrando ${visiveis} resultado${visiveis !== 1 ? 's' : ''}`;
+        verificarVazio();
+    }
+
+    function verificarVazio() {
+        const container = document.getElementById('conteudo-dinamico-emprestimo');
+        const visiveis = container.querySelectorAll('.emp-linha:not([style*="display: none"])').length;
+        let msg = container.querySelector('.emp-vazia');
+        if (visiveis === 0) {
+            if (!msg) {
+                msg = document.createElement('div');
+                msg.className = 'emp-vazia';
+                msg.innerHTML = '<i class="fa-solid fa-book-open-reader emp-vazia-ico"></i><p>Nenhum empréstimo encontrado.</p>';
+                container.appendChild(msg);
+            }
+        } else if (msg) msg.remove();
+    }
+
+    (function () {
+        const select = document.getElementById('filtro-turma');
+        const turmas = new Set();
+        document.querySelectorAll('.emp-linha').forEach(l => { if (l.dataset.turma) turmas.add(l.dataset.turma); });
+        turmas.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t; opt.textContent = t;
+            select.appendChild(opt);
+        });
+    })();
+
+    function atualizarContadores() {
+        const linhas = document.querySelectorAll('.emp-linha');
+        document.getElementById('total-ativos').textContent = linhas.length;
+        document.getElementById('badge-ativos').textContent = linhas.length;
+        const atrasados = document.querySelectorAll('.emp-linha[data-atrasado="1"]').length;
+        document.getElementById('total-atrasados').textContent = atrasados;
+        document.getElementById('badge-atrasados').textContent = atrasados;
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // MENU CONTEXTO
+    // ═══════════════════════════════════════════════════════════
+    let ctxPk = null;
+    function abrirMenuEmp(btn, pk) {
+        ctxPk = pk;
+        const menu = document.getElementById('emp-ctx-menu');
+        const rect = btn.getBoundingClientRect();
+        menu.style.display = 'block';
+        menu.style.top = (rect.bottom + 4) + 'px';
+        menu.style.left = (rect.right - menu.offsetWidth) + 'px';
+        setTimeout(() => document.addEventListener('click', fecharCtxMenu, { once: true }), 10);
+    }
+    function fecharCtxMenu() { document.getElementById('emp-ctx-menu').style.display = 'none'; }
+    function ctxObservacoes() { fecharCtxMenu(); }
+    function ctxHistorico() { fecharCtxMenu(); }
+    function ctxDevolver() { fecharCtxMenu(); if (ctxPk) devolverEmprestimo(ctxPk); }
+
+    // ═══════════════════════════════════════════════════════════
+    // UTILITÁRIOS
+    // ═══════════════════════════════════════════════════════════
+    function getCookie(name) {
+        const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+        return v ? v[2] : null;
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModalEmp(); });
+    document.getElementById('modal-emprestimo').addEventListener('click', e => {
+        if (e.target === document.getElementById('modal-emprestimo')) fecharModalEmp();
+    });
+
+    // Fecha autocomplete ao clicar fora
+    document.addEventListener('click', e => {
+        if (!document.getElementById('wrap-livro').contains(e.target))
+            document.getElementById('ac-livro').style.display = 'none';
+        if (!document.getElementById('wrap-aluno').contains(e.target))
+            document.getElementById('ac-aluno').style.display = 'none';
+    });
+</script>
 
 {% endblock %}
