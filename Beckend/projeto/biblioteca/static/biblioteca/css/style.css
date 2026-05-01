@@ -2013,3 +2013,246 @@ svg {
         text-align: center;
     }
 }
+
+/* ── CADASTRO DE LIVROS ──────────────────────────────────────── */
+#pag-cad-livro {
+  max-width: 95%;
+  margin: 0 auto;
+}
+
+.cad-livro-header {
+  margin-bottom: 28px;
+}
+
+.titulo-cadastro {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.descricao-cad-livro {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.obrigatorio {
+  color: #ef4444;
+}
+
+/* Seções */
+.cad-secao {
+  border-radius: var(--r-xl);
+  border: 1px solid var(--border);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  transition: border-color var(--ease);
+}
+
+[data-theme="dark"] .cad-secao {
+  background: #162b47;
+}
+
+[data-theme="light"] .cad-secao {
+  background: #fff;
+}
+
+.cad-secao:focus-within {
+  border-color: var(--accent-lt);
+}
+
+.cad-secao-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.cad-secao-titulo h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cad-secao-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Grid de campos */
+.cad-campos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campo.campo-largo {
+  grid-column: 1 / -1;
+}
+
+.campo.campo-pequeno {
+  min-width: 120px;
+  max-width: 180px;
+}
+
+.campo label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.campo input,
+.campo textarea {
+  width: 100%;
+  box-sizing: border-box;
+
+  height: 40px;
+  padding: 0 14px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--font);
+  outline: none;
+  transition: border-color var(--ease), background var(--ease);
+}
+
+.campo textarea {
+  height: auto;
+  padding: 10px 14px;
+  resize: vertical;
+}
+
+.campo input::placeholder,
+.campo textarea::placeholder {
+  color: var(--faint);
+}
+
+.campo input:focus,
+.campo textarea:focus {
+  border-color: var(--accent-lt);
+}
+
+/* Contador de unidades */
+.input-contador {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--input-bg);
+  transition: border-color var(--ease);
+}
+
+.input-contador:focus-within {
+  border-color: var(--accent-lt);
+}
+
+.input-contador button {
+  width: 36px;
+  height: 40px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent-lt);
+  background: var(--surface);
+  border: none;
+  cursor: pointer;
+  transition: background var(--ease);
+  flex-shrink: 0;
+}
+
+.input-contador button:hover {
+  background: var(--hover2);
+}
+
+.input-contador input {
+  flex: 1;
+  height: 40px;
+  border: none !important;
+  border-radius: 0 !important;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  background: var(--input-bg);
+  color: var(--text);
+  outline: none;
+  padding: 0 4px;
+}
+
+/* Mensagem de feedback */
+.msg-cadastro {
+  padding: 12px 16px;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.msg-cadastro.sucesso {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid #22c55e;
+  color: #22c55e;
+}
+
+.msg-cadastro.erro {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
+
+/* Botões de ação */
+.cad-livro-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn-confirmar-cad-livro {
+  height: 40px;
+  padding: 0 24px;
+  border-radius: var(--r-md);
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-confirmar-cad-livro:hover {
+  opacity: 0.88;
+}
+
+
+.input-contador input[type="number"]::-webkit-inner-spin-button,
+.input-contador input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+.input-contador input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
