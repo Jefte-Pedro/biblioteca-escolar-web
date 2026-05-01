@@ -1,6 +1,0 @@
-flask
-sqlalchemy
-mysql-connector-python
-python-dotenv
-twilio
-apscheduler
