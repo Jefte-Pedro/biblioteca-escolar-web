@@ -1,24 +1,46 @@
-function toggleTheme() {
+/* ===== TEMA ===== */
+// Única fonte de verdade para tema em todo o projeto.
+// Chave localStorage: "theme"  |  Valores: "dark" | "light" | "auto"
+
+function _applyTheme(value) {
   const html = document.documentElement;
-  const isDark = html.getAttribute("data-theme") === "dark";
-  html.setAttribute("data-theme", isDark ? "light" : "dark");
+  let resolved = value;
+  if (value === "auto") {
+    resolved = window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  }
+  html.setAttribute("data-theme", resolved);
+
   const moon = document.getElementById("ico-moon");
   const sun = document.getElementById("ico-sun");
-  if (moon) moon.style.display = isDark ? "none" : "block";
-  if (sun) sun.style.display = isDark ? "block" : "none";
-  localStorage.setItem("theme", isDark ? "light" : "dark");
+  if (moon) moon.style.display = resolved === "dark" ? "block" : "none";
+  if (sun) sun.style.display = resolved === "dark" ? "none" : "block";
 }
 
-/* Restore saved theme on load */
+/**
+ * setTheme(value)
+ * Usado pelas configurações: "dark" | "light" | "auto"
+ * Persiste e aplica imediatamente.
+ */
+function setTheme(value) {
+  localStorage.setItem("theme", value);
+  _applyTheme(value);
+}
+
+/**
+ * toggleTheme()
+ * Usado pelo botão do header — alterna dark ↔ light.
+ */
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme");
+  setTheme(current === "dark" ? "light" : "dark");
+}
+
+/* Restaurar tema salvo ao carregar */
 (function () {
-  const saved = localStorage.getItem("theme");
-  if (saved) {
-    document.documentElement.setAttribute("data-theme", saved);
-    const moon = document.getElementById("ico-moon");
-    const sun = document.getElementById("ico-sun");
-    if (moon) moon.style.display = saved === "dark" ? "block" : "none";
-    if (sun) sun.style.display = saved === "dark" ? "none" : "block";
-  }
+  const saved = localStorage.getItem("theme") || "dark";
+  _applyTheme(saved);
 })();
 
 /* ===== UTILITÁRIO: CSRF ===== */
@@ -276,7 +298,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  
   // NOTA: O modal de empréstimo é gerenciado pelo próprio emp-livro.html
   // Não há código de empréstimo aqui para evitar conflitos.
 }); // <- fecha o DOMContentLoaded
@@ -495,8 +516,6 @@ function voltarPagina() {
   const pagina = document.getElementById("pag-livro");
   if (pagina) pagina.style.display = "none";
 }
-
-
 
 /* ===== EMPRÉSTIMOS - RENOVAR E DEVOLVER (fallback para outras páginas) ===== */
 // Estas funções são sobrescritas pelo emp-livro.html quando estiver nessa página.

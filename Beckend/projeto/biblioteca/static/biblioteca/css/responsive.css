@@ -21,22 +21,22 @@
 }
 
 .conteudo-pag {
-    display: none;
+  display: none;
 }
 
 .conteudo-pag.ativo {
-    display: block;
+  display: block;
 }
 
 .btn-aba {
-    padding: 10px;
-    text-decoration: none;
-    color: gray;
+  padding: 10px;
+  text-decoration: none;
+  color: gray;
 }
 
 .btn-aba.ativo {
-    color: #1c5db1;
-    font-weight: bold;
+  color: #1c5db1;
+  font-weight: bold;
 }
 
 body.dark .menu-mobile {
@@ -272,5 +272,50 @@ textarea {
     color: white;
     border: none;
     cursor: pointer;
+  }
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .cfg-wrapper {
+    flex-direction: column;
+  }
+
+  .cfg-sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    border-right: none;
+    border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.07));
+    position: static;
+    gap: 4px;
+  }
+
+  .cfg-sidebar-title {
+    display: none;
+  }
+  .cfg-tab-separator {
+    display: none;
+  }
+  .cfg-tab {
+    padding: 7px 12px;
+    font-size: 12.5px;
+    flex: none;
+    border-radius: 7px;
+  }
+  .cfg-tab.active::before {
+    display: none;
+  }
+  .cfg-tab-danger {
+    margin-top: 0;
+  }
+
+  .cfg-content {
+    padding: 20px 16px;
+  }
+
+  .cfg-fields {
+    grid-template-columns: 1fr;
   }
 }

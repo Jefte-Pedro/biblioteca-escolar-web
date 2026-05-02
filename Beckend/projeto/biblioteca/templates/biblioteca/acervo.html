@@ -104,6 +104,9 @@
             <div class="lista-card-top">
                 <div>
                     <div class="lista-card-nome">{{ lista.nome }}</div>
+                    {% if lista.descricao %}
+                    <div class="lista-card-descricao">{{ lista.descricao|truncatechars:50 }}</div>
+                    {% endif %}
                     <div class="lista-card-meta">
                         {{ lista.livros.count }} livro{% if lista.livros.count != 1 %}s{% endif %}
                         {% if lista.atualizada %}· Atualizado {{ lista.atualizada }}{% endif %}
@@ -131,10 +134,10 @@
         </div>
         <div class="lista-menu-dropdown" style="display: none;">
             <button class="menu-item renomear"
-                onclick="prepararRenomear('{{ lista.id }}', '{{ lista.nome }}')">Renomear</button>
-        <button class="menu-item excluir" onclick="confirmarExclusao('{% url 'excluir_lista' id=lista.id %}')">
-            Excluir
-        </button>
+                onclick="prepararRenomear('{{ lista.id }}', '{{ lista.nome }}', '{{ lista.descricao|default:'' }}')">Renomear</button>
+            <button class="menu-item excluir" onclick="confirmarExclusao('{% url 'excluir_lista' id=lista.id %}')">
+                Excluir
+            </button>
         </div>
     </div>
     {% endfor %}
@@ -272,7 +275,12 @@
             </button>
         </div>
         <p class="modal-sub">Digite o novo nome da lista.</p>
+        <span class="titulo-modal-editar-lista"> Editar Nome da Lista</span>
         <input type="text" id="input-renomear" class="modal-input" placeholder="Novo nome da lista..." />
+        <span class="titulo-modal-editar-lista"> Descrição da Lista (opcional)</span>
+        <input type="text" id="editar-descricao" class="modal-input" placeholder="Descrição "
+            value="{{ lista.descricao|default:'' }}" />
+
         <div class="modal-btns">
             <button onclick="fecharModalRenomear()" class="modal-btn-cancel">Cancelar</button>
             <button onclick="executarRenomear()" class="modal-btn-confirm">Salvar</button>
@@ -330,12 +338,12 @@
         // ── MODAL RENOMEAR ─────────────────────────────────────────
         let _idRenomearPendente = null;
 
-        window.prepararRenomear = function (id, nomeAntigo) {
+        window.prepararRenomear = function (id, nomeAntigo, descricaoAtual) {
             _idRenomearPendente = id;
-            const input = document.getElementById('input-renomear');
-            input.value = nomeAntigo;
+            document.getElementById('input-renomear').value = nomeAntigo;
+            document.getElementById('editar-descricao').value = descricaoAtual || '';
             document.getElementById('modal-renomear').style.display = 'flex';
-            setTimeout(() => input.focus(), 50);
+            setTimeout(() => document.getElementById('input-renomear').focus(), 50);
         };
 
         window.fecharModalRenomear = function () {
@@ -346,21 +354,17 @@
         window.executarRenomear = async function () {
             if (!_idRenomearPendente) return;
             const novoNome = document.getElementById('input-renomear').value.trim();
+            const descricao = document.getElementById('editar-descricao').value.trim();
             if (!novoNome) return;
             try {
                 const response = await fetch(`/biblioteca/acervo/lista/renomear/${_idRenomearPendente}/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                    body: JSON.stringify({ nome: novoNome })
+                    body: JSON.stringify({ nome: novoNome, descricao })
                 });
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    alert("Erro ao renomear a lista.");
-                }
-            } catch (err) {
-                console.error(err);
-            }
+                if (response.ok) { window.location.reload(); }
+                else { alert("Erro ao renomear a lista."); }
+            } catch (err) { console.error(err); }
             fecharModalRenomear();
         };
 
@@ -381,6 +385,7 @@
                 btnConfirmar.onclick = async function (e) {
                     e.preventDefault();
                     const nome = document.getElementById('input-nome-lista').value.trim();
+                    const descricao = document.getElementById('input-lista-descricao').value.trim();
                     if (!nome) { alert("Digite um nome para a lista."); return; }
                     this.disabled = true;
                     this.innerText = 'Criando...';
@@ -388,7 +393,7 @@
                         const response = await fetch('/biblioteca/acervo/lista/criar/', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                            body: JSON.stringify({ nome })
+                            body: JSON.stringify({ nome, descricao })
                         });
                         if (response.ok) { window.location.reload(); }
                         else {
