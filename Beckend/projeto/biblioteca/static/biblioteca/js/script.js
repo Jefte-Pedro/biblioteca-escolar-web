@@ -276,66 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ===== MODAL DE LISTA ===== */
-
-  const btnAbrirModal = document.getElementById("btn-abrir-modal");
-  const btnConfirmarLista = document.getElementById("btn-confirmar-lista");
-  const inputNomeLista = document.getElementById("input-nome-lista");
-  const containerListas = document.getElementById("conteudo-dinamico-lista");
-
-  if (btnAbrirModal) {
-    btnAbrirModal.onclick = () => {
-      document.getElementById("modal-lista").classList.add("aberto");
-      inputNomeLista.focus();
-    };
-  }
-
-  if (btnConfirmarLista) {
-    btnConfirmarLista.onclick = async () => {
-      const nome = inputNomeLista.value.trim();
-      if (!nome) {
-        alert("Digite um nome para a lista.");
-        return;
-      }
-
-      const response = await fetch("/acervo/lista/criar/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCookie("csrftoken"),
-        },
-        body: JSON.stringify({ nome }),
-      });
-
-      if (response.ok) {
-        const lista = await response.json();
-        fecharModal();
-
-        const msgVazia = document.getElementById("msg-sem-listas");
-        if (msgVazia) msgVazia.remove();
-
-        const div = document.createElement("div");
-        div.className = "card-lista";
-        div.dataset.listaId = lista.id;
-        div.innerHTML = `
-          <div class="info-lista" style="cursor:pointer; flex-grow: 1;">
-            <h3>${lista.nome}</h3>
-            <span class="qtd-livros">${lista.qtd_livros} livros</span>
-          </div>
-          <button class="btn-add-livro" onclick="event.stopPropagation();">
-            <i class="fa-solid fa-plus"></i>
-          </button>
-          <button class="btn-deletar-lista" onclick="deletarLista(${lista.id}, this)" style="margin-left:8px;">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        `;
-        containerListas.appendChild(div);
-      } else {
-        alert("Erro ao criar lista.");
-      }
-    };
-  }
-
+  
   // NOTA: O modal de empréstimo é gerenciado pelo próprio emp-livro.html
   // Não há código de empréstimo aqui para evitar conflitos.
 }); // <- fecha o DOMContentLoaded
@@ -556,23 +497,6 @@ function voltarPagina() {
 }
 
 
-/* ===== DELETAR LISTA ===== */
-
-async function deletarLista(id, btn) {
-  if (!confirm("Tem certeza que deseja deletar esta lista?")) return;
-
-  const response = await fetch(`/acervo/lista/deletar/${id}/`, {
-    method: "POST",
-    headers: { "X-CSRFToken": getCookie("csrftoken") },
-  });
-
-  if (response.ok) {
-    const card = btn.closest(".card-lista");
-    if (card) card.remove();
-  } else {
-    alert("Erro ao deletar lista.");
-  }
-}
 
 /* ===== EMPRÉSTIMOS - RENOVAR E DEVOLVER (fallback para outras páginas) ===== */
 // Estas funções são sobrescritas pelo emp-livro.html quando estiver nessa página.

@@ -193,6 +193,58 @@ def criar_lista(request):
     nova_lista = Lista.objects.create(usuario=request.user, nome=nome)
     return JsonResponse({'id': nova_lista.id, 'nome': nova_lista.nome, 'qtd_livros': 0})
 
+@require_POST 
+def excluir_lista(request, id):
+    lista = get_object_or_404(Lista, id=id, usuario=request.user)
+    lista.delete()
+    return JsonResponse({'status': 'ok'})
+
+@require_POST
+def renomear_lista(request, id):
+    lista = get_object_or_404(Lista, id=id, usuario=request.user)
+    data = json.loads(request.body)
+    novo_nome = data.get('nome', '').strip()
+    descricao = data.get('descricao', '').strip()
+    if not novo_nome:
+        return JsonResponse({'erro': 'Nome não pode ser vazio.'}, status=400)
+    lista.nome = novo_nome
+    lista.descricao = descricao if descricao else None
+    lista.save()
+    return JsonResponse({'id': lista.id, 'nome': lista.nome, 'descricao': lista.descricao})
+
+@require_POST
+def adicionar_livro_lista(request, id):
+    lista = get_object_or_404(Lista, id=id, usuario=request.user)
+    data = json.loads(request.body)
+    livro = get_object_or_404(Livro, id_livro=data.get('livro_id'))
+    lista.livros.add(livro)
+    return JsonResponse({'status': 'ok'})
+
+@require_POST
+def remover_livro_lista(request, id):
+    lista = get_object_or_404(Lista, id=id, usuario=request.user)
+    data = json.loads(request.body)
+    livro = get_object_or_404(Livro, id_livro=data.get('livro_id'))
+    lista.livros.remove(livro)
+    return JsonResponse({'status': 'ok'})
+
+def listas_do_usuario(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'listas': []})
+    livro_id = request.GET.get('livro_id')
+    listas = Lista.objects.filter(usuario=request.user).prefetch_related('livros')
+    resultado = []
+    for l in listas:
+        tem_livro = False
+        if livro_id:
+            tem_livro = l.livros.filter(id_livro=livro_id).exists()
+        resultado.append({
+            'id': l.id,
+            'nome': l.nome,
+            'qtd_livros': l.livros.count(),
+            'tem_livro': tem_livro,
+        })
+    return JsonResponse({'listas': resultado})
 
 def lidos(request):
     return render(request, 'biblioteca/acervo.html', {'aba': 'lidos'})

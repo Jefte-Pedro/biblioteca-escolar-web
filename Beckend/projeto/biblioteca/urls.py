@@ -15,11 +15,15 @@ urlpatterns = [
     path('acervo/reservados/', views.reservados, name='reservados'),
     path('acervo/lidos/', views.lidos, name='lidos'),
     path('acervo/lista/criar/', views.criar_lista, name='criar_lista'),
-    path('acervo/lista/deletar/<int:pk>/', views.deletar_lista, name='deletar_lista'),
-    path('lista/<int:id>/', views.detalhe_lista, name='detalhe_lista')
+    path('lista/<int:id>/', views.detalhe_lista, name='detalhe_lista'),
+    
+    path('acervo/lista/excluir/<int:id>/', views.excluir_lista, name='excluir_lista'),
+    path('acervo/lista/renomear/<int:id>/', views.renomear_lista, name='renomear_lista'),
 
+    path('lista/<int:id>/adicionar-livro/', views.adicionar_livro_lista, name='adicionar_livro_lista'),
+    path('lista/<int:id>/remover-livro/', views.remover_livro_lista, name='remover_livro_lista'),
+    path('listas/minhas/', views.listas_do_usuario, name='listas_do_usuario'),
     path('acervo/', views.acervo, name='acervo'),
-
 
     path('prazos/', views.prazos, name='prazos'),
     path('emprestimos/criar/', views.criar_emprestimo, name='criar_emprestimo'),

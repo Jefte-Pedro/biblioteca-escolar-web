@@ -232,6 +232,13 @@
 
 <script>
     let roleAtual = 'aluno';
+    let matriculaVerificada = false;
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
 
     function setRole(role) {
         roleAtual = role;
@@ -250,40 +257,83 @@
         document.getElementById('login-erro').style.display = 'none';
     }
 
-    // Ao sair do campo matrícula, verifica automaticamente
-    document.getElementById('matricula').addEventListener('blur', async function () {
+    async function verificarMatricula(matricula) {
+        try {
+            const res = await fetch('/biblioteca/login/verificar-matricula/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ matricula })
+            });
+
+            if (!res.ok) {
+                mostrarErro('Erro ao verificar matrícula. Tente novamente.');
+                return;
+            }
+
+            const data = await res.json();
+
+            if (!data.existe) {
+                mostrarErro('Matrícula não encontrada. Fale com a bibliotecária.');
+                matriculaVerificada = false;
+                return;
+            }
+
+            if (data.primeiro_acesso) {
+                window.location.href = `/biblioteca/login/cadastro/?matricula=${matricula}`;
+                return;
+            }
+
+            // Matrícula válida — mostra campo de senha
+            matriculaVerificada = true;
+            esconderErro();
+            document.getElementById('campo-senha').style.display = 'block';
+            document.getElementById('campo-remember').style.display = 'block';
+            document.getElementById('senha').focus();
+
+        } catch (err) {
+            mostrarErro('Erro de conexão. Tente novamente.');
+            console.error(err);
+        }
+    }
+
+    // Verifica ao sair do campo (blur) — só se tiver 7+ dígitos
+    document.getElementById('matricula').addEventListener('blur', function () {
         const matricula = this.value.trim();
-        if (!matricula) return;
+        if (matricula.length < 4) return;
         esconderErro();
 
-        const res = await fetch('/biblioteca/login/verificar-matricula/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-            body: JSON.stringify({ matricula })
-        });
-        const data = await res.json();
-
-        if (!data.existe) {
-            mostrarErro('Matrícula não encontrada. Fale com a bibliotecária.');
-            return;
+        // Esconde senha se mudou a matrícula
+        if (!matriculaVerificada) {
+            document.getElementById('campo-senha').style.display = 'none';
+            document.getElementById('campo-remember').style.display = 'none';
         }
 
-        if (data.primeiro_acesso) {
-            // Redireciona direto para o cadastro com a matrícula
-            window.location.href = `/biblioteca/login/cadastro/?matricula=${matricula}`;
-            return;
-        }
+        verificarMatricula(matricula);
+    });
 
-        // Matrícula válida com senha — mostra campo de senha
-        document.getElementById('campo-senha').style.display = 'block';
-        document.getElementById('campo-remember').style.display = 'block';
-        document.getElementById('senha').focus();
+    // Esconde campo de senha se o usuário editar a matrícula depois
+    document.getElementById('matricula').addEventListener('input', function () {
+        matriculaVerificada = false;
+        document.getElementById('campo-senha').style.display = 'none';
+        document.getElementById('campo-remember').style.display = 'none';
+        esconderErro();
     });
 
     async function handleLogin() {
         const matricula = document.getElementById('matricula').value.trim();
-        const senha = document.getElementById('senha').value.trim();
+        const senhaEl = document.getElementById('senha');
+        const senha = senhaEl ? senhaEl.value.trim() : '';
         esconderErro();
+
+        // Se a senha ainda não apareceu, tenta verificar a matrícula primeiro
+        if (document.getElementById('campo-senha').style.display === 'none') {
+            if (!matricula) { mostrarErro('Informe sua matrícula.'); return; }
+            await verificarMatricula(matricula);
+            return;
+        }
 
         if (!matricula) { mostrarErro('Informe sua matrícula.'); return; }
         if (!senha) { mostrarErro('Informe sua senha.'); return; }
@@ -292,25 +342,32 @@
         btn.disabled = true;
         btn.textContent = 'Entrando...';
 
-        const res = await fetch('/biblioteca/login/entrar/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-            body: JSON.stringify({ matricula, senha })
-        });
-        const data = await res.json();
+        try {
+            const res = await fetch('/biblioteca/login/entrar/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ matricula, senha })
+            });
+            const data = await res.json();
 
-        if (data.sucesso) {
-            window.location.href = data.redirect;
-        } else {
-            mostrarErro(data.erro || 'Erro ao fazer login.');
+            if (data.sucesso) {
+                window.location.href = data.redirect;
+            } else {
+                mostrarErro(data.erro || 'Erro ao fazer login.');
+                btn.disabled = false;
+                btn.innerHTML = 'Entrar <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+            }
+        } catch (err) {
+            mostrarErro('Erro de conexão. Tente novamente.');
             btn.disabled = false;
             btn.innerHTML = 'Entrar <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
         }
     }
 
-    // Botão "Criar minha senha" — abre modal pedindo matrícula
     function irParaCadastro() {
-        // Se já digitou matrícula no campo principal, aproveita
         const matriculaJaDigitada = document.getElementById('matricula').value.trim();
         if (matriculaJaDigitada) {
             document.getElementById('modal-matricula-input').value = matriculaJaDigitada;
@@ -339,31 +396,41 @@
         btn.disabled = true;
         btn.textContent = 'Verificando...';
 
-        const res = await fetch('/biblioteca/login/verificar-matricula/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-            body: JSON.stringify({ matricula })
-        });
-        const data = await res.json();
+        try {
+            const res = await fetch('/biblioteca/login/verificar-matricula/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ matricula })
+            });
+            const data = await res.json();
 
-        if (!data.existe) {
-            erroEl.textContent = 'Matrícula não encontrada. Fale com a bibliotecária.';
+            if (!data.existe) {
+                erroEl.textContent = 'Matrícula não encontrada. Fale com a bibliotecária.';
+                erroEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Verificar';
+                return;
+            }
+
+            if (!data.primeiro_acesso) {
+                erroEl.textContent = 'Essa matrícula já tem senha cadastrada. Faça login normalmente.';
+                erroEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Verificar';
+                return;
+            }
+
+            window.location.href = `/biblioteca/login/cadastro/?matricula=${matricula}`;
+
+        } catch (err) {
+            erroEl.textContent = 'Erro de conexão. Tente novamente.';
             erroEl.style.display = 'block';
             btn.disabled = false;
             btn.textContent = 'Verificar';
-            return;
         }
-
-        if (!data.primeiro_acesso) {
-            erroEl.textContent = 'Essa matrícula já tem senha cadastrada. Faça login normalmente.';
-            erroEl.style.display = 'block';
-            btn.disabled = false;
-            btn.textContent = 'Verificar';
-            return;
-        }
-
-        // Tudo certo — redireciona para o cadastro
-        window.location.href = `/biblioteca/login/cadastro/?matricula=${matricula}`;
     }
 
     function togglePwd() {
@@ -372,12 +439,6 @@
         input.type = isPassword ? 'text' : 'password';
         document.getElementById('eye-off').style.display = isPassword ? 'none' : 'block';
         document.getElementById('eye-on').style.display = isPassword ? 'block' : 'none';
-    }
-
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
     }
 
     document.addEventListener('keydown', function (e) {

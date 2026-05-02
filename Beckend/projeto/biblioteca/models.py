@@ -165,6 +165,8 @@ class Lista(models.Model):
     usuario = models.ForeignKey('Usuario', on_delete=models.CASCADE)
     nome = models.CharField(max_length=200)
     criada_em = models.DateTimeField(auto_now_add=True)
+    descricao = models.TextField(blank=True, null=True)
+    livros = models.ManyToManyField(Livro, blank=True) 
 
     class Meta:
         db_table = 'biblioteca_lista'

@@ -3369,3 +3369,35 @@ svg {
   text-align: left;
   cursor: pointer;
 }
+
+.lista-menu-dropdown {
+    position: absolute;
+    right: 15px; /* Ajusta a distância da borda direita */
+    top: 45px;   /* Ajusta para ficar abaixo dos 3 pontinhos */
+    background: #1f2937; /* Cor escura combinando com seu tema */
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 5px 0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    z-index: 50;
+    min-width: 130px;
+}
+
+.menu-item {
+    width: 100%;
+    padding: 8px 16px;
+    text-align: left;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.menu-item:hover {
+    background: #374151;
+}
+
+.menu-item.excluir {
+    color: #ef4444; /* Vermelho para exclusão */
+}

@@ -70,7 +70,9 @@
 <div class="acervo-grid">
 
     {% for lista in listas %}
-    <a href="{% url 'detalhe_lista' lista.id %}" class="lista-card">
+    <div class="lista-card" style="cursor: pointer;"
+        onclick="if(!event.target.closest('.lista-card-menu') && !event.target.closest('.lista-menu-dropdown')) window.location.href='{% url 'detalhe_lista' lista.id %}'">
+
         <!-- Capas empilhadas -->
         <div class="lista-card-capas">
             {% for livro in lista.livros_preview %}
@@ -128,10 +130,13 @@
             {% endif %}
         </div>
         <div class="lista-menu-dropdown" style="display: none;">
-            <button class="menu-item renomear">Renomear</button>
-            <button class="menu-item excluir">Excluir</button>
+            <button class="menu-item renomear"
+                onclick="prepararRenomear('{{ lista.id }}', '{{ lista.nome }}')">Renomear</button>
+        <button class="menu-item excluir" onclick="confirmarExclusao('{% url 'excluir_lista' id=lista.id %}')">
+            Excluir
+        </button>
         </div>
-    </a>
+    </div>
     {% endfor %}
 
     <!-- Card: Criar nova lista -->
@@ -227,6 +232,10 @@
         <p class="modal-sub">Dê um nome para sua nova coleção de livros.</p>
         <input type="text" id="input-nome-lista" class="modal-input" placeholder="Ex: Livros para o ENEM..."
             data-i18n-placeholder="modal_lista_placeholder" />
+
+        <input type="text" id="input-lista-descricao" class="modal-input"
+            placeholder="Ex: Livros que me Ajudam com os Estudos" data-i18n-placeholder="modal_lista_placeholder">
+
         <div class="modal-btns">
             <button onclick="fecharModal()" class="modal-btn-cancel">Cancelar</button>
             <button id="btn-confirmar-lista" class="modal-btn-confirm">Criar Lista</button>
@@ -235,114 +244,189 @@
 </div>
 
 
+<!-- ── MODAL CONFIRMAR EXCLUSÃO ───────────────────────────────── -->
+<div id="modal-confirmar-exclusao" class="modal-overlay" style="display:none">
+    <div class="modal-box" style="max-width:360px;text-align:center;gap:12px">
+        <div style="font-size:36px">🗑️</div>
+        <div class="modal-titulo" style="font-size:16px;font-weight:700">Excluir lista?</div>
+        <p class="modal-sub" style="margin:0">Essa ação não pode ser desfeita. Todos os livros serão removidos da lista.
+        </p>
+        <div class="modal-btns" style="justify-content:center;gap:12px;margin-top:8px">
+            <button onclick="fecharModalExclusao()" class="modal-btn-cancel">Cancelar</button>
+            <button onclick="executarExclusao()" class="modal-btn-confirm" style="background:#ef4444">Excluir</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL RENOMEAR ─────────────────────────────────────────── -->
+<div id="modal-renomear" class="modal-overlay" style="display:none">
+    <div class="modal-box" style="max-width:400px">
+        <div class="modal-head">
+            <span class="modal-titulo">Renomear lista</span>
+            <button class="modal-fechar" onclick="fecharModalRenomear()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <p class="modal-sub">Digite o novo nome da lista.</p>
+        <input type="text" id="input-renomear" class="modal-input" placeholder="Novo nome da lista..." />
+        <div class="modal-btns">
+            <button onclick="fecharModalRenomear()" class="modal-btn-cancel">Cancelar</button>
+            <button onclick="executarRenomear()" class="modal-btn-confirm">Salvar</button>
+        </div>
+    </div>
+</div>
+
 {% block extra_js %}
 <script>
-    const usuarioLogado = {{ user.is_authenticated| lower }};
+    (function () {
+        const usuarioLogado = "{{ user.is_authenticated|lower }}" === "true";
 
-    function abrirModal() {
-        if (!usuarioLogado) {
-            abrirModalLogin('Você precisa estar logado para criar e gerenciar suas listas.');
-            return;
-        }
-        document.getElementById('modal-lista').style.display = 'flex';
-        document.getElementById('input-nome-lista').focus();
-    }
+        // ── MODAL CRIAR LISTA ──────────────────────────────────────
+        window.abrirModal = function () {
+            document.getElementById('modal-lista').style.display = 'flex';
+            const input = document.getElementById('input-nome-lista');
+            if (input) { input.value = ''; input.focus(); }
+        };
+        window.fecharModal = function () {
+            document.getElementById('modal-lista').style.display = 'none';
+        };
 
-    function fecharModal() {
-        document.getElementById('modal-lista').style.display = 'none';
-        document.getElementById('input-nome-lista').value = '';
-    }
+        // ── MODAL CONFIRMAR EXCLUSÃO ───────────────────────────────
+        let _urlExclusaoPendente = null;
 
-    document.getElementById('btn-abrir-modal').addEventListener('click', abrirModal);
-    document.getElementById('btn-abrir-modal-2').addEventListener('click', abrirModal);
+        window.confirmarExclusao = function (urlExclusao) {
+            _urlExclusaoPendente = urlExclusao;
+            document.getElementById('modal-confirmar-exclusao').style.display = 'flex';
+        };
 
-    // Fechar clicando fora
-    document.getElementById('modal-lista').addEventListener('click', function (e) {
-        if (e.target === this) fecharModal();
-    });
+        window.fecharModalExclusao = function () {
+            document.getElementById('modal-confirmar-exclusao').style.display = 'none';
+            _urlExclusaoPendente = null;
+        };
 
-    // Fechar com Esc
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') fecharModal();
-    });
-
-    // Criar lista via AJAX
-    document.getElementById('btn-confirmar-lista').addEventListener('click', async function () {
-        const nome = document.getElementById('input-nome-lista').value.trim();
-        if (!nome) return;
-
-        this.disabled = true;
-        this.textContent = 'Criando...';
-
-        const res = await fetch('/biblioteca/acervo/lista/criar/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({ nome })
-        });
-
-        const data = await res.json();
-
-        if (res.status === 401) {
-            fecharModal();
-            abrirModalLogin('Você precisa estar logado para criar listas.');
-        } else if (data.id) {
-            // Recarrega a página para mostrar a nova lista
-            window.location.reload();
-        } else {
-            alert(data.erro || 'Erro ao criar lista.');
-            this.disabled = false;
-            this.textContent = 'Criar Lista';
-        }
-    });
-
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-    }
-
-    // Ação do botão de três pontinhos (menu)
-    document.querySelectorAll('.lista-card-menu').forEach(btn => {
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();  // 🌟 OBRIGATÓRIO: Impede que o <a> (card) te redirecione de página
-            e.stopPropagation(); // Impede que o clique "vaze" para o card
-
-            // Fecha outros menus abertos (comportamento de sanfona)
-            document.querySelectorAll('.lista-menu-dropdown').forEach(menu => {
-                if (menu !== this.closest('.lista-card').querySelector('.lista-menu-dropdown')) {
-                    menu.style.display = 'none';
+        window.executarExclusao = async function () {
+            if (!_urlExclusaoPendente) return;
+            try {
+                const response = await fetch(_urlExclusaoPendente, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const erro = await response.json();
+                    alert(erro.erro || "Erro ao excluir.");
                 }
+            } catch (err) {
+                console.error(err);
+            }
+            fecharModalExclusao();
+        };
+
+        // ── MODAL RENOMEAR ─────────────────────────────────────────
+        let _idRenomearPendente = null;
+
+        window.prepararRenomear = function (id, nomeAntigo) {
+            _idRenomearPendente = id;
+            const input = document.getElementById('input-renomear');
+            input.value = nomeAntigo;
+            document.getElementById('modal-renomear').style.display = 'flex';
+            setTimeout(() => input.focus(), 50);
+        };
+
+        window.fecharModalRenomear = function () {
+            document.getElementById('modal-renomear').style.display = 'none';
+            _idRenomearPendente = null;
+        };
+
+        window.executarRenomear = async function () {
+            if (!_idRenomearPendente) return;
+            const novoNome = document.getElementById('input-renomear').value.trim();
+            if (!novoNome) return;
+            try {
+                const response = await fetch(`/biblioteca/acervo/lista/renomear/${_idRenomearPendente}/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify({ nome: novoNome })
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert("Erro ao renomear a lista.");
+                }
+            } catch (err) {
+                console.error(err);
+            }
+            fecharModalRenomear();
+        };
+
+        // ── EVENTOS ────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', function () {
+
+            ['btn-abrir-modal', 'btn-abrir-modal-2'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.onclick = function (e) {
+                    e.preventDefault();
+                    if (!usuarioLogado) { alert("Faça login para criar listas."); return; }
+                    abrirModal();
+                };
             });
 
-            // Abre ou fecha o menu desse card específico (Toggle)
-            const menu = this.closest('.lista-card').querySelector('.lista-menu-dropdown');
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        });
-    });
-
-    // Ação para os botões dentro do dropdown (Renomear / Excluir)
-    document.querySelectorAll('.lista-menu-dropdown').forEach(menu => {
-        menu.addEventListener('click', function (e) {
-            e.preventDefault(); // 🌟 Impede que clicar em "Renomear" acione o link do card
-            e.stopPropagation();
-
-            // Aqui você pode adicionar no futuro a lógica de renomear e excluir
-            // Exemplo: se clicou no botão excluir...
-            if (e.target.classList.contains('excluir')) {
-                console.log("Clicou em excluir!");
+            const btnConfirmar = document.getElementById('btn-confirmar-lista');
+            if (btnConfirmar) {
+                btnConfirmar.onclick = async function (e) {
+                    e.preventDefault();
+                    const nome = document.getElementById('input-nome-lista').value.trim();
+                    if (!nome) { alert("Digite um nome para a lista."); return; }
+                    this.disabled = true;
+                    this.innerText = 'Criando...';
+                    try {
+                        const response = await fetch('/biblioteca/acervo/lista/criar/', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                            body: JSON.stringify({ nome })
+                        });
+                        if (response.ok) { window.location.reload(); }
+                        else {
+                            const err = await response.json();
+                            alert(err.erro || "Erro ao criar lista.");
+                            this.disabled = false;
+                            this.innerText = 'Criar Lista';
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        this.disabled = false;
+                        this.innerText = 'Criar Lista';
+                    }
+                };
             }
-        });
-    });
 
-    // Fechar o menu ao clicar fora dele em qualquer lugar da tela
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.lista-menu-dropdown').forEach(menu => {
-            menu.style.display = 'none';
+            // Enter no input de renomear
+            document.getElementById('input-renomear')?.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') executarRenomear();
+                if (e.key === 'Escape') fecharModalRenomear();
+            });
+
+            // Menu 3 pontos
+            document.addEventListener('click', function (e) {
+                const menuBtn = e.target.closest('.lista-card-menu');
+                if (menuBtn) {
+                    e.preventDefault(); e.stopPropagation();
+                    document.querySelectorAll('.lista-menu-dropdown').forEach(d => d.style.display = 'none');
+                    const dropdown = menuBtn.closest('.lista-card')?.querySelector('.lista-menu-dropdown');
+                    if (dropdown) dropdown.style.display = 'block';
+                    return;
+                }
+                if (!e.target.closest('.lista-menu-dropdown')) {
+                    document.querySelectorAll('.lista-menu-dropdown').forEach(d => d.style.display = 'none');
+                }
+            });
         });
-    });
+    })();
 </script>
 {% endblock %}
 
