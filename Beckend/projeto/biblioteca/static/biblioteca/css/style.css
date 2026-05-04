@@ -1823,7 +1823,7 @@ svg {
 }
 
 .detalhe-sinopse p {
-  font-size: 13px;
+  font-size: 16px;
   color: var(--muted);
   line-height: 1.7;
   display: flex;
