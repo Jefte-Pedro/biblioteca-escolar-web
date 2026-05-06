@@ -4,34 +4,657 @@
 {% block content %}
 
 <section id="pag-prazos" class="conteudo-pag ativo">
-    <h2 class="titulo-prazo" data-i18n="prazos_titulo">Meus Prazos</h2>
-    <p class="descricao-prazo" data-i18n="prazos_desc">Acompanhe as datas de devolução e renovação dos seus livros.</p>
 
-    <div class="container-conteudo-branco-prazo">
-        <div id="conteudo-dinamico-prazo">
-            {% for emp in emprestimos %}
-            <div class="card-lista">
-                <span
-                    class="bolinha {% if emp.esta_atrasado %}bolinha-vermelha{% else %}bolinha-verde{% endif %}"></span>
-                <div class="info-lista" style="flex-grow: 1;">
-                    <h3>{{ emp.livro.titulo }}</h3>
-                    <span class="qtd-livros">{{ emp.codigo_catalografico }} · {{ emp.turma }}</span>
-                    <span class="qtd-livros">
-                        Empréstimo: {{ emp.data_emprestimo }} · Devolução prevista: {{ emp.data_devolucao_prevista }}
-                    </span>
-                    {% if emp.esta_atrasado %}
-                    <span class="tag-atrasado"  data-i18n="tag_atraso">Em atraso</span>
-                    {% endif %}
-                    {% if emp.foi_renovado %}
-                    <span class="tag-renovado">Renovado ({{ emp.renovacoes_concluidas }}x)</span>
-                    {% endif %}
-                </div>
-            </div>
-            {% empty %}
-            <p class="msg-vazia" data-i18n="prazos_vazio">Você não tem empréstimos ativos no momento.</p>
-            {% endfor %}
+    <!-- ── HEADER ── -->
+    <div class="pz-header">
+        <div>
+            <h2 class="titulo-cadastro">Meus Prazos</h2>
+            <p class="descricao-cad-livro">Acompanhe dados de devolução e renovação de seus empréstimos em 1 clique.</p>
         </div>
     </div>
+
+    <!-- ── BANNER DE ALERTA (gerado por Django, só aparece se houver urgente) ── -->
+    {% if emp_atrasado %}
+    <div class="pz-banner pz-banner-danger" id="pz-banner-danger">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <div class="pz-banner-text">
+            <strong>Você tem um livro em atraso!</strong>
+            <span>"{{ emp_atrasado.exemplar.livro.titulo }}" deveria ter sido devolvido em {{
+                emp_atrasado.data_devolucao_prevista }}.
+                Procure a biblioteca.</span>
+        </div>
+        <a href="#emp-card-{{ emp_atrasado.pk }}" class="pz-banner-btn pz-banner-btn-danger">Ver livro</a>
+    </div>
+    {% elif emp_breve %}
+    <div class="pz-banner pz-banner-warn" id="pz-banner">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div class="pz-banner-text">
+            <strong>Atenção: 1 livro vence em {{ emp_breve.dias_restantes }} dia{% if emp_breve.dias_restantes != 1 %}s{% endif %}</strong>
+            <span>"{{ emp_breve.exemplar.livro.titulo }}" deve ser devolvido até {{ emp_breve.data_devolucao_prevista }}
+                ou renovado
+                até essa data.</span>
+        </div>
+        <a href="#emp-card-{{ emp_breve.pk }}" class="pz-banner-btn">Ver livro</a>
+    </div>
+    {% endif %}
+
+    <!-- ── CARDS DE RESUMO ── -->
+    <div class="pz-resumo-grid">
+        <div class="pz-resumo-card">
+            <span class="pz-resumo-label">EMPRÉSTIMOS ATIVOS</span>
+            <div class="pz-resumo-valor-row">
+                <span class="pz-resumo-valor">{{ total_ativos }}</span>
+                <span class="pz-resumo-sub">de 2 permitidos</span>
+            </div>
+        </div>
+        <div class="pz-resumo-card pz-resumo-ok">
+            <span class="pz-resumo-label">EM DIA</span>
+            <div class="pz-resumo-valor-row">
+                <span class="pz-resumo-valor pz-val-green">{{ total_ok }}</span>
+                <span class="pz-resumo-sub">livro{% if total_ok != 1 %}s{% endif %}</span>
+            </div>
+        </div>
+        <div class="pz-resumo-card pz-resumo-breve {% if total_breve > 0 %}pz-resumo-breve-ativo{% endif %}">
+            <span class="pz-resumo-label">VENCE EM BREVE</span>
+            <div class="pz-resumo-valor-row">
+                <span class="pz-resumo-valor pz-val-yellow">{{ total_breve }}</span>
+                <span class="pz-resumo-sub">≤ 3 dias</span>
+            </div>
+        </div>
+        <div class="pz-resumo-card pz-resumo-atrasado {% if total_atrasados > 0 %}pz-resumo-atrasado-ativo{% endif %}">
+            <span class="pz-resumo-label">ATRASADOS</span>
+            <div class="pz-resumo-valor-row">
+                <span class="pz-resumo-valor pz-val-red">{{ total_atrasados }}</span>
+                <span class="pz-resumo-sub">livro{% if total_atrasados != 1 %}s{% endif %}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── LISTA DE EMPRÉSTIMOS ── -->
+    <div class="pz-secao-titulo">
+        Empréstimos ativos
+        <span class="pz-secao-badge">{{ total_ativos }}</span>
+    </div>
+
+    <div class="pz-lista" id="pz-lista">
+
+        {% for emp in emprestimos %}
+        <div class="pz-card {% if emp.esta_atrasado %}pz-card-danger{% elif emp.vence_em_breve %}pz-card-warn{% endif %}"
+            id="emp-card-{{ emp.pk }}">
+
+            <!-- Capa do livro -->
+            <div class="pz-capa" style="background: linear-gradient(135deg, {{ emp.cor_avatar }}, #0b1526);">
+                {{ emp.exemplar.livro.titulo|slice:":1" }}
+            </div>
+
+            <!-- Infos principais -->
+            <div class="pz-card-body">
+                <div class="pz-card-top">
+                    <div>
+                        <div class="pz-livro-titulo">{{ emp.exemplar.livro.titulo }}</div>
+                        <div class="pz-livro-autor">{{ emp.exemplar.livro.autor|default:"Autor desconhecido" }}</div>
+                        <!-- Badge de status -->
+                        {% if emp.esta_atrasado %}
+                        <span class="pz-status pz-status-danger">
+                            <i class="fa-solid fa-circle-exclamation"></i> EM ATRASO
+                        </span>
+                        {% elif emp.vence_em_breve %}
+                        <span class="pz-status pz-status-warn">
+                            <i class="fa-solid fa-clock"></i> VENCE EM {{ emp.dias_restantes }} DIA{% if emp.dias_restantes != 1 %}S{% endif %}
+                        </span>
+                        {% else %}
+                        <span class="pz-status pz-status-ok">
+                            <i class="fa-solid fa-check"></i> EM DIA
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Barra de progresso do prazo -->
+                <div class="pz-progress-wrap">
+                    <div class="pz-progress-labels">
+                        <span>Pegou em <strong>{{ emp.data_emprestimo }}</strong></span>
+                        <span>Devolver até
+                            <strong
+                                class="{% if emp.esta_atrasado %}pz-txt-red{% elif emp.vence_em_breve %}pz-txt-yellow{% endif %}">
+                                {{ emp.data_devolucao_prevista }}
+                            </strong>
+                        </span>
+                    </div>
+                    <div class="pz-bar">
+                        <div class="pz-bar-fill {% if emp.esta_atrasado %}pz-bar-danger{% elif emp.vence_em_breve %}pz-bar-warn{% else %}pz-bar-ok{% endif %}"
+                            style="width: {{ emp.percentual_usado }}%;">
+                        </div>
+                    </div>
+                    <div class="pz-progress-meta">
+                        <span>{{ emp.dias_usados }} de 15 dias usados</span>
+                        {% if emp.esta_atrasado %}
+                        <span class="pz-txt-red"><strong>{{ emp.dias_atraso }} dia{% if emp.dias_atraso != 1 %}s{% endif %} de atraso</strong></span>
+                        {% else %}
+                        <span class="{% if emp.vence_em_breve %}pz-txt-yellow{% else %}pz-txt-green{% endif %}">
+                            <strong>{{ emp.dias_restantes }} dia{% if emp.dias_restantes != 1 %}s{% endif %}
+                                restantes</strong>
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Aviso lateral (renovação) -->
+            <div class="pz-card-aside">
+                <div class="pz-renovacao-info">
+                    <i class="fa-solid fa-rotate-right pz-renovacao-ico"></i>
+                    <span class="pz-renovacao-txt">
+                        Para renovar, compareça<br>à biblioteca presencialmente.
+                    </span>
+                </div>
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="pz-vazia">
+            <i class="fa-solid fa-book-open-reader pz-vazia-ico"></i>
+            <p>Você não tem empréstimos ativos no momento.</p>
+            <span>Quando a bibliotecária registrar um empréstimo em seu nome, ele aparecerá aqui.</span>
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <!-- ── RODAPÉ COM HISTÓRICO ── -->
+    {% if historico_count > 0 %}
+    <div class="pz-rodape">
+        <span>Histórico: <strong>{{ historico_count }} livro{% if historico_count != 1 %}s{% endif %} devolvido{% if historico_count != 1 %}s{% endif %}</strong>
+            {% if ultimo_devolvido %} · último em {{ ultimo_devolvido }}{% endif %}
+        </span>
+        <a href="#" class="pz-rodape-link">Ver histórico completo →</a>
+    </div>
+    {% endif %}
+
 </section>
+
+<!-- ═══════════════ ESTILOS ═══════════════ -->
+<style>
+    /* ── HEADER ── */
+    .pz-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    /* ── BANNER ── */
+    .pz-banner {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 18px;
+        border-radius: var(--r-lg);
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .pz-banner i {
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .pz-banner-text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .pz-banner-text strong {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .pz-banner-text span {
+        font-size: 12px;
+        opacity: .85;
+        margin-top: 2px;
+        display: block;
+    }
+
+    .pz-banner-warn {
+        background: rgba(245, 158, 11, .12);
+        border: 1px solid rgba(245, 158, 11, .3);
+        color: #f59e0b;
+    }
+
+    .pz-banner-danger {
+        background: rgba(239, 68, 68, .1);
+        border: 1px solid rgba(239, 68, 68, .3);
+        color: #ef4444;
+    }
+
+    .pz-banner-btn {
+        flex-shrink: 0;
+        height: 34px;
+        padding: 0 16px;
+        border-radius: var(--r-md);
+        font-size: 12px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        text-decoration: none;
+        background: #f59e0b;
+        color: #0f1b2e;
+        transition: opacity .2s;
+    }
+
+    .pz-banner-btn:hover {
+        opacity: .85;
+    }
+
+    .pz-banner-btn-danger {
+        background: #ef4444;
+        color: #fff;
+    }
+
+    /* ── RESUMO GRID ── */
+    .pz-resumo-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    @media(max-width:800px) {
+        .pz-resumo-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .pz-resumo-card {
+        border-radius: var(--r-lg);
+        border: 1px solid var(--border);
+        padding: 16px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    [data-theme="dark"] .pz-resumo-card {
+        background: #162b47;
+    }
+
+    [data-theme="light"] .pz-resumo-card {
+        background: #fff;
+    }
+
+    .pz-resumo-breve-ativo {
+        border-color: rgba(245, 158, 11, .4);
+    }
+
+    .pz-resumo-atrasado-ativo {
+        border-color: rgba(239, 68, 68, .4);
+    }
+
+    .pz-resumo-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        color: var(--faint);
+    }
+
+    .pz-resumo-valor-row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+    }
+
+    .pz-resumo-valor {
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--text);
+    }
+
+    .pz-resumo-sub {
+        font-size: 11px;
+        color: var(--muted);
+    }
+
+    .pz-val-green {
+        color: #22c55e;
+    }
+
+    .pz-val-yellow {
+        color: #f59e0b;
+    }
+
+    .pz-val-red {
+        color: #ef4444;
+    }
+
+    /* ── SEÇÃO TÍTULO ── */
+    .pz-secao-titulo {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pz-secao-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 99px;
+        background: var(--badge-bg);
+        color: var(--badge-txt);
+    }
+
+    /* ── CARDS DE EMPRÉSTIMO ── */
+    .pz-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .pz-card {
+        border-radius: var(--r-xl);
+        border: 1px solid var(--border);
+        padding: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 18px;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    [data-theme="dark"] .pz-card {
+        background: #162b47;
+    }
+
+    [data-theme="light"] .pz-card {
+        background: #fff;
+    }
+
+    .pz-card:hover {
+        border-color: var(--accent-lt);
+    }
+
+    [data-theme="dark"] .pz-card:hover {
+        box-shadow: 0 8px 28px rgba(0, 0, 0, .35);
+    }
+
+    [data-theme="light"] .pz-card:hover {
+        box-shadow: 0 8px 20px rgba(30, 90, 168, .12);
+    }
+
+    /* Variantes de estado */
+    .pz-card-warn {
+        border-color: rgba(245, 158, 11, .4);
+    }
+
+    [data-theme="dark"] .pz-card-warn {
+        background: linear-gradient(135deg, #2a1e0b, #162b47);
+    }
+
+    [data-theme="light"] .pz-card-warn {
+        background: linear-gradient(135deg, #fef9ec, #fff);
+    }
+
+    .pz-card-danger {
+        border-color: rgba(239, 68, 68, .4);
+    }
+
+    [data-theme="dark"] .pz-card-danger {
+        background: linear-gradient(135deg, #2a0b0b, #162b47);
+    }
+
+    [data-theme="light"] .pz-card-danger {
+        background: linear-gradient(135deg, #fef2f2, #fff);
+    }
+
+    /* ── CAPA ── */
+    .pz-capa {
+        width: 56px;
+        height: 80px;
+        border-radius: var(--r-md);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 900;
+        color: rgba(255, 255, 255, .9);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, .4);
+    }
+
+    /* ── BODY ── */
+    .pz-card-body {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .pz-card-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .pz-livro-titulo {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 2px;
+    }
+
+    .pz-livro-autor {
+        font-size: 12px;
+        color: var(--accent-lt);
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    /* Status badge */
+    .pz-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .06em;
+        padding: 3px 10px;
+        border-radius: 99px;
+    }
+
+    .pz-status-ok {
+        background: rgba(34, 197, 94, .12);
+        color: #22c55e;
+    }
+
+    .pz-status-warn {
+        background: rgba(245, 158, 11, .12);
+        color: #f59e0b;
+    }
+
+    .pz-status-danger {
+        background: rgba(239, 68, 68, .12);
+        color: #ef4444;
+    }
+
+    /* ── BARRA DE PROGRESSO ── */
+    .pz-progress-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .pz-progress-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--muted);
+    }
+
+    .pz-progress-labels strong {
+        color: var(--text);
+        font-weight: 600;
+    }
+
+    .pz-bar {
+        height: 6px;
+        background: var(--border);
+        border-radius: 99px;
+        overflow: hidden;
+    }
+
+    .pz-bar-fill {
+        height: 100%;
+        border-radius: 99px;
+        transition: width .6s ease;
+        max-width: 100%;
+    }
+
+    .pz-bar-ok {
+        background: linear-gradient(to right, #22c55e, #4ade80);
+    }
+
+    .pz-bar-warn {
+        background: linear-gradient(to right, #f59e0b, #fcd34d);
+    }
+
+    .pz-bar-danger {
+        background: linear-gradient(to right, #ef4444, #f87171);
+    }
+
+    .pz-progress-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--faint);
+    }
+
+    .pz-txt-green {
+        color: #22c55e;
+    }
+
+    .pz-txt-yellow {
+        color: #f59e0b;
+    }
+
+    .pz-txt-red {
+        color: #ef4444;
+    }
+
+    /* ── ASIDE (renovação) ── */
+    .pz-card-aside {
+        flex-shrink: 0;
+        width: 160px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    @media(max-width:700px) {
+        .pz-card-aside {
+            display: none;
+        }
+    }
+
+    .pz-renovacao-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 12px 14px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        text-align: center;
+        width: 100%;
+    }
+
+    .pz-renovacao-ico {
+        font-size: 16px;
+        color: var(--faint);
+    }
+
+    .pz-renovacao-txt {
+        font-size: 10px;
+        color: var(--faint);
+        line-height: 1.5;
+    }
+
+    /* ── VAZIA ── */
+    .pz-vazia {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        gap: 12px;
+        color: var(--faint);
+        border-radius: var(--r-xl);
+        border: 1px dashed var(--border);
+        text-align: center;
+    }
+
+    [data-theme="dark"] .pz-vazia {
+        background: rgba(255, 255, 255, .01);
+    }
+
+    [data-theme="light"] .pz-vazia {
+        background: #f8fafc;
+    }
+
+    .pz-vazia-ico {
+        font-size: 44px;
+        opacity: .3;
+    }
+
+    .pz-vazia p {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--muted);
+    }
+
+    .pz-vazia span {
+        font-size: 12px;
+        color: var(--faint);
+        max-width: 320px;
+    }
+
+    /* ── RODAPÉ ── */
+    .pz-rodape {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 14px 0 4px;
+        border-top: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .pz-rodape-link {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--accent-lt);
+        text-decoration: none;
+    }
+
+    .pz-rodape-link:hover {
+        text-decoration: underline;
+    }
+</style>
 
 {% endblock %}

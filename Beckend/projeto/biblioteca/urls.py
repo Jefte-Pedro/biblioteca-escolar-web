@@ -54,4 +54,6 @@ urlpatterns = [
     path('login/entrar/', views.fazer_login, name='fazer_login'),
     path('logout/', views.fazer_logout, name='logout'),
     
+    path('alunos/', views.alunos, name='alunos'),
+    path('alunos/importar/', views.importar_alunos, name='importar_alunos'),
 ]

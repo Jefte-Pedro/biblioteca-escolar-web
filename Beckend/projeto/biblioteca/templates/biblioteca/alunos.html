@@ -1,0 +1,1378 @@
+{% extends "biblioteca/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<section id="pag-alunos" class="conteudo-pag ativo">
+
+    <!-- ── HEADER ── -->
+    <div class="al-header">
+        <div>
+            <h2 class="titulo-cadastro">Lista de Alunos</h2>
+            <p class="descricao-cad-livro">Acompanhe a lista de alunos por turma ou cadastre novos via importação.</p>
+        </div>
+        <div class="al-header-acoes">
+            <button class="al-btn-add" id="btn-abrir-modal-individual">
+                <i class="fa-solid fa-user-plus"></i>
+                Adicionar Aluno
+            </button>
+            <button class="al-btn-importar" id="btn-abrir-modal">
+                <i class="fa-solid fa-file-arrow-up"></i>
+                Importar Planilha
+            </button>
+        </div>
+    </div>
+
+    <!-- ── CARDS DE RESUMO ── -->
+    <div class="al-resumo-grid">
+        <div class="al-resumo-card">
+            <span class="al-resumo-label">TOTAL DE ALUNOS</span>
+            <div class="al-resumo-valor-row">
+                <span class="al-resumo-valor">{{ total_alunos }}</span>
+                <span class="al-resumo-sub">cadastrados</span>
+            </div>
+        </div>
+        <div class="al-resumo-card">
+            <span class="al-resumo-label">TURMAS</span>
+            <div class="al-resumo-valor-row">
+                <span class="al-resumo-valor">{{ total_turmas }}</span>
+                <span class="al-resumo-sub">ativas</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── BARRA DE BUSCA E FILTROS (inline, igual a Empréstimos) ── -->
+    <div class="al-toolbar">
+        <div class="al-toolbar-row">
+            <div class="al-search-wrap">
+                <i class="fa-solid fa-magnifying-glass al-search-ico"></i>
+                <input type="text" id="al-search" class="al-search" placeholder="Buscar aluno por nome ou matrícula…"
+                    autocomplete="off">
+            </div>
+            <div class="al-filtros" id="al-filtros">
+                <button class="al-filtro-btn ativo" data-turma="todas">Todas</button>
+                {% for turma in turmas %}
+                <button class="al-filtro-btn" data-turma="{{ turma }}">{{ turma }}</button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ── LISTA POR TURMA ── -->
+    <div id="al-conteudo">
+        {% for turma, alunos in alunos_por_turma.items %}
+        <div class="al-turma-bloco" data-turma="{{ turma }}">
+            <div class="al-turma-header">
+                <div class="al-turma-badge">{{ turma }}</div>
+                <span class="al-turma-count">{{ alunos|length }} aluno{% if alunos|length != 1 %}s{% endif %}</span>
+            </div>
+            <div class="al-table-wrap">
+                <table class="al-table">
+                    <thead>
+                        <tr>
+                            <th>Aluno</th>
+                            <th>Matrícula</th>
+                            <th>Turma</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for aluno in alunos %}
+                        <tr class="al-row" data-nome="{{ aluno.get_full_name|lower }}"
+                            data-matricula="{{ aluno.matricula }}">
+                            <td>
+                                <div class="al-aluno-cell">
+                                    <div class="al-avatar" style="background: {{ aluno.cor_avatar }}">
+                                        {{ aluno.iniciais }}
+                                    </div>
+                                    <div>
+                                        <div class="al-nome">{{ aluno.get_full_name }}</div>
+                                        <div class="al-email">{{ aluno.email|default:"—" }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="al-matricula">{{ aluno.matricula }}</span></td>
+                            <td><span class="al-tag-turma">{{ aluno.serie }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% empty %}
+        <div class="al-vazia">
+            <i class="fa-solid fa-users-slash al-vazia-ico"></i>
+            <p>Nenhum aluno cadastrado ainda.</p>
+            <span>Importe uma planilha do SIEP ou adicione individualmente.</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- ── MENSAGEM SEM RESULTADO DE BUSCA ── -->
+    <div class="al-vazia" id="al-sem-resultado" style="display:none;">
+        <i class="fa-solid fa-magnifying-glass al-vazia-ico"></i>
+        <p>Nenhum aluno encontrado.</p>
+        <span>Tente buscar por outro nome ou matrícula.</span>
+    </div>
+
+</section>
+
+<!-- ═══════════════ MODAL ADICIONAR ALUNO INDIVIDUAL ═══════════════ -->
+<div class="al-modal-overlay" id="al-modal-individual-overlay">
+    <div class="al-modal al-modal-sm">
+        <div class="al-modal-header">
+            <div>
+                <h3 class="al-modal-titulo">Adicionar Aluno</h3>
+                <p class="al-modal-sub">Cadastre um novo aluno individualmente em uma turma existente.</p>
+            </div>
+            <button class="al-modal-close" id="btn-fechar-modal-individual" aria-label="Fechar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="al-form-grid">
+            <div class="al-form-group al-form-full">
+                <label class="al-form-label">Nome completo <span class="al-req">*</span></label>
+                <input type="text" class="al-form-input" id="ind-nome" placeholder="Ex: Maria da Silva Santos"
+                    autocomplete="off">
+            </div>
+            <div class="al-form-group">
+                <label class="al-form-label">Matrícula <span class="al-req">*</span></label>
+                <input type="text" class="al-form-input" id="ind-matricula" placeholder="Ex: 20240123"
+                    autocomplete="off">
+            </div>
+            <div class="al-form-group">
+                <label class="al-form-label">Turma <span class="al-req">*</span></label>
+                <div class="al-turma-input-wrap">
+                    <input type="text" class="al-form-input" id="ind-turma" placeholder="Ex: 3A" autocomplete="off"
+                        list="al-turmas-list">
+                    <datalist id="al-turmas-list">
+                        {% for turma in turmas %}
+                        <option value="{{ turma }}">
+                            {% endfor %}
+                    </datalist>
+                </div>
+                <span class="al-form-hint">Turmas existentes aparecem como sugestão</span>
+            </div>
+
+        </div>
+
+        <!-- Resultado -->
+        <div class="al-resultado" id="al-resultado-individual" style="display:none"></div>
+
+        <div class="al-modal-footer">
+            <button class="al-btn-cancelar" id="btn-cancelar-individual">Cancelar</button>
+            <button class="al-btn-confirmar" id="btn-confirmar-individual">
+                <i class="fa-solid fa-user-plus"></i>
+                Adicionar aluno
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ MODAL IMPORTAR PLANILHA ═══════════════ -->
+<div class="al-modal-overlay" id="al-modal-overlay">
+    <div class="al-modal">
+        <div class="al-modal-header">
+            <div>
+                <h3 class="al-modal-titulo">Importar Planilha do SIEP</h3>
+                <p class="al-modal-sub">Selecione o arquivo exportado pelo SIEP. O sistema lerá nome, matrícula e turma
+                    de cada aluno.</p>
+            </div>
+            <button class="al-modal-close" id="btn-fechar-modal" aria-label="Fechar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Formatos aceitos -->
+        <div class="al-formatos">
+            <div class="al-formato-item">
+                <i class="fa-solid fa-file-excel" style="color:#22c55e"></i>
+                <span>.xlsx</span>
+            </div>
+            <div class="al-formato-item">
+                <i class="fa-solid fa-file-excel" style="color:#16a34a"></i>
+                <span>.xls</span>
+            </div>
+            <div class="al-formato-item">
+                <i class="fa-solid fa-file-csv" style="color:#0891b2"></i>
+                <span>.csv</span>
+            </div>
+        </div>
+
+        <!-- Dropzone -->
+        <div class="al-dropzone" id="al-dropzone">
+            <input type="file" id="al-file-input" accept=".xlsx,.xls,.csv" style="display:none">
+            <i class="fa-solid fa-cloud-arrow-up al-drop-ico"></i>
+            <div class="al-drop-txt">Arraste o arquivo aqui ou <span class="al-drop-link" id="al-drop-link">clique para
+                    selecionar</span></div>
+            <div class="al-drop-hint">Compatível com exportações do SIEP · Máx. 10 MB</div>
+        </div>
+
+        <!-- Preview do arquivo selecionado -->
+        <div class="al-arquivo-preview" id="al-arquivo-preview" style="display:none">
+            <i class="fa-solid fa-file-excel al-arq-ico"></i>
+            <div class="al-arq-info">
+                <span class="al-arq-nome" id="al-arq-nome"></span>
+                <span class="al-arq-size" id="al-arq-size"></span>
+            </div>
+            <button class="al-arq-remover" id="al-arq-remover" aria-label="Remover arquivo">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Mapeamento de colunas -->
+        <div class="al-mapeamento" id="al-mapeamento" style="display:none">
+            <div class="al-map-titulo">Mapeamento de colunas <span class="al-map-hint">(ajuste se necessário)</span>
+            </div>
+            <div class="al-map-grid">
+                <div class="al-map-row">
+                    <label class="al-map-label">Nome completo</label>
+                    <select class="al-map-select" id="map-nome"></select>
+                </div>
+                <div class="al-map-row">
+                    <label class="al-map-label">Matrícula</label>
+                    <select class="al-map-select" id="map-matricula"></select>
+                </div>
+                <div class="al-map-row">
+                    <label class="al-map-label">Turma</label>
+                    <select class="al-map-select" id="map-turma"></select>
+                </div>
+            </div>
+            <div class="al-preview-table-wrap" id="al-preview-table-wrap"></div>
+        </div>
+
+        <!-- Resultado da importação -->
+        <div class="al-resultado" id="al-resultado" style="display:none"></div>
+
+        <!-- Rodapé do modal -->
+        <div class="al-modal-footer">
+            <button class="al-btn-cancelar" id="btn-cancelar-modal">Cancelar</button>
+            <button class="al-btn-confirmar" id="btn-confirmar-importar" disabled>
+                <i class="fa-solid fa-file-import"></i>
+                Importar alunos
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ ESTILOS ═══════════════ -->
+<style>
+    /* ── HEADER ── */
+    .al-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .al-header-acoes {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+    }
+
+    .al-btn-add {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 20px;
+        border-radius: var(--r-md);
+        background: transparent;
+        color: var(--accent-lt, #4f94d6);
+        font-size: 13px;
+        font-weight: 700;
+        border: 1px solid var(--accent-lt, #4f94d6);
+        cursor: pointer;
+        transition: background .2s, color .2s, transform .15s;
+        flex-shrink: 0;
+    }
+
+    .al-btn-add:hover {
+        background: rgba(79, 148, 214, .1);
+        transform: translateY(-1px);
+    }
+
+    .al-btn-importar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 20px;
+        border-radius: var(--r-md);
+        background: var(--accent);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: opacity .2s, transform .15s;
+        flex-shrink: 0;
+    }
+
+    .al-btn-importar:hover {
+        opacity: .88;
+        transform: translateY(-1px);
+    }
+
+    /* ── RESUMO ── */
+    .al-resumo-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    @media(max-width:800px) {
+        .al-resumo-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .al-resumo-card {
+        border-radius: var(--r-lg);
+        border: 1px solid var(--border);
+        padding: 16px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    [data-theme="dark"] .al-resumo-card {
+        background: #162b47;
+    }
+
+    [data-theme="light"] .al-resumo-card {
+        background: #fff;
+    }
+
+    .al-resumo-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        color: var(--faint);
+    }
+
+    .al-resumo-valor-row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+    }
+
+    .al-resumo-valor {
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--text);
+    }
+
+    .al-resumo-sub {
+        font-size: 11px;
+        color: var(--muted);
+    }
+
+    /* ── TOOLBAR — busca + filtros em linha ── */
+    .al-toolbar {
+        margin-bottom: 24px;
+    }
+
+    .al-toolbar-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .al-search-wrap {
+        position: relative;
+        width: 260px;
+        flex-shrink: 0;
+    }
+
+    @media(max-width: 600px) {
+        .al-search-wrap {
+            width: 100%;
+        }
+
+        .al-toolbar-row {
+            gap: 8px;
+        }
+    }
+
+    .al-search-ico {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 13px;
+        color: var(--faint);
+        pointer-events: none;
+    }
+
+    .al-search {
+        width: 100%;
+        height: 36px;
+        padding: 0 14px 0 38px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 13px;
+        outline: none;
+        transition: border-color .2s;
+        box-sizing: border-box;
+    }
+
+    .al-search:focus {
+        border-color: var(--accent-lt);
+    }
+
+    .al-filtros {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .al-filtro-btn {
+        height: 36px;
+        padding: 0 14px;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .15s;
+    }
+
+    .al-filtro-btn:hover {
+        border-color: var(--accent-lt);
+        color: var(--accent-lt);
+    }
+
+    .al-filtro-btn.ativo {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+    }
+
+    /* ── BLOCO DE TURMA ── */
+    .al-turma-bloco {
+        margin-bottom: 28px;
+    }
+
+    .al-turma-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .al-turma-badge {
+        height: 26px;
+        padding: 0 12px;
+        border-radius: 99px;
+        background: var(--accent);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        letter-spacing: .05em;
+    }
+
+    .al-turma-count {
+        font-size: 12px;
+        color: var(--faint);
+    }
+
+    /* ── TABELA ── */
+    .al-table-wrap {
+        border-radius: var(--r-lg);
+        border: 1px solid var(--border);
+        overflow: hidden;
+    }
+
+    .al-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .al-table thead tr {
+        border-bottom: 1px solid var(--border);
+    }
+
+    [data-theme="dark"] .al-table thead {
+        background: #0f1f35;
+    }
+
+    [data-theme="light"] .al-table thead {
+        background: #f1f5f9;
+    }
+
+    .al-table th {
+        padding: 10px 16px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .08em;
+        color: var(--faint);
+        text-align: left;
+    }
+
+    .al-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+        vertical-align: middle;
+    }
+
+    .al-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    [data-theme="dark"] .al-table tbody tr {
+        background: #162b47;
+    }
+
+    [data-theme="light"] .al-table tbody tr {
+        background: #fff;
+    }
+
+    .al-table tbody tr:hover {
+        background: var(--surface);
+    }
+
+    /* Células especiais */
+    .al-aluno-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .al-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 99px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 800;
+        color: #fff;
+    }
+
+    .al-nome {
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text);
+    }
+
+    .al-email {
+        font-size: 11px;
+        color: var(--faint);
+    }
+
+    .al-matricula {
+        font-family: monospace;
+        font-size: 12px;
+        color: var(--muted);
+        background: var(--surface);
+        padding: 2px 8px;
+        border-radius: var(--r-sm, 4px);
+        border: 1px solid var(--border);
+    }
+
+    .al-tag-turma {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 10px;
+        border-radius: 99px;
+        background: rgba(79, 148, 214, .12);
+        color: #4f94d6;
+    }
+
+    /* ── VAZIA ── */
+    .al-vazia {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        gap: 12px;
+        color: var(--faint);
+        border-radius: var(--r-xl);
+        border: 1px dashed var(--border);
+        text-align: center;
+    }
+
+    [data-theme="dark"] .al-vazia {
+        background: rgba(255, 255, 255, .01);
+    }
+
+    [data-theme="light"] .al-vazia {
+        background: #f8fafc;
+    }
+
+    .al-vazia-ico {
+        font-size: 44px;
+        opacity: .3;
+    }
+
+    .al-vazia p {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--muted);
+    }
+
+    .al-vazia span {
+        font-size: 12px;
+        color: var(--faint);
+        max-width: 320px;
+    }
+
+    /* ═══ MODAL BASE ═══ */
+    .al-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .6);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .al-modal-overlay.aberto {
+        display: flex;
+    }
+
+    .al-modal {
+        width: 100%;
+        max-width: 600px;
+        border-radius: var(--r-xl);
+        border: 1px solid var(--border);
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .al-modal-sm {
+        max-width: 480px;
+    }
+
+    [data-theme="dark"] .al-modal {
+        background: #0f1f35;
+    }
+
+    [data-theme="light"] .al-modal {
+        background: #fff;
+    }
+
+    .al-modal-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .al-modal-titulo {
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 4px;
+    }
+
+    .al-modal-sub {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    .al-modal-close {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--faint);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: color .15s;
+    }
+
+    .al-modal-close:hover {
+        color: var(--text);
+    }
+
+    /* ── FORM INDIVIDUAL ── */
+    .al-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .al-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .al-form-full {
+        grid-column: 1 / -1;
+    }
+
+    .al-form-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+    }
+
+    .al-req {
+        color: #ef4444;
+    }
+
+    .al-form-opt {
+        font-weight: 400;
+        color: var(--faint);
+    }
+
+    .al-form-input {
+        height: 38px;
+        padding: 0 12px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 13px;
+        outline: none;
+        transition: border-color .2s;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .al-form-input:focus {
+        border-color: var(--accent-lt);
+    }
+
+    .al-form-input::placeholder {
+        color: var(--faint);
+    }
+
+    .al-form-hint {
+        font-size: 10px;
+        color: var(--faint);
+        margin-top: -2px;
+    }
+
+    .al-turma-input-wrap {
+        position: relative;
+    }
+
+    /* Formatos aceitos (importação) */
+    .al-formatos {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .al-formato-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+    }
+
+    /* Dropzone */
+    .al-dropzone {
+        border: 2px dashed var(--border);
+        border-radius: var(--r-lg);
+        padding: 36px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: border-color .2s, background .2s;
+        text-align: center;
+    }
+
+    .al-dropzone:hover,
+    .al-dropzone.drag-over {
+        border-color: var(--accent-lt);
+        background: rgba(79, 148, 214, .05);
+    }
+
+    .al-drop-ico {
+        font-size: 32px;
+        color: var(--faint);
+    }
+
+    .al-drop-txt {
+        font-size: 13px;
+        color: var(--muted);
+    }
+
+    .al-drop-link {
+        color: var(--accent-lt);
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .al-drop-hint {
+        font-size: 11px;
+        color: var(--faint);
+    }
+
+    /* Preview arquivo */
+    .al-arquivo-preview {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: var(--r-md);
+        border: 1px solid rgba(34, 197, 94, .3);
+        background: rgba(34, 197, 94, .05);
+    }
+
+    .al-arq-ico {
+        font-size: 22px;
+        color: #22c55e;
+        flex-shrink: 0;
+    }
+
+    .al-arq-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .al-arq-nome {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .al-arq-size {
+        font-size: 11px;
+        color: var(--faint);
+    }
+
+    .al-arq-remover {
+        width: 28px;
+        height: 28px;
+        border-radius: var(--r-sm, 4px);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--faint);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Mapeamento */
+    .al-mapeamento {
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .al-map-titulo {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .al-map-hint {
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--faint);
+    }
+
+    .al-map-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .al-map-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .al-map-label {
+        font-size: 12px;
+        color: var(--muted);
+        width: 130px;
+        flex-shrink: 0;
+    }
+
+    .al-map-select {
+        flex: 1;
+        height: 34px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 12px;
+        padding: 0 10px;
+        outline: none;
+    }
+
+    /* Preview tabela */
+    .al-preview-table-wrap {
+        overflow-x: auto;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        max-height: 160px;
+        overflow-y: auto;
+    }
+
+    .al-preview-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+    }
+
+    .al-preview-table th {
+        padding: 6px 10px;
+        font-weight: 700;
+        font-size: 10px;
+        color: var(--faint);
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        position: sticky;
+        top: 0;
+    }
+
+    [data-theme="dark"] .al-preview-table th {
+        background: #0a1726;
+    }
+
+    [data-theme="light"] .al-preview-table th {
+        background: #f1f5f9;
+    }
+
+    .al-preview-table td {
+        padding: 5px 10px;
+        border-bottom: 1px solid var(--border);
+        color: var(--muted);
+    }
+
+    /* Resultado */
+    .al-resultado {
+        border-radius: var(--r-md);
+        padding: 14px 16px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .al-resultado.sucesso {
+        background: rgba(34, 197, 94, .1);
+        border: 1px solid rgba(34, 197, 94, .3);
+        color: #22c55e;
+    }
+
+    .al-resultado.erro {
+        background: rgba(239, 68, 68, .1);
+        border: 1px solid rgba(239, 68, 68, .3);
+        color: #ef4444;
+    }
+
+    /* Footer */
+    .al-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .al-btn-cancelar {
+        height: 38px;
+        padding: 0 18px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: color .15s;
+    }
+
+    .al-btn-cancelar:hover {
+        color: var(--text);
+    }
+
+    .al-btn-confirmar {
+        height: 38px;
+        padding: 0 20px;
+        border-radius: var(--r-md);
+        background: var(--accent);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: opacity .2s;
+    }
+
+    .al-btn-confirmar:disabled {
+        opacity: .4;
+        cursor: not-allowed;
+    }
+
+    .al-btn-confirmar:not(:disabled):hover {
+        opacity: .88;
+    }
+</style>
+
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+    (function () {
+
+        /* ════════════════════════════════════
+           MODAL INDIVIDUAL
+        ════════════════════════════════════ */
+        const overlayInd = document.getElementById('al-modal-individual-overlay');
+        const btnAbrirInd = document.getElementById('btn-abrir-modal-individual');
+        const btnFecharInd = document.getElementById('btn-fechar-modal-individual');
+        const btnCancelarInd = document.getElementById('btn-cancelar-individual');
+        const btnConfirmarInd = document.getElementById('btn-confirmar-individual');
+        const resultadoInd = document.getElementById('al-resultado-individual');
+
+        function abrirModalInd() { overlayInd.classList.add('aberto'); }
+        function fecharModalInd() {
+            overlayInd.classList.remove('aberto');
+            // limpa form
+            ['ind-nome', 'ind-matricula', 'ind-turma'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+            resultadoInd.style.display = 'none';
+            btnConfirmarInd.disabled = false;
+            btnConfirmarInd.innerHTML = '<i class="fa-solid fa-user-plus"></i> Adicionar aluno';
+        }
+
+        btnAbrirInd.addEventListener('click', abrirModalInd);
+        btnFecharInd.addEventListener('click', fecharModalInd);
+        btnCancelarInd.addEventListener('click', fecharModalInd);
+        overlayInd.addEventListener('click', e => { if (e.target === overlayInd) fecharModalInd(); });
+
+        btnConfirmarInd.addEventListener('click', async () => {
+            const nome = document.getElementById('ind-nome').value.trim();
+            const matricula = document.getElementById('ind-matricula').value.trim();
+            const turma = document.getElementById('ind-turma').value.trim();
+
+            if (!nome || !matricula || !turma) {
+                mostrarResultadoInd('erro', 'Preencha nome, matrícula e turma.');
+                return;
+            }
+
+            btnConfirmarInd.disabled = true;
+            btnConfirmarInd.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando…';
+
+            try {
+                const resp = await fetch('{% url "importar_alunos" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({
+                        alunos: [{ nome, matricula, turma }]
+                    }),
+                });
+                const data = await resp.json();
+
+                if (resp.ok) {
+                    const acao = data.criados > 0 ? 'cadastrado' : 'atualizado';
+                    mostrarResultadoInd('sucesso', `✓ Aluno ${acao} com sucesso!`);
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    mostrarResultadoInd('erro', data.erro || 'Erro ao salvar.');
+                }
+            } catch {
+                mostrarResultadoInd('erro', 'Erro de conexão. Tente novamente.');
+            } finally {
+                btnConfirmarInd.disabled = false;
+                btnConfirmarInd.innerHTML = '<i class="fa-solid fa-user-plus"></i> Adicionar aluno';
+            }
+        });
+
+        function mostrarResultadoInd(tipo, msg) {
+            resultadoInd.className = 'al-resultado ' + tipo;
+            resultadoInd.textContent = msg;
+            resultadoInd.style.display = 'block';
+        }
+
+        /* ════════════════════════════════════
+           MODAL IMPORTAR PLANILHA
+        ════════════════════════════════════ */
+        const overlay = document.getElementById('al-modal-overlay');
+        const btnAbrir = document.getElementById('btn-abrir-modal');
+        const btnFechar = document.getElementById('btn-fechar-modal');
+        const btnCancelar = document.getElementById('btn-cancelar-modal');
+
+        function abrirModal() { overlay.classList.add('aberto'); }
+        function fecharModal() { overlay.classList.remove('aberto'); resetarModal(); }
+
+        btnAbrir.addEventListener('click', abrirModal);
+        btnFechar.addEventListener('click', fecharModal);
+        btnCancelar.addEventListener('click', fecharModal);
+        overlay.addEventListener('click', e => { if (e.target === overlay) fecharModal(); });
+
+        /* Dropzone */
+        const dropzone = document.getElementById('al-dropzone');
+        const fileInput = document.getElementById('al-file-input');
+        const dropLink = document.getElementById('al-drop-link');
+        const preview = document.getElementById('al-arquivo-preview');
+        const arqNome = document.getElementById('al-arq-nome');
+        const arqSize = document.getElementById('al-arq-size');
+        const btnRemover = document.getElementById('al-arq-remover');
+        const mapeamento = document.getElementById('al-mapeamento');
+        const btnConfirmar = document.getElementById('btn-confirmar-importar');
+        const resultado = document.getElementById('al-resultado');
+
+        let arquivoAtual = null, dadosPlanilha = [], colunasPlanilha = [];
+
+        dropLink.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+        dropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropzone.classList.remove('drag-over');
+            const f = e.dataTransfer.files[0];
+            if (f) processarArquivo(f);
+        });
+        fileInput.addEventListener('change', e => {
+            if (e.target.files[0]) processarArquivo(e.target.files[0]);
+        });
+        btnRemover.addEventListener('click', e => { e.stopPropagation(); resetarModal(); });
+
+        function formatarTamanho(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        function processarArquivo(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+                mostrarResultado('erro', 'Formato inválido. Use .xlsx, .xls ou .csv.');
+                return;
+            }
+            arquivoAtual = file;
+            arqNome.textContent = file.name;
+            arqSize.textContent = formatarTamanho(file.size);
+            dropzone.style.display = 'none';
+            preview.style.display = 'flex';
+            resultado.style.display = 'none';
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const wb = XLSX.read(e.target.result, { type: 'array' });
+                    const ws = wb.Sheets[wb.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                    if (json.length < 2) { mostrarResultado('erro', 'Planilha vazia ou sem dados.'); return; }
+
+                    colunasPlanilha = json[0].map(String);
+                    dadosPlanilha = json.slice(1).filter(r => r.some(c => c));
+
+                    preencherSelects(colunasPlanilha);
+                    mostrarPreview();
+                    mapeamento.style.display = 'flex';
+                    btnConfirmar.disabled = false;
+                } catch {
+                    mostrarResultado('erro', 'Erro ao ler o arquivo. Verifique se é um Excel ou CSV válido.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function preencherSelects(colunas) {
+            const selects = {
+                'map-nome': ['nome', 'aluno', 'name', 'student', 'nm_aluno', 'nome_aluno', 'nome completo'],
+                'map-matricula': ['matricula', 'matrícula', 'nr_matricula', 'codigo', 'cod', 'id', 'registration'],
+                'map-turma': ['turma', 'classe', 'class', 'serie', 'série', 'nm_turma', 'turma_aluno'],
+            };
+            for (const [id, hints] of Object.entries(selects)) {
+                const sel = document.getElementById(id);
+                sel.innerHTML = '';
+                colunas.forEach((col, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = i; opt.textContent = col;
+                    sel.appendChild(opt);
+                });
+                const match = colunas.findIndex(c => hints.some(h => c.toString().toLowerCase().includes(h)));
+                if (match >= 0) sel.value = match;
+                sel.addEventListener('change', mostrarPreview);
+            }
+        }
+
+        function mostrarPreview() {
+            const iNome = parseInt(document.getElementById('map-nome').value);
+            const iMatricula = parseInt(document.getElementById('map-matricula').value);
+            const iTurma = parseInt(document.getElementById('map-turma').value);
+            const wrap = document.getElementById('al-preview-table-wrap');
+            const amostra = dadosPlanilha.slice(0, 5);
+            wrap.innerHTML = `
+            <table class="al-preview-table">
+                <thead><tr><th>Nome</th><th>Matrícula</th><th>Turma</th></tr></thead>
+                <tbody>${amostra.map(r => `<tr>
+                    <td>${r[iNome] ?? '—'}</td>
+                    <td>${r[iMatricula] ?? '—'}</td>
+                    <td>${r[iTurma] ?? '—'}</td>
+                </tr>`).join('')}</tbody>
+            </table>`;
+        }
+
+        btnConfirmar.addEventListener('click', async () => {
+            const iNome = parseInt(document.getElementById('map-nome').value);
+            const iMatricula = parseInt(document.getElementById('map-matricula').value);
+            const iTurma = parseInt(document.getElementById('map-turma').value);
+
+            const alunos = dadosPlanilha
+                .filter(r => r[iNome] && r[iMatricula])
+                .map(r => ({
+                    nome: String(r[iNome]).trim(),
+                    matricula: String(r[iMatricula]).trim(),
+                    turma: String(r[iTurma] ?? '').trim(),
+                }));
+
+            if (alunos.length === 0) {
+                mostrarResultado('erro', 'Nenhum aluno válido encontrado com as colunas selecionadas.');
+                return;
+            }
+
+            btnConfirmar.disabled = true;
+            btnConfirmar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Importando…';
+
+            try {
+                const resp = await fetch('{% url "importar_alunos" %}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify({ alunos }),
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    mostrarResultado('sucesso', `✓ ${data.criados} aluno(s) cadastrado(s), ${data.atualizados} atualizado(s).`);
+                    setTimeout(() => location.reload(), 1800);
+                } else {
+                    mostrarResultado('erro', data.erro || 'Erro ao importar.');
+                }
+            } catch {
+                mostrarResultado('erro', 'Erro de conexão. Tente novamente.');
+            } finally {
+                btnConfirmar.disabled = false;
+                btnConfirmar.innerHTML = '<i class="fa-solid fa-file-import"></i> Importar alunos';
+            }
+        });
+
+        function mostrarResultado(tipo, msg) {
+            resultado.className = 'al-resultado ' + tipo;
+            resultado.textContent = msg;
+            resultado.style.display = 'block';
+        }
+
+        function resetarModal() {
+            arquivoAtual = null; dadosPlanilha = []; colunasPlanilha = [];
+            fileInput.value = '';
+            dropzone.style.display = '';
+            preview.style.display = 'none';
+            mapeamento.style.display = 'none';
+            resultado.style.display = 'none';
+            btnConfirmar.disabled = true;
+            btnConfirmar.innerHTML = '<i class="fa-solid fa-file-import"></i> Importar alunos';
+        }
+
+        /* ════════════════════════════════════
+           UTILITÁRIOS
+        ════════════════════════════════════ */
+        function getCookie(name) {
+            return document.cookie.split(';')
+                .map(c => c.trim())
+                .find(c => c.startsWith(name + '='))
+                ?.split('=')[1] ?? '';
+        }
+
+        /* ════════════════════════════════════
+           BUSCA E FILTROS
+        ════════════════════════════════════ */
+        const searchInput = document.getElementById('al-search');
+        const filtros = document.querySelectorAll('.al-filtro-btn');
+        const semResultado = document.getElementById('al-sem-resultado');
+        let filtroAtivo = 'todas';
+
+        filtros.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filtros.forEach(b => b.classList.remove('ativo'));
+                btn.classList.add('ativo');
+                filtroAtivo = btn.dataset.turma;
+                aplicarFiltros();
+            });
+        });
+
+        searchInput.addEventListener('input', aplicarFiltros);
+
+        function aplicarFiltros() {
+            const q = searchInput.value.trim().toLowerCase();
+            const blocos = document.querySelectorAll('.al-turma-bloco');
+            let algumVisivel = false;
+
+            blocos.forEach(bloco => {
+                const turmaBloco = bloco.dataset.turma;
+                const mostrarBloco = filtroAtivo === 'todas' || filtroAtivo === turmaBloco;
+
+                if (!mostrarBloco) { bloco.style.display = 'none'; return; }
+
+                const rows = bloco.querySelectorAll('.al-row');
+                let algumRow = false;
+                rows.forEach(row => {
+                    const nome = row.dataset.nome ?? '';
+                    const mat = row.dataset.matricula ?? '';
+                    const vis = !q || nome.includes(q) || mat.includes(q);
+                    row.style.display = vis ? '' : 'none';
+                    if (vis) algumRow = true;
+                });
+
+                bloco.style.display = algumRow ? '' : 'none';
+                if (algumRow) algumVisivel = true;
+            });
+
+            semResultado.style.display = algumVisivel ? 'none' : 'flex';
+        }
+
+    })();
+</script>
+
+{% endblock %}
