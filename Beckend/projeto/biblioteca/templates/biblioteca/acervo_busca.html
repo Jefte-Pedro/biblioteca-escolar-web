@@ -19,12 +19,17 @@
         {% for livro in livros %}
         <a href="{% url 'detalhes_livro' livro.id_livro %}" class="bcard" style="text-decoration:none">
             <div class="bcard-cover-wrap">
+                {% if livro.capa_url %}
+                <img src="{{ livro.capa_url }}" alt="{{ livro.titulo }}" class="bcard-cover"
+                    style="object-fit:cover;width:100%;height:100%;border-radius:inherit">
+                {% else %}
                 <div class="bcard-cover" style="background:linear-gradient(135deg,#4F94D6,#1a3a5c)">
                     <div class="bc-inner">
                         <div class="bc-title">{{ livro.titulo|truncatechars:22 }}</div>
                         <div class="bc-author">{{ livro.autor }}</div>
                     </div>
                 </div>
+                {% endif %}
             </div>
             <div class="bcard-title">{{ livro.titulo }}</div>
             <div class="bcard-author">{{ livro.autor }}</div>
