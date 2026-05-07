@@ -5,6 +5,7 @@
 
 {% block content %}
 
+
 <div class="detalhe-wrap">
 
     <button class="detalhe-voltar" onclick="history.back()">← Voltar</button>
@@ -12,9 +13,10 @@
     <div class="detalhe-main">
 
         {% if livro.capa_url %}
-        <div class="detalhe-capa" style="position:relative;padding:0;overflow:hidden;background:none">
-            <img src="{{ livro.capa_url }}" alt="{{ livro.titulo }}"
-                style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block">
+        <div class="detalhe-capa">
+            <div class="detalhe-capa-img">
+                <img src="{{ livro.capa_url }}" alt="{{ livro.titulo }}">
+            </div>
             <div style="position:absolute;bottom:8px;right:8px">
                 {% if disponivel %}
                 <span class="bcard-avail av">Disponível</span>
@@ -59,8 +61,12 @@
                     <div class="detalhe-grid-valor">{{ livro.prateleira|default:"—" }}</div>
                 </div>
                 <div class="detalhe-grid-item">
-                    <div class="detalhe-grid-label">Cód. Catálogo</div>
+                    <div class="detalhe-grid-label">Cód. Catalográfico</div>
                     <div class="detalhe-grid-valor sm">{{ livro.codigo_base|default:"—" }}</div>
+                </div>
+                <div class="detalhe-grid-item">
+                    <div class="detalhe-grid-label">ISBN</div>
+                    <div class="detalhe-grid-valor sm">{{ livro.isbn|default:"—" }}</div>
                 </div>
             </div>
 
@@ -78,7 +84,7 @@
                         stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
-                    Marcar Como lido
+                    Marcar Como Lido
                 </button>
                 <button class="btn-secundario">🔖 Reservar</button>
             </div>
@@ -98,7 +104,7 @@
 
 <!-- ── MODAL ADICIONAR À LISTA ──────────────────────────────── -->
 <div id="modal-add-lista" class="modal-overlay" style="display:none">
-    <div class="modal-box" style="max-width:420px">
+    <div class="modal-box">
         <div class="modal-head">
             <span class="modal-titulo">Salvar na lista</span>
             <button class="modal-fechar" onclick="fecharModalLista()">
@@ -109,8 +115,11 @@
                 </svg>
             </button>
         </div>
-        <p class="modal-sub">Escolha uma lista ou crie uma nova para salvar <strong>{{ livro.titulo|truncatechars:40
-                }}</strong>.</p>
+
+        <p class="modal-sub">
+            Escolha uma lista ou crie uma nova para salvar
+            <strong>{{ livro.titulo|truncatechars:40 }}</strong>.
+        </p>
 
         <div id="lista-opcoes"
             style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:260px;overflow-y:auto;padding:0 4px">
@@ -141,6 +150,524 @@
     </div>
 </div>
 
+<style>
+    /* ── DETALHE LIVRO ───────────────────────────────────────────── */
+    .detalhe-wrap {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .detalhe-voltar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 24px;
+        padding: 6px 0;
+        transition: color var(--ease);
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .detalhe-voltar:hover {
+        color: var(--text);
+    }
+
+    .detalhe-main {
+        display: flex;
+        gap: 32px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    /* Capa com imagem */
+    .detalhe-capa {
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .detalhe-capa-img {
+        width: 176px;
+        height: 256px;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        position: relative;
+    }
+
+    .detalhe-capa-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        display: block;
+    }
+
+    /* Capa fallback (sem imagem) — reutiliza .bc.xl do CSS global */
+    .bc.xl {
+        width: 176px;
+        height: 256px;
+        border-radius: 14px;
+    }
+
+    .bc-inner {
+        position: absolute;
+        inset: 0;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .bc-title {
+        color: rgba(255, 255, 255, 0.95);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 9px;
+        line-height: 1.3;
+    }
+
+    /* Badge disponível/indisponível */
+    .bcard-avail {
+        font-size: 9px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 99px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .bcard-avail.av {
+        background: #22c55e;
+        color: #fff;
+    }
+
+    .bcard-avail.unav {
+        background: #ef4444;
+        color: #fff;
+    }
+
+    /* Infos */
+    .detalhe-infos {
+        flex: 1;
+        min-width: 260px;
+    }
+
+    .detalhe-tags {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
+    .detalhe-titulo {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1.2;
+        margin-bottom: 8px;
+    }
+
+    .detalhe-autor {
+        font-size: 14px;
+        color: var(--accent-lt);
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .detalhe-editora {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 24px;
+    }
+
+    /* Grid de metadados */
+    .detalhe-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .detalhe-grid-item {
+        background: var(--surface);
+        border-radius: 10px;
+        padding: 12px;
+        border: 1px solid var(--border);
+    }
+
+    .detalhe-grid-label {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        color: var(--faint);
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .detalhe-grid-valor {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text);
+    }
+
+    .detalhe-grid-valor.sm {
+        font-size: 13px;
+    }
+
+    /* Botões de ação */
+    .detalhe-botoes {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-lista-livro {
+        flex: 1;
+        min-width: 140px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--accent);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .btn-lista-livro:hover {
+        opacity: 0.85;
+    }
+
+    .btn-secundario {
+        height: 40px;
+        padding: 0 16px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--input-bg);
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: background var(--ease), color var(--ease);
+    }
+
+    .btn-secundario:hover {
+        background: var(--hover);
+    }
+
+    /* Sinopse */
+    .detalhe-sinopse {
+        margin-top: 32px;
+        background: var(--surface);
+        border-radius: 18px;
+        padding: 24px;
+        border: 1px solid var(--border);
+    }
+
+    .detalhe-sinopse h3 {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 12px;
+    }
+
+    .detalhe-sinopse p {
+        font-size: 16px;
+        color: var(--muted);
+        line-height: 1.7;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* ── MODAL ADICIONAR À LISTA ─────────────────────────────────── */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        backdrop-filter: blur(4px);
+    }
+
+    .modal-box {
+        width: 100%;
+        max-width: 420px;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        padding: 24px;
+        background: var(--sidebar-bg);
+        box-shadow: var(--shadow);
+    }
+
+    .modal-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+
+    .modal-titulo {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .modal-fechar {
+        color: var(--muted);
+        padding: 4px;
+        border-radius: 6px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: background var(--ease), color var(--ease);
+    }
+
+    .modal-fechar:hover {
+        background: var(--hover);
+        color: var(--text);
+    }
+
+    .modal-sub {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 16px;
+    }
+
+    .modal-input {
+        width: 100%;
+        height: 40px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--input-bg);
+        color: var(--text);
+        font-size: 13px;
+        font-family: var(--font);
+        outline: none;
+        transition: border-color var(--ease);
+    }
+
+    .modal-input:focus {
+        border-color: var(--accent-lt);
+    }
+
+    .modal-input::placeholder {
+        color: var(--faint);
+    }
+
+    .modal-btn-cancel {
+        height: 36px;
+        padding: 0 16px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--input-bg);
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--muted);
+        cursor: pointer;
+        transition: background var(--ease), color var(--ease);
+    }
+
+    .modal-btn-cancel:hover {
+        background: var(--hover);
+        color: var(--text);
+    }
+
+    .modal-btn-confirm {
+        height: 36px;
+        padding: 0 20px;
+        border-radius: 10px;
+        border: none;
+        background: var(--accent);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .modal-btn-confirm:hover {
+        opacity: 0.88;
+    }
+
+    /* Itens de lista no modal */
+    .lista-opcao-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 2px solid var(--border);
+        background: var(--input-bg);
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
+        width: 100%;
+        text-align: left;
+    }
+
+    .lista-opcao-item:hover {
+        border-color: var(--accent-lt);
+        background: var(--hover);
+    }
+
+    .lista-opcao-item.ja-adicionado {
+        border-color: #22c55e;
+        background: rgba(34, 197, 94, 0.06);
+    }
+
+    .lista-opcao-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: var(--surface2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent-lt);
+        flex-shrink: 0;
+    }
+
+    .lista-opcao-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .lista-opcao-nome {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .lista-opcao-meta {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+    }
+
+    .lista-opcao-check {
+        color: #22c55e;
+        flex-shrink: 0;
+    }
+
+    /* Tags reutilizadas do CSS global (.tag já está lá, mas deixamos aqui como fallback) */
+    .tag {
+        font-size: 9px;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 99px;
+        background: var(--badge-bg);
+        color: var(--badge-txt);
+    }
+
+    /* ── RESPONSIVO GERAL ─────────────────────────────────────────── */
+
+    /* Telas médias (monitor ~22" / ~1280px) */
+    @media (max-width: 1280px) {
+        .detalhe-wrap {
+            max-width: 100%;
+            padding: 0 16px;
+        }
+
+        .detalhe-titulo {
+            font-size: 22px;
+        }
+
+        .detalhe-grid {
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        }
+
+        .detalhe-botoes {
+            flex-wrap: wrap;
+        }
+
+        .btn-lista-livro {
+            flex: 1 1 100%;
+        }
+
+        .btn-secundario {
+            flex: 1;
+        }
+    }
+
+    /* Telas menores (tablets / ~900px) */
+    @media (max-width: 900px) {
+        .detalhe-main {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .detalhe-capa,
+        .detalhe-capa-img,
+        .bc.xl {
+            width: 100%;
+            max-width: 220px;
+            height: auto;
+            aspect-ratio: 2/3;
+        }
+
+        .detalhe-capa-img img {
+            border-radius: 14px;
+        }
+
+        .detalhe-infos {
+            min-width: 0;
+            width: 100%;
+        }
+
+        .detalhe-titulo {
+            font-size: 20px;
+        }
+
+        .detalhe-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .detalhe-botoes {
+            flex-direction: column;
+        }
+
+        .btn-lista-livro,
+        .btn-secundario {
+            flex: unset;
+            width: 100%;
+        }
+    }
+
+    /* Mobile (~600px) */
+    @media (max-width: 600px) {
+        .detalhe-titulo {
+            font-size: 18px;
+        }
+
+        .detalhe-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .detalhe-sinopse {
+            padding: 16px;
+        }
+
+        .detalhe-sinopse p {
+            font-size: 14px;
+        }
+    }
+</style>
 
 <script>
     const LIVRO_ID = {{ livro.id_livro }};
@@ -163,7 +690,6 @@
     async function carregarListas() {
         const container = document.getElementById('lista-opcoes');
         container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Carregando...</div>';
-
         try {
             const res = await fetch(`/biblioteca/listas/minhas/?livro_id=${LIVRO_ID}`);
             const data = await res.json();
@@ -180,13 +706,21 @@
                 item.className = 'lista-opcao-item' + (jaAdicionado ? ' ja-adicionado' : '');
                 item.innerHTML = `
                     <div class="lista-opcao-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                        </svg>
                     </div>
                     <div class="lista-opcao-info">
                         <div class="lista-opcao-nome">${lista.nome}</div>
                         <div class="lista-opcao-meta">${lista.qtd_livros} livro${lista.qtd_livros !== 1 ? 's' : ''}</div>
                     </div>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="visibility:${jaAdicionado ? 'visible' : 'hidden'};color:#22c55e;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        style="visibility:${jaAdicionado ? 'visible' : 'hidden'};color:#22c55e;flex-shrink:0">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
                 `;
                 item.onclick = () => toggleLivroNaLista(lista.id, item, jaAdicionado);
                 container.appendChild(item);

@@ -638,13 +638,14 @@ def buscar_livro(request):
             .values('id_exemplar', 'codigo_completo', 'codigo_variante')
         )
         resultado.append({
-            'id':                    livro.id_livro,
-            'titulo':                livro.titulo,
-            'autor':                 livro.autor or '',
-            'prateleira':            livro.prateleira or '',
-            'total_exemplares':      livro.quantidade,
+            'id':                     livro.id_livro,
+            'titulo':                 livro.titulo,
+            'autor':                  livro.autor or '',
+            'prateleira':             livro.prateleira or '',
+            'capa_url':               livro.capa_url or '',   # ← adicionado
+            'total_exemplares':       livro.quantidade,
             'exemplares_disponiveis': exemplares_list,
-            'qtd_disponivel':        len(exemplares_list),
+            'qtd_disponivel':         len(exemplares_list),
         })
 
     return JsonResponse({'livros': resultado})
