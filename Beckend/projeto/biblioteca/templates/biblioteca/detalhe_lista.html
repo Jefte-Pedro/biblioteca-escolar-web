@@ -276,7 +276,7 @@
         </div>
     </div>
 </div>
-
+ 
 <script>
     const LISTA_ID = {{ lista.id }};
     let livroSelecionadoId = null;
@@ -681,12 +681,13 @@
 
             if (!livroParaRemoverId) return;
 
-            fecharModalRemover();
+            const idParaRemover = livroParaRemoverId; // ← salva antes de fechar
+
+            fecharModalRemover(); // isso zera livroParaRemoverId
 
             try {
 
-                const url =
-                    "{% url 'remover_livro_lista' lista.id %}";
+                const url = `/biblioteca/lista/${LISTA_ID}/remover-livro/`;
 
                 const res = await fetch(url, {
 
@@ -698,7 +699,7 @@
                     },
 
                     body: JSON.stringify({
-                        livro_id: livroParaRemoverId
+                        livro_id: idParaRemover // ← usa a cópia
                     })
 
                 });

@@ -71,7 +71,7 @@
 
     {% for lista in listas %}
     <div class="lista-card" style="cursor: pointer;"
-        onclick="if(!event.target.closest('.lista-card-menu') && !event.target.closest('.lista-menu-dropdown')) window.location.href='{% url 'detalhe_lista' lista.id %}'">
+        onclick="if(!event.target.closest('.lista-card-menu') && !event.target.closest('.lista-menu-dropdown')) window.location.href='{% url 'detalhe_lista' lista_id=lista.id %}'">
 
         
         <!-- Capas empilhadas -->
@@ -140,7 +140,7 @@
         <div class="lista-menu-dropdown" style="display: none;">
             <button class="menu-item renomear"
                 onclick="prepararRenomear('{{ lista.id }}', '{{ lista.nome }}', '{{ lista.descricao|default:'' }}')">Renomear</button>
-            <button class="menu-item excluir" onclick="confirmarExclusao('{% url 'excluir_lista' id=lista.id %}')">
+            <button class="menu-item excluir" onclick="confirmarExclusao('{% url 'excluir_lista' lista_id=lista.id %}')">
                 Excluir
             </button>
         </div>
@@ -239,11 +239,12 @@
         </div>
         <p class="modal-sub">Dê um nome para sua nova coleção de livros.</p>
         <input type="text" id="input-nome-lista" class="modal-input" placeholder="Ex: Livros para o ENEM..."
-            data-i18n-placeholder="modal_lista_placeholder" />
-
-        <input type="text" id="input-lista-descricao" class="modal-input"
+            data-i18n-placeholder="modal_lista_placeholder"  />
+        <div class="descricao-modal-lista">
+            <span class="modal-sub"> Crie uma deescrição para sua lista</span>
+            <input type="text" id="input-lista-descricao" class="modal-input"
             placeholder="Ex: Livros que me Ajudam com os Estudos" data-i18n-placeholder="modal_lista_placeholder">
-
+        </div>
         <div class="modal-btns">
             <button onclick="fecharModal()" class="modal-btn-cancel">Cancelar</button>
             <button id="btn-confirmar-lista" class="modal-btn-confirm">Criar Lista</button>
