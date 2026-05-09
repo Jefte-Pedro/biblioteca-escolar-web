@@ -21,9 +21,11 @@ urlpatterns = [
     path('acervo/lista/renomear/<int:id>/', views.renomear_lista, name='renomear_lista'),
 
     path('lista/<int:id>/adicionar-livro/', views.adicionar_livro_lista, name='adicionar_livro_lista'),
-    path('lista/<int:id>/remover-livro/', views.remover_livro_lista, name='remover_livro_lista'),
+    path(
+    'lista/<int:id>/remover-livro/', views.remover_livro_lista, name='remover_livro_lista'),
     path('listas/minhas/', views.listas_do_usuario, name='listas_do_usuario'),
     path('acervo/', views.acervo, name='acervo'),
+    path('explorar/', views.explorar, name='explorar'),
 
     path('prazos/', views.prazos, name='prazos'),
     path('emprestimos/criar/', views.criar_emprestimo, name='criar_emprestimo'),
@@ -37,6 +39,7 @@ urlpatterns = [
     path('buscar-usuario/', views.buscar_usuario, name='buscar_usuario'),
 
     path('livro/<int:livro_id>/', views.detalhes_livro, name='detalhes_livro'),
+    path('livro/<int:livro_id>/editar/', views.editar_livro, name='editar_livro'),
 
     path('login/', views.pagina_login, name='login'),
     path('login/cadastro/', views.cadastro, name='cadastro'),
