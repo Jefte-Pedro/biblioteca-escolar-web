@@ -9,6 +9,8 @@ from datetime import date
 from collections import defaultdict
 import json
 
+from django.views.decorators.csrf import csrf_exempt
+
 from .models import Livro, Emprestimo, Reserva, Lista, Usuario, Exemplar
 from .serializers import LivroSerializer
 
@@ -212,8 +214,8 @@ def lista(request):
 
 
 @login_required
-def detalhe_lista(request, id):
-    lista = get_object_or_404(Lista, id=id, usuario=request.user)
+def detalhe_lista(request, lista_id):
+    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
     return render(request, 'biblioteca/detalhe_lista.html', {'lista': lista})
 
 
@@ -239,19 +241,19 @@ def criar_lista(request):
 
 
 @require_POST
-def excluir_lista(request, id):
+def excluir_lista(request, lista_id):
     if not request.user.is_authenticated:
         return JsonResponse({'erro': 'Não autenticado'}, status=401)
-    lista = get_object_or_404(Lista, id=id, usuario=request.user)
+    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
     lista.delete()
     return JsonResponse({'status': 'ok'})
 
 
 @require_POST
-def renomear_lista(request, id):
+def renomear_lista(request, lista_id):
     if not request.user.is_authenticated:
         return JsonResponse({'erro': 'Não autenticado'}, status=401)
-    lista = get_object_or_404(Lista, id=id, usuario=request.user)
+    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
     data = json.loads(request.body)
     novo_nome = data.get('nome', '').strip()
     descricao = data.get('descricao', '').strip()
@@ -264,71 +266,48 @@ def renomear_lista(request, id):
 
 
 @require_POST
-def adicionar_livro_lista(request, id):
+def adicionar_livro_lista(request, lista_id):
     if not request.user.is_authenticated:
         return JsonResponse({'erro': 'Não autenticado'}, status=401)
-
-    lista = get_object_or_404(Lista, id=id, usuario=request.user)
-
+    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
     try:
         data = json.loads(request.body)
         livro_id = data.get('livro_id')
-
-        # tenta localizar pelos dois campos
         livro = Livro.objects.filter(id_livro=livro_id).first()
-
         if not livro:
             livro = Livro.objects.filter(pk=livro_id).first()
-
         if not livro:
-            return JsonResponse({
-                'erro': f'Livro {livro_id} não encontrado.'
-            }, status=404)
-
+            return JsonResponse({'erro': f'Livro {livro_id} não encontrado.'}, status=404)
         lista.livros.add(livro)
-
-        return JsonResponse({
-            'status': 'ok'
-        })
-
+        return JsonResponse({'status': 'ok'})
     except Exception as e:
-        return JsonResponse({
-            'erro': str(e)
-        }, status=500)
-
-
+        return JsonResponse({'erro': str(e)}, status=500)
+    
 @require_POST
-def remover_livro_lista(request, id):
+def remover_livro_lista(request, lista_id):
     if not request.user.is_authenticated:
         return JsonResponse({'erro': 'Não autenticado'}, status=401)
 
-    lista = get_object_or_404(Lista, id=id, usuario=request.user)
+    try:
+        lista = Lista.objects.get(pk=lista_id)
+    except Lista.DoesNotExist:
+        return JsonResponse({'erro': 'Lista não encontrada.'}, status=404)
+
+    if lista.usuario_id != request.user.pk:
+        return JsonResponse({'erro': 'Sem permissão.'}, status=403)
 
     try:
         data = json.loads(request.body)
         livro_id = data.get('livro_id')
-
-        # tenta localizar pelos dois campos
         livro = Livro.objects.filter(id_livro=livro_id).first()
-
         if not livro:
             livro = Livro.objects.filter(pk=livro_id).first()
-
         if not livro:
-            return JsonResponse({
-                'erro': f'Livro {livro_id} não encontrado.'
-            }, status=404)
-
+            return JsonResponse({'erro': f'Livro {livro_id} não encontrado.'}, status=404)
         lista.livros.remove(livro)
-
-        return JsonResponse({
-            'status': 'ok'
-        })
-
+        return JsonResponse({'status': 'ok'})
     except Exception as e:
-        return JsonResponse({
-            'erro': str(e)
-        }, status=500)
+        return JsonResponse({'erro': str(e)}, status=500)
 
 
 def listas_do_usuario(request):
