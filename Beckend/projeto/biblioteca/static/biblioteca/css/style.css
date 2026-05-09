@@ -30,24 +30,24 @@
   --carousel-fade: linear-gradient(to right, transparent, #0f1b2e);
 }
 [data-theme="light"] {
-  --bg: #f8fafc;
+  --bg: #f0f4f9;
   --sidebar-bg: #ffffff;
-  --topbar-bg: rgba(255, 255, 255, 0.85);
-  --border: #e2e8f0;
-  --surface: #f1f5f9;
-  --surface2: #e2e8f0;
-  --text: #0f1b2e;
-  --muted: #64748b;
-  --faint: #94a3b8;
-  --accent: #1e5aa8;
-  --accent-lt: #4f94d6;
-  --badge-bg: #e2e8f0;
-  --badge-txt: #1e5aa8;
+  --topbar-bg: rgba(255, 255, 255, 0.88);
+  --border: #dde3ee;
+  --surface: #e8eef6;
+  --surface2: #d6e0ee;
+  --text: #111827;
+  --muted: #4b5e7a;
+  --faint: #8fa3be;
+  --accent: #2563eb;
+  --accent-lt: #4f8ef7;
+  --badge-bg: #e0eafb;
+  --badge-txt: #2563eb;
   --input-bg: #ffffff;
-  --hover: #f1f5f9;
-  --hover2: #e8f0fb;
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  --carousel-fade: linear-gradient(to right, transparent, #f8fafc);
+  --hover: #ebf1fb;
+  --hover2: #d8e8fb;
+  --shadow: 0 4px 20px rgba(37, 99, 235, 0.1);
+  --carousel-fade: linear-gradient(to right, transparent, #f0f4f9);
 }
 
 /* ── RESET ───────────────────────────────────────────────────── */
@@ -1261,7 +1261,6 @@ svg {
   font-size: 12px;
   color: var(--muted);
   margin-bottom: 16px;
-  
 }
 .modal-input {
   width: 100%;
@@ -3858,14 +3857,136 @@ svg {
 }
 
 #dropdown-busca-livro {
-    position: fixed !important;
-    z-index: 999999 !important;
+  position: fixed !important;
+  z-index: 999999 !important;
 }
 
 .modal-overlay {
-    isolation: auto !important;
+  isolation: auto !important;
 }
 
-.descricao-modal-lista{
+.descricao-modal-lista {
   margin-top: 10px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PATCH FINAL — TEMA CLARO
+   Adicione este bloco NO FINAL do seu arquivo CSS principal,
+   após todas as outras regras. Ele usa !important cirurgicamente
+   apenas onde há conflito de especificidade com valores hardcoded.
+   ══════════════════════════════════════════════════════════════ */
+
+/* 1. Hero — sobrescreve o gradiente hardcoded do bloco genérico */
+[data-theme="light"] .hero {
+  background: linear-gradient(
+    135deg,
+    #e0eafb 0%,
+    #c9dcf7 50%,
+    #b8ccf0 100%
+  ) !important;
+}
+
+/* 2. Tabela de empréstimos — header hardcoded como #f8fafc */
+[data-theme="light"] .emp-tabela-header {
+  background: #ebf1fb !important;
+}
+
+/* 3. Hover de linha da tabela — hardcoded como #f8fafc */
+[data-theme="light"] .emp-linha:hover {
+  background: #ebf1fb !important;
+}
+
+/* 4. Lista-card capas — hardcoded como #eef4fb */
+[data-theme="light"] .lista-card-capas {
+  background: #e8eef6 !important;
+}
+
+/* 5. Topbar — garante border e bg corretos */
+[data-theme="light"] #topbar {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-bottom-color: #dde3ee !important;
+}
+
+/* 6. cfg-card usa --card-bg que não está definido no tema claro */
+[data-theme="light"] .cfg-card {
+  background: #ffffff;
+  border-color: #dde3ee;
+}
+
+/* 7. cfg-save-bar idem */
+[data-theme="light"] .cfg-save-bar {
+  background: #ffffff;
+  border-top-color: #dde3ee;
+}
+
+/* 8. cfg-modal usa --card-bg */
+[data-theme="light"] .cfg-modal {
+  background: #ffffff;
+  border-color: #dde3ee;
+}
+
+/* 9. cfg-toast */
+[data-theme="light"] .cfg-toast {
+  background: #ffffff;
+  box-shadow: 0 8px 32px rgba(37, 99, 235, 0.15);
+}
+
+/* 10. Chip no hero — vidro levemente mais azulado no claro */
+[data-theme="light"] .chip {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+}
+
+/* 11. dl-header usa --surface que no claro é #E8EEF6 — ok,
+       mas se quiser um toque mais limpo: */
+[data-theme="light"] .dl-header {
+  background: #f4f7fc;
+}
+
+/* 12. Scrollbar thumb mais suave */
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #c5d3e8 !important;
+}
+
+.lang-container {
+  position: relative;
+}
+
+.lang-menu {
+  display: none;
+  position: fixed;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+  min-width: 150px;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.lang-menu.open {
+  display: block;
+}
+
+.lang-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  text-align: left;
+  transition: background 0.15s;
+  border-bottom: 1px solid var(--border);
+}
+
+.lang-menu button:last-child {
+  border-bottom: none;
+}
+
+.lang-menu button:hover {
+  background: var(--hover);
 }

@@ -504,18 +504,27 @@
     }
 
     // Inicializar botão selecionado conforme o que já está salvo
-    (function () {
-        const salvo = localStorage.getItem('theme') || 'dark';
-        const btn = document.getElementById('tema-' + salvo);
-        if (btn) btn.classList.add('selected');
-    })();
+    function cfgSyncBotaoTema() {
+            const salvo = localStorage.getItem('theme') || 'dark';
+            document.querySelectorAll('.cfg-theme-opt').forEach(b => b.classList.remove('selected'));
+            const btn = document.getElementById('tema-' + salvo);
+            if (btn) btn.classList.add('selected');
+        }
+
+        // Inicializa ao carregar
+        cfgSyncBotaoTema();
+
+        // Sincroniza quando o header muda o tema
+        window.addEventListener('themeChanged', cfgSyncBotaoTema);
 
     // ── Idioma ──
-    function cfgIdioma(row, lang) {
-        document.querySelectorAll('.cfg-lang-row').forEach(r => r.classList.remove('selected'));
-        row.classList.add('selected');
-        cfgToast('Idioma salvo.');
-    }
+        function cfgIdioma(row, lang) {
+            document.querySelectorAll('.cfg-lang-row').forEach(r => r.classList.remove('selected'));
+            row.classList.add('selected');
+            const langSimples = lang === 'pt-BR' ? 'pt' : lang;
+            setLang(langSimples);
+            cfgToast('Idioma salvo.');
+        }      
 
     // ── Modal senha ──
     function abrirModalSenha() {
@@ -564,6 +573,14 @@
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
+    
+    // Sincroniza quando o header muda o idioma
+        window.addEventListener('langChanged', function (e) {
+            document.querySelectorAll('.cfg-lang-row').forEach(r => r.classList.remove('selected'));
+            const lang = e.detail === 'pt' ? 'pt-BR' : e.detail;
+            // seleciona a linha correspondente pelo onclick
+            document.querySelector(`.cfg-lang-row[onclick*="${lang}"]`)?.classList.add('selected');
+        });
 
     // getCookie() já está disponível via script.js
 </script>

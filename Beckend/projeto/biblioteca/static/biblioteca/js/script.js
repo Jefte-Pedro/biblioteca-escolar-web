@@ -31,6 +31,7 @@ function _applyTheme(value) {
 function setTheme(value) {
   localStorage.setItem("theme", value);
   _applyTheme(value);
+  window.dispatchEvent(new CustomEvent("themeChanged", { detail: value }));
 }
 
 /**
@@ -42,11 +43,64 @@ function toggleTheme() {
   setTheme(current === "dark" ? "light" : "dark");
 }
 
-/* Restaurar tema salvo */
+/* Restaurar tema salvo — com migração da chave antiga "tema" */
 (function () {
+  const old = localStorage.getItem("tema");
+  if (old && !localStorage.getItem("theme")) {
+    localStorage.setItem("theme", old);
+    localStorage.removeItem("tema");
+  }
+
   const saved = localStorage.getItem("theme") || "dark";
   _applyTheme(saved);
 })();
+
+/* ===== IDIOMA ===== */
+// Funções no escopo global para que os onclick do HTML funcionem.
+
+const _langLabels = { pt: "PT", en: "EN", es: "ES" };
+
+function toggleLangMenu() {
+  const menu = document.getElementById("lang-menu");
+  const btn = document.getElementById("lang-btn");
+
+  if (!menu || !btn) return;
+
+  const isOpen = menu.classList.contains("open");
+
+  if (!isOpen) {
+    const rect = btn.getBoundingClientRect();
+    menu.style.top = rect.bottom + 8 + "px";
+    menu.style.right = window.innerWidth - rect.right + "px";
+    menu.style.left = "auto";
+  }
+
+  menu.classList.toggle("open");
+}
+
+function setLang(lang) {
+  localStorage.setItem("idioma", lang);
+  const el = document.getElementById("lang-texto");
+  if (el) el.textContent = _langLabels[lang] || "PT";
+  document.getElementById("lang-menu")?.classList.remove("open");
+
+  // Aplica traduções
+  if (typeof traducoes !== "undefined" && traducoes[lang]) {
+    document.querySelectorAll("[data-i18n]").forEach((elT) => {
+      if (traducoes[lang][elT.dataset.i18n]) {
+        elT.textContent = traducoes[lang][elT.dataset.i18n];
+      }
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((elT) => {
+      if (traducoes[lang][elT.dataset.i18nPlaceholder]) {
+        elT.placeholder = traducoes[lang][elT.dataset.i18nPlaceholder];
+      }
+    });
+  }
+
+  window.dispatchEvent(new CustomEvent("langChanged", { detail: lang }));
+}
+
 
 /* ===== CSRF ===== */
 
@@ -100,56 +154,25 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ===== IDIOMA ===== */
+  /* ===== IDIOMA — fechar ao clicar fora ===== */
 
-  const botaoIdioma = document.querySelector(".idioma");
-  const menuIdioma = document.querySelector(".idioma-menu");
-  const idiomaTexto = document.getElementById("idioma-texto");
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest("#lang-container")) {
+      document.getElementById("lang-menu")?.classList.remove("open");
+    }
+  });
 
-  if (botaoIdioma && menuIdioma) {
-    botaoIdioma.addEventListener("click", () => {
-      menuIdioma.classList.toggle("ativo");
-    });
-
-    document.addEventListener("click", (e) => {
-      if (!e.target.closest(".idioma-container")) {
-        menuIdioma.classList.remove("ativo");
+  /* ===== IDIOMA — restaurar ao carregar ===== */
+  const salvoIdioma = localStorage.getItem("idioma") || "pt";
+  const elLang = document.getElementById("lang-texto");
+  if (elLang) elLang.textContent = _langLabels[salvoIdioma] || "PT";
+  if (typeof traducoes !== "undefined" && traducoes[salvoIdioma]) {
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      if (traducoes[salvoIdioma][el.dataset.i18n]) {
+        el.textContent = traducoes[salvoIdioma][el.dataset.i18n];
       }
     });
-
-    function trocarIdioma(lang) {
-      idiomaTexto.textContent = traducoes[lang].idioma;
-
-      document.querySelectorAll("[data-i18n]").forEach((el) => {
-        const chave = el.dataset.i18n;
-
-        if (traducoes[lang][chave]) {
-          el.textContent = traducoes[lang][chave];
-        }
-      });
-
-      document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
-        const chave = el.dataset.i18nPlaceholder;
-
-        if (traducoes[lang][chave]) {
-          el.placeholder = traducoes[lang][chave];
-        }
-      });
-
-      localStorage.setItem("idioma", lang);
-    }
-
-    document.querySelectorAll(".idioma-menu button").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        trocarIdioma(btn.dataset.lang);
-        menuIdioma.classList.remove("ativo");
-      });
-    });
-
-    const idiomaSalvo = localStorage.getItem("idioma") || "pt";
-    trocarIdioma(idiomaSalvo);
   }
-
   /* ===== SIDEBAR ===== */
 
   const sidebar = document.querySelector(".sidebar");
