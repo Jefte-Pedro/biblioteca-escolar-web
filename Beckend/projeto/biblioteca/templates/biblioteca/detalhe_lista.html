@@ -10,7 +10,6 @@
         overflow: visible !important;
     }
 
-    /* Dropdown flutuante — fica no body, fora do modal */
     #dropdown-busca-livro {
         display: none;
         position: fixed;
@@ -120,7 +119,9 @@
     <!-- GRADE DE LIVROS -->
     <div class="dl-grid">
         {% for livro in lista.livros.all %}
-        <div class="dl-livro-card">
+        <div class="dl-livro-card" style="cursor:pointer;"
+            onclick="window.location.href='{% url 'detalhes_livro' livro.id_livro %}'">
+
             <div class="dl-livro-capa">
                 {% if livro.capa_url %}
                 <img src="{{ livro.capa_url }}" alt="{{ livro.titulo }}"
@@ -142,7 +143,8 @@
                 <span class="dl-badge dl-badge-indisp">INDISP</span>
                 {% endif %}
 
-                <button class="dl-livro-remover" onclick="removerDaLista({{ livro.id_livro }})"
+                <!-- O botão X para a propagação para não abrir o livro ao remover -->
+                <button class="dl-livro-remover" onclick="event.stopPropagation(); removerDaLista({{ livro.id_livro }})"
                     title="Remover da lista">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -151,7 +153,8 @@
                     </svg>
                 </button>
             </div>
-            <a href="{% url 'detalhes_livro' livro.id_livro %}" class="dl-livro-titulo">{{ livro.titulo }}</a>
+
+            <div class="dl-livro-titulo">{{ livro.titulo }}</div>
             <div class="dl-livro-autor">{{ livro.autor|default:"Autor desconhecido" }}</div>
         </div>
         {% empty %}{% endfor %}
@@ -235,6 +238,17 @@
         </div>
     </div>
 </div>
+<!-- MODAL DE ERRO GENÉRICO -->
+<div id="modal-erro" class="modal-overlay" style="display:none">
+    <div class="modal-box" style="max-width:360px;text-align:center">
+        <div style="font-size:36px;margin-bottom:8px">⚠️</div>
+        <div id="modal-erro-msg" class="modal-titulo" style="font-size:15px;font-weight:600;margin-bottom:20px"></div>
+        <div class="modal-btns" style="justify-content:center">
+            <button onclick="document.getElementById('modal-erro').style.display='none'"
+                class="modal-btn-confirm">OK</button>
+        </div>
+    </div>
+</div>
 
 <!-- MODAL CONFIRMAR EXCLUSÃO -->
 <div id="modal-excluir-detalhe" class="modal-overlay" style="display:none">
@@ -250,218 +264,591 @@
         </div>
     </div>
 </div>
+<!-- MODAL CONFIRMAR REMOÇÃO DE LIVRO -->
+<div id="modal-remover-livro" class="modal-overlay" style="display:none">
+    <div class="modal-box" style="max-width:360px;text-align:center">
+        <div style="font-size:36px;margin-bottom:8px">📖</div>
+        <div class="modal-titulo" style="font-size:16px;font-weight:700;margin-bottom:8px">Remover livro?</div>
+        <p class="modal-sub" style="margin:0 0 20px">O livro será removido desta lista.</p>
+        <div class="modal-btns" style="justify-content:center;gap:12px">
+            <button onclick="fecharModalRemover()" class="modal-btn-cancel">Cancelar</button>
+            <button id="btn-confirmar-remover" class="modal-btn-confirm" style="background:#ef4444">Remover</button>
+        </div>
+    </div>
+</div>
 
 <script>
     const LISTA_ID = {{ lista.id }};
     let livroSelecionadoId = null;
+    let livroParaRemoverId = null;
 
+    /* ─────────────────────────────
+       CSRF
+    ───────────────────────────── */
     function getCookie(name) {
         let cookieValue = null;
+
         if (document.cookie && document.cookie !== '') {
             document.cookie.split(';').forEach(cookie => {
                 cookie = cookie.trim();
+
                 if (cookie.startsWith(name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+                    cookieValue = decodeURIComponent(
+                        cookie.slice(name.length + 1)
+                    );
                 }
             });
         }
+
         return cookieValue;
     }
 
-    /* ── Modal add ── */
+    /* ─────────────────────────────
+       MODAL ERRO
+    ───────────────────────────── */
+    function mostrarErro(msg) {
+        document.getElementById('modal-erro-msg').textContent = msg;
+        document.getElementById('modal-erro').style.display = 'flex';
+    }
+
+    /* ─────────────────────────────
+       MODAL ADD
+    ───────────────────────────── */
     function abrirModalAdd() {
         document.getElementById('modal-add-livro').style.display = 'flex';
-        setTimeout(() => document.getElementById('input-busca-livro').focus(), 100);
+
+        setTimeout(() => {
+            getInput().focus();
+            posicionarDropdown();
+        }, 100);
     }
 
     function fecharModalAdd() {
         document.getElementById('modal-add-livro').style.display = 'none';
+
         fecharDropdown();
         limparSelecao();
     }
 
-    /* ── Dropdown posicionado pelo JS (fora do modal) ── */
-    const dropdown = document.getElementById('dropdown-busca-livro');
-    const inputBusca = document.getElementById('input-busca-livro');
+    /* ─────────────────────────────
+       DROPDOWN
+    ───────────────────────────── */
+    function getDropdown() {
+        return document.getElementById('dropdown-busca-livro');
+    }
+
+    function getInput() {
+        return document.getElementById('input-busca-livro');
+    }
 
     function posicionarDropdown() {
-        const rect = inputBusca.getBoundingClientRect();
-        dropdown.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+
+        const input = getInput();
+        const dropdown = getDropdown();
+
+        if (!input || !dropdown) return;
+
+        const rect = input.getBoundingClientRect();
+
+        dropdown.style.top = (rect.bottom + 4) + 'px';
         dropdown.style.left = rect.left + 'px';
         dropdown.style.width = rect.width + 'px';
     }
 
     function fecharDropdown() {
+
+        const dropdown = getDropdown();
+
         dropdown.style.display = 'none';
         dropdown.innerHTML = '';
     }
 
-    /* ── Busca com debounce ── */
+    /* ─────────────────────────────
+       BUSCA COM DEBOUNCE
+    ───────────────────────────── */
     let timerBusca;
-    inputBusca.addEventListener('input', function () {
-        clearTimeout(timerBusca);
-        const q = this.value.trim();
-        if (q.length < 2) { fecharDropdown(); return; }
-        timerBusca = setTimeout(() => buscarLivros(q), 350);
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const input = getInput();
+
+        if (input) {
+
+            input.addEventListener('input', function () {
+
+                clearTimeout(timerBusca);
+
+                const q = this.value.trim();
+
+                if (q.length < 2) {
+                    fecharDropdown();
+                    return;
+                }
+
+                timerBusca = setTimeout(() => {
+                    buscarLivrosLista(q);
+                }, 350);
+
+            });
+
+        }
+
     });
 
-    async function buscarLivros(q) {
+    /* ─────────────────────────────
+       FECHAR DROPDOWN AO CLICAR FORA
+    ───────────────────────────── */
+    document.addEventListener('click', function (e) {
+
+        if (
+            !e.target.closest('#input-busca-livro') &&
+            !e.target.closest('#dropdown-busca-livro')
+        ) {
+            fecharDropdown();
+        }
+
+    });
+
+    /* ─────────────────────────────
+       REPOSICIONAR DROPDOWN
+    ───────────────────────────── */
+    window.addEventListener('scroll', () => {
+
+        if (getDropdown().style.display === 'block') {
+            posicionarDropdown();
+        }
+
+    });
+
+    window.addEventListener('resize', () => {
+
+        if (getDropdown().style.display === 'block') {
+            posicionarDropdown();
+        }
+
+    });
+
+    /* ─────────────────────────────
+       BUSCAR LIVROS
+    ───────────────────────────── */
+    async function buscarLivrosLista(q) {
+
         try {
-            const res = await fetch(`/biblioteca/buscar-livro/?q=${encodeURIComponent(q)}`);
+
+            const res = await fetch(
+                `{% url 'buscar_livro' %}?q=${encodeURIComponent(q)}`
+            );
+
             const data = await res.json();
+
+            const dropdown = getDropdown();
 
             dropdown.innerHTML = '';
 
-            if (!data.livros.length) {
-                dropdown.innerHTML = '<div class="emp-ac-vazio">Nenhum livro encontrado</div>';
+            if (!data.livros || !data.livros.length) {
+
+                dropdown.innerHTML = `
+                    <div class="emp-ac-vazio">
+                        Nenhum livro encontrado
+                    </div>
+                `;
+
             } else {
+
                 data.livros.forEach(livro => {
+
                     const item = document.createElement('div');
+
                     item.className = 'emp-ac-item';
 
                     const capaSrc = livro.capa_url
-                        ? `<img src="${livro.capa_url}"
-                           style="width:100%;height:100%;object-fit:cover;border-radius:4px;">`
+                        ? `
+                            <img src="${livro.capa_url}"
+                                 style="width:100%;
+                                        height:100%;
+                                        object-fit:cover;
+                                        border-radius:4px;">
+                          `
                         : livro.titulo.charAt(0).toUpperCase();
 
                     item.innerHTML = `
-                    <div class="emp-ac-mini-capa"
-                        style="background:linear-gradient(135deg,#1e5aa8,#0b1526);
-                               overflow:hidden;display:flex;align-items:center;justify-content:center;
-                               color:#fff;font-weight:800;font-size:14px;">
-                        ${capaSrc}
-                    </div>
-                    <div class="emp-ac-info">
-                        <div class="emp-ac-nome">${livro.titulo}</div>
-                        <div class="emp-ac-sub">${livro.autor || 'Autor desconhecido'}</div>
-                    </div>
-                    <span class="emp-ac-badge ${livro.qtd_disponivel > 0 ? 'emp-ac-badge-green' : 'emp-ac-badge-red'}">
-                        ${livro.qtd_disponivel > 0 ? 'Disponível' : 'Indisponível'}
-                    </span>`;
+                        <div class="emp-ac-mini-capa"
+                            style="
+                                background:linear-gradient(135deg,#1e5aa8,#0b1526);
+                                overflow:hidden;
+                                display:flex;
+                                align-items:center;
+                                justify-content:center;
+                                color:#fff;
+                                font-weight:800;
+                                font-size:14px;
+                            ">
+                            ${capaSrc}
+                        </div>
+
+                        <div class="emp-ac-info">
+                            <div class="emp-ac-nome">
+                                ${livro.titulo}
+                            </div>
+
+                            <div class="emp-ac-sub">
+                                ${livro.autor || 'Autor desconhecido'}
+                            </div>
+                        </div>
+
+                        <span class="
+                            emp-ac-badge
+                            ${livro.qtd_disponivel > 0
+                            ? 'emp-ac-badge-green'
+                            : 'emp-ac-badge-red'}
+                        ">
+                            ${livro.qtd_disponivel > 0
+                            ? 'Disponível'
+                            : 'Indisponível'}
+                        </span>
+                    `;
 
                     item.onclick = () => selecionarLivro(livro);
+
                     dropdown.appendChild(item);
+
                 });
+
             }
 
             posicionarDropdown();
+
             dropdown.style.display = 'block';
+
         } catch (err) {
+
             console.error('Erro na busca:', err);
+
+            mostrarErro('Erro ao buscar livros.');
+
         }
+
     }
 
+    /* ─────────────────────────────
+       SELECIONAR LIVRO
+    ───────────────────────────── */
     function selecionarLivro(livro) {
+
         livroSelecionadoId = livro.id;
+
         fecharDropdown();
-        inputBusca.value = livro.titulo;
+
+        getInput().value = livro.titulo;
 
         const capaEl = document.getElementById('preview-capa');
+
         if (livro.capa_url) {
-            capaEl.innerHTML = `<img src="${livro.capa_url}"
-            style="width:100%;height:100%;object-fit:cover;border-radius:5px;">`;
+
+            capaEl.innerHTML = `
+                <img src="${livro.capa_url}"
+                     style="
+                        width:100%;
+                        height:100%;
+                        object-fit:cover;
+                        border-radius:5px;
+                     ">
+            `;
+
             capaEl.style.background = 'none';
+
         } else {
+
             capaEl.textContent = livro.titulo.charAt(0).toUpperCase();
-            capaEl.style.background = 'linear-gradient(135deg,#1e5aa8,#0b1526)';
+
+            capaEl.style.background =
+                'linear-gradient(135deg,#1e5aa8,#0b1526)';
         }
 
-        document.getElementById('preview-titulo').textContent = livro.titulo;
-        document.getElementById('preview-autor').textContent = livro.autor || 'Autor desconhecido';
-        document.getElementById('livro-selecionado-preview').style.display = 'flex';
-        document.getElementById('btn-confirmar-add-livro').disabled = false;
+        document.getElementById('preview-titulo').textContent =
+            livro.titulo;
+
+        document.getElementById('preview-autor').textContent =
+            livro.autor || 'Autor desconhecido';
+
+        document.getElementById(
+            'livro-selecionado-preview'
+        ).style.display = 'flex';
+
+        document.getElementById(
+            'btn-confirmar-add-livro'
+        ).disabled = false;
     }
 
+    /* ─────────────────────────────
+       LIMPAR SELEÇÃO
+    ───────────────────────────── */
     function limparSelecao() {
+
         livroSelecionadoId = null;
-        inputBusca.value = '';
-        document.getElementById('livro-selecionado-preview').style.display = 'none';
-        document.getElementById('btn-confirmar-add-livro').disabled = true;
+
+        getInput().value = '';
+
+        document.getElementById(
+            'livro-selecionado-preview'
+        ).style.display = 'none';
+
+        document.getElementById(
+            'btn-confirmar-add-livro'
+        ).disabled = true;
     }
 
+    /* ─────────────────────────────
+       ADICIONAR LIVRO
+    ───────────────────────────── */
     async function confirmarAddLivro() {
+
         if (!livroSelecionadoId) return;
+
         try {
-            const res = await fetch(`/biblioteca/lista/${LISTA_ID}/adicionar-livro/`, {
+
+            const url =
+                "{% url 'adicionar_livro_lista' lista.id %}";
+
+            const res = await fetch(url, {
                 method: 'POST',
+
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({ livro_id: livroSelecionadoId })
+
+                body: JSON.stringify({
+                    livro_id: livroSelecionadoId
+                })
             });
-            if (res.ok) { window.location.reload(); }
-            else { alert('Erro ao adicionar livro.'); }
-        } catch (err) { alert('Erro de conexão.'); }
+
+            if (res.ok) {
+
+                window.location.reload();
+
+            } else {
+
+                mostrarErro(
+                    `Erro ao adicionar livro. (código ${res.status})`
+                );
+
+            }
+
+        } catch (err) {
+
+            console.error(err);
+
+            mostrarErro('Erro de conexão.');
+
+        }
+
     }
 
-    async function removerDaLista(livroId) {
-        if (!confirm('Remover este livro da lista?')) return;
-        try {
-            const res = await fetch(`/biblioteca/lista/${LISTA_ID}/remover-livro/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({ livro_id: livroId })
-            });
-            if (res.ok) { window.location.reload(); }
-            else { alert('Erro ao remover livro.'); }
-        } catch (err) { alert('Erro de conexão.'); }
+    /* ─────────────────────────────
+       REMOVER LIVRO
+    ───────────────────────────── */
+    function removerDaLista(livroId) {
+
+        livroParaRemoverId = livroId;
+
+        document.getElementById(
+            'modal-remover-livro'
+        ).style.display = 'flex';
     }
 
+    function fecharModalRemover() {
+
+        livroParaRemoverId = null;
+
+        document.getElementById(
+            'modal-remover-livro'
+        ).style.display = 'none';
+    }
+
+    /* ─────────────────────────────
+       CONFIRMAR REMOÇÃO
+    ───────────────────────────── */
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const btnRemover = document.getElementById(
+            'btn-confirmar-remover'
+        );
+
+        if (!btnRemover) return;
+
+        btnRemover.onclick = async function () {
+
+            if (!livroParaRemoverId) return;
+
+            fecharModalRemover();
+
+            try {
+
+                const url =
+                    "{% url 'remover_livro_lista' lista.id %}";
+
+                const res = await fetch(url, {
+
+                    method: 'POST',
+
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+
+                    body: JSON.stringify({
+                        livro_id: livroParaRemoverId
+                    })
+
+                });
+
+                if (res.ok) {
+
+                    window.location.reload();
+
+                } else {
+
+                    mostrarErro(
+                        `Erro ao remover livro. (código ${res.status})`
+                    );
+
+                }
+
+            } catch (err) {
+
+                console.error(err);
+
+                mostrarErro('Erro de conexão.');
+
+            }
+
+        };
+
+    });
+
+    /* ─────────────────────────────
+       EDITAR LISTA
+    ───────────────────────────── */
     function abrirEditarLista() {
-        document.getElementById('modal-editar-lista').style.display = 'flex';
+
+        document.getElementById(
+            'modal-editar-lista'
+        ).style.display = 'flex';
     }
 
     async function salvarEdicaoLista() {
-        const nome = document.getElementById('editar-nome').value.trim();
-        const descricao = document.getElementById('editar-descricao').value.trim();
-        if (!nome) { alert('Nome não pode ser vazio.'); return; }
+
+        const nome =
+            document.getElementById('editar-nome')
+                .value
+                .trim();
+
+        const descricao =
+            document.getElementById('editar-descricao')
+                .value
+                .trim();
+
+        if (!nome) {
+
+            mostrarErro('Nome não pode ser vazio.');
+
+            return;
+        }
+
         try {
-            const res = await fetch(`/biblioteca/acervo/lista/renomear/${LISTA_ID}/`, {
+
+            const url =
+                "{% url 'renomear_lista' lista.id %}";
+
+            const res = await fetch(url, {
+
                 method: 'POST',
+
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify({ nome, descricao })
+
+                body: JSON.stringify({
+                    nome,
+                    descricao
+                })
+
             });
-            if (res.ok) { window.location.reload(); }
-            else { alert('Erro ao salvar.'); }
-        } catch (err) { alert('Erro de conexão.'); }
+
+            if (res.ok) {
+
+                window.location.reload();
+
+            } else {
+
+                mostrarErro(
+                    `Erro ao salvar. (código ${res.status})`
+                );
+
+            }
+
+        } catch (err) {
+
+            console.error(err);
+
+            mostrarErro('Erro de conexão.');
+
+        }
+
     }
 
+    /* ─────────────────────────────
+       EXCLUIR LISTA
+    ───────────────────────────── */
     function excluirListaDetalhe() {
-        document.getElementById('modal-excluir-detalhe').style.display = 'flex';
+
+        document.getElementById(
+            'modal-excluir-detalhe'
+        ).style.display = 'flex';
     }
 
     async function confirmarExcluirDetalhe() {
+
         try {
-            const res = await fetch(`/biblioteca/acervo/lista/excluir/${LISTA_ID}/`, {
+
+            const url =
+                "{% url 'excluir_lista' lista.id %}";
+
+            const res = await fetch(url, {
+
                 method: 'POST',
+
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken'),
                     'Content-Type': 'application/json'
                 }
+
             });
-            if (res.ok) { window.location.href = '/biblioteca/acervo/lista/'; }
-            else { alert('Erro ao excluir a lista.'); }
-        } catch (err) { alert('Erro de conexão.'); }
-    }
 
-    /* Fecha dropdown ao clicar fora */
-    document.addEventListener('click', function (e) {
-        if (!e.target.closest('#input-busca-livro') &&
-            !e.target.closest('#dropdown-busca-livro')) {
-            fecharDropdown();
+            if (res.ok) {
+
+                window.location.href =
+                    "{% url 'minha_lista' %}";
+
+            } else {
+
+                mostrarErro(
+                    `Erro ao excluir a lista. (código ${res.status})`
+                );
+
+            }
+
+        } catch (err) {
+
+            console.error(err);
+
+            mostrarErro('Erro de conexão.');
+
         }
-    });
 
-    /* Reposiciona dropdown ao rolar ou redimensionar */
-    window.addEventListener('scroll', () => { if (dropdown.style.display === 'block') posicionarDropdown(); });
-    window.addEventListener('resize', () => { if (dropdown.style.display === 'block') posicionarDropdown(); });
+    }
 </script>
 
 {% endblock %}

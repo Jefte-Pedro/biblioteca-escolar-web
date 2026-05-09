@@ -5,10 +5,22 @@
 
 {% block content %}
 
-
 <div class="detalhe-wrap">
 
-    <button class="detalhe-voltar" onclick="history.back()">← Voltar</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <button class="detalhe-voltar" onclick="history.back()">← Voltar</button>
+
+        {% if user.is_staff or user.is_superuser %}
+        <button class="btn-admin-editar" onclick="abrirModalEdicao()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+            Editar livro
+        </button>
+        {% endif %}
+    </div>
 
     <div class="detalhe-main">
 
@@ -150,6 +162,125 @@
     </div>
 </div>
 
+<!-- ── MODAL EDIÇÃO ADMIN ──────────────────────────────────── -->
+{% if user.is_staff or user.is_superuser %}
+<div id="modal-edicao" class="modal-overlay" style="display:none" onclick="fecharModalEdicaoFora(event)">
+    <div class="modal-box modal-edicao-box">
+
+        <div class="modal-head">
+            <div style="display:flex;align-items:center;gap:10px">
+                <div class="admin-badge-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                </div>
+                <span class="modal-titulo">Editar livro</span>
+            </div>
+            <button class="modal-fechar" onclick="fecharModalEdicao()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+
+        <p class="modal-sub" style="margin-bottom:20px">
+            Atualize as informações do livro. Os campos em branco serão mantidos com os valores atuais.
+        </p>
+
+        <div id="edicao-feedback" style="display:none"></div>
+
+        <div class="edicao-form">
+
+            <!-- Linha 1: Título -->
+            <div class="edicao-grupo full">
+                <label class="edicao-label">Título</label>
+                <input type="text" id="edit-titulo" class="modal-input" placeholder="{{ livro.titulo }}"
+                    value="{{ livro.titulo }}" />
+            </div>
+
+            <!-- Linha 2: Autor + Editora -->
+            <div class="edicao-grupo">
+                <label class="edicao-label">Autor</label>
+                <input type="text" id="edit-autor" class="modal-input" placeholder="{{ livro.autor|default:'—' }}"
+                    value="{{ livro.autor|default:'' }}" />
+            </div>
+            <div class="edicao-grupo">
+                <label class="edicao-label">Editora</label>
+                <input type="text" id="edit-editora" class="modal-input" placeholder="{{ livro.editora|default:'—' }}"
+                    value="{{ livro.editora|default:'' }}" />
+            </div>
+
+            <!-- Linha 3: ISBN + Cód. Catalográfico -->
+            <div class="edicao-grupo">
+                <label class="edicao-label">ISBN</label>
+                <input type="text" id="edit-isbn" class="modal-input" placeholder="{{ livro.isbn|default:'—' }}"
+                    value="{{ livro.isbn|default:'' }}" />
+            </div>
+            <div class="edicao-grupo">
+                <label class="edicao-label">Cód. Catalográfico</label>
+                <input type="text" id="edit-codigo" class="modal-input"
+                    placeholder="{{ livro.codigo_base|default:'—' }}" value="{{ livro.codigo_base|default:'' }}" />
+            </div>
+
+            <!-- Linha 4: Categoria + Coleção -->
+            <div class="edicao-grupo">
+                <label class="edicao-label">Categoria</label>
+                <input type="text" id="edit-categoria" class="modal-input"
+                    placeholder="{{ livro.categoria|default:'—' }}" value="{{ livro.categoria|default:'' }}" />
+            </div>
+            <div class="edicao-grupo">
+                <label class="edicao-label">Coleção</label>
+                <input type="text" id="edit-colecao" class="modal-input" placeholder="{{ livro.colecao|default:'—' }}"
+                    value="{{ livro.colecao|default:'' }}" />
+            </div>
+
+            <!-- Linha 5: Quantidade + Prateleira -->
+            <div class="edicao-grupo">
+                <label class="edicao-label">Quantidade</label>
+                <input type="number" id="edit-quantidade" class="modal-input" min="0"
+                    placeholder="{{ livro.quantidade|default:'0' }}" value="{{ livro.quantidade|default:'' }}" />
+            </div>
+            <div class="edicao-grupo">
+                <label class="edicao-label">Prateleira</label>
+                <input type="text" id="edit-prateleira" class="modal-input"
+                    placeholder="{{ livro.prateleira|default:'—' }}" value="{{ livro.prateleira|default:'' }}" />
+            </div>
+
+            <!-- URL da capa -->
+            <div class="edicao-grupo full">
+                <label class="edicao-label">URL da capa</label>
+                <input type="url" id="edit-capa-url" class="modal-input"
+                    placeholder="{{ livro.capa_url|default:'https://...' }}" value="{{ livro.capa_url|default:'' }}" />
+            </div>
+
+            <!-- Sinopse -->
+            <div class="edicao-grupo full">
+                <label class="edicao-label">Sinopse</label>
+                <textarea id="edit-sinopse" class="modal-input modal-textarea"
+                    placeholder="{{ livro.sinopse|default:'Sinopse não disponível.' }}">{{ livro.sinopse|default:'' }}</textarea>
+            </div>
+
+        </div>
+
+        <div class="edicao-rodape">
+            <button onclick="fecharModalEdicao()" class="modal-btn-cancel">Cancelar</button>
+            <button onclick="salvarEdicao()" class="modal-btn-confirm" id="btn-salvar-edicao">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Salvar alterações
+            </button>
+        </div>
+
+    </div>
+</div>
+{% endif %}
+
 <style>
     /* ── DETALHE LIVRO ───────────────────────────────────────────── */
     .detalhe-wrap {
@@ -164,7 +295,6 @@
         color: var(--muted);
         font-size: 13px;
         font-weight: 500;
-        margin-bottom: 24px;
         padding: 6px 0;
         transition: color var(--ease);
         background: none;
@@ -176,6 +306,134 @@
         color: var(--text);
     }
 
+    /* ── BOTÃO ADMIN EDITAR ─────────────────────────────────────── */
+    .btn-admin-editar {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 20px;
+        height: 34px;
+        padding: 0 14px;
+        border-radius: 8px;
+        border: 1px dashed rgba(250, 170, 20, 0.5);
+        background: rgba(250, 170, 20, 0.07);
+        color: #f0a020;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, border-color 0.2s, color 0.2s;
+        letter-spacing: 0.01em;
+    }
+
+    .btn-admin-editar:hover {
+        background: rgba(250, 170, 20, 0.14);
+        border-color: rgba(250, 170, 20, 0.75);
+        color: #faaa14;
+    }
+
+    /* ── MODAL EDIÇÃO ─────────────────────────────────────────── */
+    .modal-edicao-box {
+        max-width: 620px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .admin-badge-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: rgba(250, 170, 20, 0.12);
+        border: 1px solid rgba(250, 170, 20, 0.3);
+        color: #f0a020;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .edicao-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .edicao-grupo {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .edicao-grupo.full {
+        grid-column: 1 / -1;
+    }
+
+    .edicao-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--faint);
+    }
+
+    .modal-textarea {
+        height: auto !important;
+        min-height: 100px;
+        resize: vertical;
+        padding: 10px 14px !important;
+        line-height: 1.6;
+    }
+
+    .edicao-rodape {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        padding-top: 4px;
+        border-top: 1px solid var(--border);
+    }
+
+    .edicao-rodape .modal-btn-cancel {
+        height: 38px;
+    }
+
+    .edicao-rodape .modal-btn-confirm {
+        height: 38px;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    /* Feedback de sucesso/erro */
+    .feedback-ok {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: rgba(34, 197, 94, 0.08);
+        border: 1px solid rgba(34, 197, 94, 0.25);
+        color: #22c55e;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 16px;
+    }
+
+    .feedback-erro {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        color: #ef4444;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 16px;
+    }
+
+    /* ── DETALHE MAIN ───────────────────────────────────────────── */
     .detalhe-main {
         display: flex;
         gap: 32px;
@@ -183,7 +441,6 @@
         flex-wrap: wrap;
     }
 
-    /* Capa com imagem */
     .detalhe-capa {
         flex-shrink: 0;
         position: relative;
@@ -206,7 +463,6 @@
         display: block;
     }
 
-    /* Capa fallback (sem imagem) — reutiliza .bc.xl do CSS global */
     .bc.xl {
         width: 176px;
         height: 256px;
@@ -231,7 +487,6 @@
         line-height: 1.3;
     }
 
-    /* Badge disponível/indisponível */
     .bcard-avail {
         font-size: 9px;
         font-weight: 700;
@@ -250,7 +505,6 @@
         color: #fff;
     }
 
-    /* Infos */
     .detalhe-infos {
         flex: 1;
         min-width: 260px;
@@ -284,7 +538,6 @@
         margin-bottom: 24px;
     }
 
-    /* Grid de metadados */
     .detalhe-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -318,7 +571,6 @@
         font-size: 13px;
     }
 
-    /* Botões de ação */
     .detalhe-botoes {
         display: flex;
         gap: 10px;
@@ -368,7 +620,6 @@
         background: var(--hover);
     }
 
-    /* Sinopse */
     .detalhe-sinopse {
         margin-top: 32px;
         background: var(--surface);
@@ -393,7 +644,7 @@
         gap: 8px;
     }
 
-    /* ── MODAL ADICIONAR À LISTA ─────────────────────────────────── */
+    /* ── MODAL BASE ─────────────────────────────────────────────── */
     .modal-overlay {
         position: fixed;
         inset: 0;
@@ -461,6 +712,7 @@
         font-family: var(--font);
         outline: none;
         transition: border-color var(--ease);
+        box-sizing: border-box;
     }
 
     .modal-input:focus {
@@ -565,7 +817,6 @@
         flex-shrink: 0;
     }
 
-    /* Tags reutilizadas do CSS global (.tag já está lá, mas deixamos aqui como fallback) */
     .tag {
         font-size: 9px;
         font-weight: 600;
@@ -575,9 +826,7 @@
         color: var(--badge-txt);
     }
 
-    /* ── RESPONSIVO GERAL ─────────────────────────────────────────── */
-
-    /* Telas médias (monitor ~22" / ~1280px) */
+    /* ── RESPONSIVO ─────────────────────────────────────────────── */
     @media (max-width: 1280px) {
         .detalhe-wrap {
             max-width: 100%;
@@ -605,7 +854,6 @@
         }
     }
 
-    /* Telas menores (tablets / ~900px) */
     @media (max-width: 900px) {
         .detalhe-main {
             flex-direction: column;
@@ -647,9 +895,16 @@
             flex: unset;
             width: 100%;
         }
+
+        .edicao-form {
+            grid-template-columns: 1fr;
+        }
+
+        .edicao-grupo.full {
+            grid-column: 1;
+        }
     }
 
-    /* Mobile (~600px) */
     @media (max-width: 600px) {
         .detalhe-titulo {
             font-size: 18px;
@@ -666,6 +921,11 @@
         .detalhe-sinopse p {
             font-size: 14px;
         }
+
+        .modal-edicao-box {
+            border-radius: 14px;
+            padding: 18px;
+        }
     }
 </style>
 
@@ -673,6 +933,7 @@
     const LIVRO_ID = {{ livro.id_livro }};
     const USUARIO_LOGADO = "{{ user.is_authenticated|lower }}" === "true";
 
+    /* ── MODAL LISTAS ──────────────────────────────────────────── */
     function abrirModalLista() {
         if (!USUARIO_LOGADO) {
             alert('Faça login para adicionar livros às suas listas.');
@@ -693,12 +954,10 @@
         try {
             const res = await fetch(`/biblioteca/listas/minhas/?livro_id=${LIVRO_ID}`);
             const data = await res.json();
-
             if (!data.listas.length) {
                 container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Você ainda não tem listas criadas.</div>';
                 return;
             }
-
             container.innerHTML = '';
             data.listas.forEach(lista => {
                 const jaAdicionado = lista.tem_livro;
@@ -779,6 +1038,91 @@
             alert('Erro ao criar lista.');
         }
     }
+
+    /* ── MODAL EDIÇÃO ADMIN ────────────────────────────────────── */
+    function abrirModalEdicao() {
+        document.getElementById('modal-edicao').style.display = 'flex';
+        esconderFeedback();
+    }
+
+    function fecharModalEdicao() {
+        document.getElementById('modal-edicao').style.display = 'none';
+        esconderFeedback();
+    }
+
+    function fecharModalEdicaoFora(e) {
+        if (e.target === document.getElementById('modal-edicao')) fecharModalEdicao();
+    }
+
+    function mostrarFeedback(tipo, mensagem) {
+        const el = document.getElementById('edicao-feedback');
+        el.className = tipo === 'ok' ? 'feedback-ok' : 'feedback-erro';
+        el.innerHTML = tipo === 'ok'
+            ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>${mensagem}`
+            : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>${mensagem}`;
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.gap = '8px';
+    }
+
+    function esconderFeedback() {
+        const el = document.getElementById('edicao-feedback');
+        if (el) el.style.display = 'none';
+    }
+
+    async function salvarEdicao() {
+        const btn = document.getElementById('btn-salvar-edicao');
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        esconderFeedback();
+
+        const payload = {
+            titulo: document.getElementById('edit-titulo').value.trim(),
+            autor: document.getElementById('edit-autor').value.trim(),
+            editora: document.getElementById('edit-editora').value.trim(),
+            isbn: document.getElementById('edit-isbn').value.trim(),
+            codigo_base: document.getElementById('edit-codigo').value.trim(),
+            categoria: document.getElementById('edit-categoria').value.trim(),
+            colecao: document.getElementById('edit-colecao').value.trim(),
+            quantidade: document.getElementById('edit-quantidade').value,
+            prateleira: document.getElementById('edit-prateleira').value.trim(),
+            capa_url: document.getElementById('edit-capa-url').value.trim(),
+            sinopse: document.getElementById('edit-sinopse').value.trim(),
+        };
+
+        try {
+            const res = await fetch(`/biblioteca/livro/${LIVRO_ID}/editar/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                mostrarFeedback('ok', 'Livro atualizado com sucesso! Recarregando...');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                const data = await res.json().catch(() => ({}));
+                mostrarFeedback('erro', data.erro || 'Erro ao salvar. Tente novamente.');
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+        } catch (err) {
+            mostrarFeedback('erro', 'Erro de conexão. Verifique sua rede.');
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    }
+
+    /* Fechar modais com Escape */
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            fecharModalLista();
+            {% if user.is_staff or user.is_superuser %} fecharModalEdicao(); {% endif %}
+        }
+    });
 </script>
 
 {% endblock %}

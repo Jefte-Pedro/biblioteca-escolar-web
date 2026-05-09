@@ -73,11 +73,16 @@
     <div class="lista-card" style="cursor: pointer;"
         onclick="if(!event.target.closest('.lista-card-menu') && !event.target.closest('.lista-menu-dropdown')) window.location.href='{% url 'detalhe_lista' lista.id %}'">
 
+        
         <!-- Capas empilhadas -->
         <div class="lista-card-capas">
             {% for livro in lista.livros_preview %}
-            <div class="capa-livro capa-{{ forloop.counter }}"
-                style="background: linear-gradient(135deg, {{ livro.cover_from }}, {{ livro.cover_to }})">
+            <div class="capa-livro capa-{{ forloop.counter }}" style="background: linear-gradient(135deg, {{ livro.cover_from }}, {{ livro.cover_to }});
+                       overflow:hidden; position:relative;">
+                {% if livro.capa_url %}
+                <img src="{{ livro.capa_url }}" alt="{{ livro.titulo }}"
+                    style="width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;">
+                {% endif %}
             </div>
             {% empty %}
             <div class="capa-vazia">

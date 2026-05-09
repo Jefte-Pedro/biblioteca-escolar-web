@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
@@ -161,42 +162,58 @@ def inicio(request):
 
         for emp in qs:
             delta = (emp.data_devolucao_prevista - hoje).days
-            emp.livro           = emp.exemplar.livro          # atalho para o template
-            emp.dias_restantes  = max(delta, 0)
-            emp.dias_usados     = max((hoje - emp.data_emprestimo).days, 0)
-            emp.dias_total      = 15
+            emp.livro            = emp.exemplar.livro
+            emp.dias_restantes   = max(delta, 0)
+            emp.dias_usados      = max((hoje - emp.data_emprestimo).days, 0)
+            emp.dias_total       = 15
             emp.percentual_usado = min(int((emp.dias_usados / 15) * 100), 100)
-            emp.urgente         = 0 <= delta <= 3 or delta < 0
-            emp.renovacoes_usadas = 0   # ajuste se tiver esse campo no model
+            emp.urgente          = 0 <= delta <= 3 or delta < 0
+            emp.renovacoes_usadas = 0
             emp.renovacoes_max    = 1
-            emp.cor_avatar      = CORES[emp.pk % len(CORES)]
+            emp.cor_avatar       = CORES[emp.pk % len(CORES)]
             emprestimos_recentes.append(emp)
 
-        # prazo mais urgente para o hero
         urgentes = [e for e in emprestimos_recentes if e.urgente]
         if urgentes:
             prazo_urgente = urgentes[0]
             prazo_urgente.data_devolucao = prazo_urgente.data_devolucao_prevista
 
     return render(request, 'biblioteca/inicio.html', {
-        'sugestoes':           sugestoes,
-        'listas':              listas,
+        'sugestoes':            sugestoes,
+        'listas':               listas,
         'emprestimos_recentes': emprestimos_recentes,
-        'total_lidos':         0,
-        'total_emprestados':   len(emprestimos_recentes),
-        'dia_semana':          hoje.strftime('%A'),
-        'data_hoje':           hoje.strftime('%d/%m/%Y'),
-        'prazo_urgente':       prazo_urgente,
+        'total_lidos':          0,
+        'total_emprestados':    len(emprestimos_recentes),
+        'dia_semana':           hoje.strftime('%A'),
+        'data_hoje':            hoje.strftime('%d/%m/%Y'),
+        'prazo_urgente':        prazo_urgente,
     })
 
 
 def lista(request):
-    listas = Lista.objects.filter(usuario=request.user) if request.user.is_authenticated else []
+    listas_qs = Lista.objects.filter(usuario=request.user).prefetch_related('livros') \
+        if request.user.is_authenticated else []
+
+    listas = []
+    for l in listas_qs:
+        livros = l.livros.all()[:3]
+        l.livros_preview = [
+            {
+                'titulo':     livro.titulo,
+                'capa_url':   livro.capa_url or '',
+                'cover_from': '#1e5aa8',
+                'cover_to':   '#0b1526',
+            }
+            for livro in livros
+        ]
+        listas.append(l)
+
     return render(request, 'biblioteca/acervo.html', {'aba': 'lista', 'listas': listas})
 
 
+@login_required
 def detalhe_lista(request, id):
-    lista = Lista.objects.get(id=id)
+    lista = get_object_or_404(Lista, id=id, usuario=request.user)
     return render(request, 'biblioteca/detalhe_lista.html', {'lista': lista})
 
 
@@ -212,7 +229,7 @@ def acervo(request):
 @require_POST
 def criar_lista(request):
     if not request.user.is_authenticated:
-        return JsonResponse({'erro': 'login_required', 'mensagem': 'Você precisa estar logado para criar listas.'}, status=401)
+        return JsonResponse({'erro': 'Não autenticado'}, status=401)
     data = json.loads(request.body)
     nome = data.get('nome', '').strip()
     if not nome:
@@ -223,6 +240,8 @@ def criar_lista(request):
 
 @require_POST
 def excluir_lista(request, id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'erro': 'Não autenticado'}, status=401)
     lista = get_object_or_404(Lista, id=id, usuario=request.user)
     lista.delete()
     return JsonResponse({'status': 'ok'})
@@ -230,6 +249,8 @@ def excluir_lista(request, id):
 
 @require_POST
 def renomear_lista(request, id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'erro': 'Não autenticado'}, status=401)
     lista = get_object_or_404(Lista, id=id, usuario=request.user)
     data = json.loads(request.body)
     novo_nome = data.get('nome', '').strip()
@@ -244,20 +265,70 @@ def renomear_lista(request, id):
 
 @require_POST
 def adicionar_livro_lista(request, id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'erro': 'Não autenticado'}, status=401)
+
     lista = get_object_or_404(Lista, id=id, usuario=request.user)
-    data = json.loads(request.body)
-    livro = get_object_or_404(Livro, id_livro=data.get('livro_id'))
-    lista.livros.add(livro)
-    return JsonResponse({'status': 'ok'})
+
+    try:
+        data = json.loads(request.body)
+        livro_id = data.get('livro_id')
+
+        # tenta localizar pelos dois campos
+        livro = Livro.objects.filter(id_livro=livro_id).first()
+
+        if not livro:
+            livro = Livro.objects.filter(pk=livro_id).first()
+
+        if not livro:
+            return JsonResponse({
+                'erro': f'Livro {livro_id} não encontrado.'
+            }, status=404)
+
+        lista.livros.add(livro)
+
+        return JsonResponse({
+            'status': 'ok'
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'erro': str(e)
+        }, status=500)
 
 
 @require_POST
 def remover_livro_lista(request, id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'erro': 'Não autenticado'}, status=401)
+
     lista = get_object_or_404(Lista, id=id, usuario=request.user)
-    data = json.loads(request.body)
-    livro = get_object_or_404(Livro, id_livro=data.get('livro_id'))
-    lista.livros.remove(livro)
-    return JsonResponse({'status': 'ok'})
+
+    try:
+        data = json.loads(request.body)
+        livro_id = data.get('livro_id')
+
+        # tenta localizar pelos dois campos
+        livro = Livro.objects.filter(id_livro=livro_id).first()
+
+        if not livro:
+            livro = Livro.objects.filter(pk=livro_id).first()
+
+        if not livro:
+            return JsonResponse({
+                'erro': f'Livro {livro_id} não encontrado.'
+            }, status=404)
+
+        lista.livros.remove(livro)
+
+        return JsonResponse({
+            'status': 'ok'
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'erro': str(e)
+        }, status=500)
 
 
 def listas_do_usuario(request):
@@ -271,10 +342,10 @@ def listas_do_usuario(request):
         if livro_id:
             tem_livro = l.livros.filter(id_livro=livro_id).exists()
         resultado.append({
-            'id': l.id,
-            'nome': l.nome,
+            'id':         l.id,
+            'nome':       l.nome,
             'qtd_livros': l.livros.count(),
-            'tem_livro': tem_livro,
+            'tem_livro':  tem_livro,
         })
     return JsonResponse({'listas': resultado})
 
@@ -303,7 +374,6 @@ def prazos(request):
 
     for emp in emprestimos_qs:
         delta = (emp.data_devolucao_prevista - hoje).days
-
         emp.vence_em_breve   = 0 <= delta <= 3
         emp.dias_restantes   = max(delta, 0)
         emp.dias_atraso      = abs(delta) if delta < 0 else 0
@@ -317,7 +387,6 @@ def prazos(request):
             total_breve += 1
         else:
             total_ok += 1
-
 
     historico = Emprestimo.objects.filter(
         usuario=request.user,
@@ -348,6 +417,18 @@ def detalhes_livro(request, livro_id):
     return render(request, 'biblioteca/detalhes_livro.html', {'livro': livro, 'disponivel': disponivel})
 
 
+def explorar(request):
+    livros = Livro.objects.all().order_by('titulo')
+    for livro in livros:
+        livro.disponivel = livro.esta_disponivel()
+    categorias = sorted(set(l.categoria for l in livros if l.categoria))
+    return render(request, 'biblioteca/explorar.html', {
+        'livros':       livros,
+        'categorias':   categorias,
+        'total_livros': livros.count(),
+    })
+
+
 # ──────────────────────────────────────────
 # ADMIN / BIBLIOTECÁRIA
 # ──────────────────────────────────────────
@@ -357,15 +438,14 @@ def cadastrar_livro(request):
         return render(request, 'biblioteca/cad-livro.html')
 
     data = json.loads(request.body)
-
-    titulo     = data.get('titulo', '').strip()
-    autor      = data.get('autor', '').strip()
-    editora    = data.get('editora', '').strip()
-    categoria  = data.get('categoria', '').strip()
-    colecao    = data.get('colecao', '').strip()
-    prateleira = data.get('prateleira', '').strip()
+    titulo      = data.get('titulo', '').strip()
+    autor       = data.get('autor', '').strip()
+    editora     = data.get('editora', '').strip()
+    categoria   = data.get('categoria', '').strip()
+    colecao     = data.get('colecao', '').strip()
+    prateleira  = data.get('prateleira', '').strip()
     codigo_base = data.get('codigo_base', '').strip()
-    quantidade = int(data.get('quantidade', 1))
+    quantidade  = int(data.get('quantidade', 1))
     observacoes = data.get('observacoes', '').strip()
 
     if not titulo or not prateleira or not quantidade:
@@ -393,9 +473,9 @@ def cadastrar_livro(request):
         )
 
     return JsonResponse({
-        'sucesso': True,
-        'id': livro.id_livro,
-        'titulo': livro.titulo,
+        'sucesso':            True,
+        'id':                 livro.id_livro,
+        'titulo':             livro.titulo,
         'exemplares_criados': quantidade,
     })
 
@@ -429,19 +509,19 @@ def emprestimos(request):
         else:
             emp.iniciais_av = '?'
 
-        emp.cor_avatar          = CORES[emp.pk % len(CORES)]
-        emp.nome_aluno          = emp.usuario.get_full_name() if emp.usuario else 'Desconhecido'
-        emp.turma               = emp.usuario.serie if emp.usuario else ''
-        emp.matricula_aluno     = emp.usuario.matricula if emp.usuario else ''
+        emp.cor_avatar           = CORES[emp.pk % len(CORES)]
+        emp.nome_aluno           = emp.usuario.get_full_name() if emp.usuario else 'Desconhecido'
+        emp.turma                = emp.usuario.serie if emp.usuario else ''
+        emp.matricula_aluno      = emp.usuario.matricula if emp.usuario else ''
         emp.codigo_catalografico = emp.exemplar.codigo_completo if emp.exemplar else ''
-        emp.livro_obj           = emp.exemplar.livro if emp.exemplar else None
+        emp.livro_obj            = emp.exemplar.livro if emp.exemplar else None
 
         emprestimos_enriched.append(emp)
 
     return render(request, 'biblioteca/emp-livro.html', {
-        'emprestimos':    emprestimos_enriched,
-        'vencem_hoje':    vencem_hoje,
-        'atrasados':      atrasados,
+        'emprestimos':     emprestimos_enriched,
+        'vencem_hoje':     vencem_hoje,
+        'atrasados':       atrasados,
         'devolvidos_hoje': devolvidos_hoje,
     })
 
@@ -466,7 +546,6 @@ def criar_emprestimo(request):
     if exemplar.status != 'disponivel':
         return JsonResponse({'erro': 'Exemplar não está disponível.'}, status=400)
 
-    # Busca pelo ID se vier do autocomplete, senão busca pelo nome
     usuario = None
     if usuario_id:
         usuario = Usuario.objects.filter(pk=usuario_id).first()
@@ -483,7 +562,6 @@ def criar_emprestimo(request):
     if not usuario:
         return JsonResponse({'erro': f'Aluno "{nome_aluno}" não encontrado. Verifique o nome.'}, status=404)
 
-    # Verifica limite de 2 livros por aluno
     emprestimos_ativos = Emprestimo.objects.filter(
         usuario=usuario,
         data_devolucao_real__isnull=True
@@ -509,15 +587,15 @@ def criar_emprestimo(request):
     exemplar.save()
 
     return JsonResponse({
-        'id':                     emp.pk,
-        'titulo':                 exemplar.livro.titulo,
-        'codigo_completo':        exemplar.codigo_completo,
-        'usuario':                usuario.get_full_name(),
-        'turma':                  usuario.serie or turma,
-        'data_emprestimo':        str(emp.data_emprestimo),
+        'id':                      emp.pk,
+        'titulo':                  exemplar.livro.titulo,
+        'codigo_completo':         exemplar.codigo_completo,
+        'usuario':                 usuario.get_full_name(),
+        'turma':                   usuario.serie or turma,
+        'data_emprestimo':         str(emp.data_emprestimo),
         'data_devolucao_prevista': str(emp.data_devolucao_prevista),
-        'atrasado':               emp.esta_atrasado(),
-        'observacoes':            emp.observacoes,
+        'atrasado':                emp.esta_atrasado(),
+        'observacoes':             emp.observacoes,
     })
 
 
@@ -540,9 +618,9 @@ def renovar_emprestimo(request, pk):
     emprestimo.data_devolucao_prevista += timezone.timedelta(days=15)
     emprestimo.save()
     return JsonResponse({
-        'sucesso': f'Renovado com sucesso. Nova data: {emprestimo.data_devolucao_prevista}',
+        'sucesso':   f'Renovado com sucesso. Nova data: {emprestimo.data_devolucao_prevista}',
         'nova_data': str(emprestimo.data_devolucao_prevista),
-        'status': 'Sucesso'
+        'status':    'Sucesso'
     })
 
 
@@ -567,7 +645,7 @@ def alunos(request):
 
     for aluno in alunos_qs:
         partes = aluno.get_full_name().split()
-        aluno.iniciais = (partes[0][0] + partes[-1][0]).upper() if len(partes) >= 2 else partes[0][0].upper() if partes else '?'
+        aluno.iniciais   = (partes[0][0] + partes[-1][0]).upper() if len(partes) >= 2 else partes[0][0].upper() if partes else '?'
         aluno.cor_avatar = CORES[aluno.pk % len(CORES)]
 
     alunos_por_turma = defaultdict(list)
@@ -605,11 +683,11 @@ def importar_alunos(request):
         usuario, criado = Usuario.objects.update_or_create(
             matricula=matricula,
             defaults={
-                'first_name':     first_name,
-                'last_name':      last_name,
-                'serie':          turma,
-                'tipo_usuario':   'aluno',
-                'username':       matricula,
+                'first_name':      first_name,
+                'last_name':       last_name,
+                'serie':           turma,
+                'tipo_usuario':    'aluno',
+                'username':        matricula,
                 'primeiro_acesso': True,
             }
         )
@@ -621,8 +699,39 @@ def importar_alunos(request):
             atualizados += 1
 
     return JsonResponse({'criados': criados, 'atualizados': atualizados})
+
+
+from django.contrib.admin.views.decorators import staff_member_required
+
+@require_POST
+@staff_member_required
+def editar_livro(request, livro_id):
+    livro = get_object_or_404(Livro, id_livro=livro_id)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'erro': 'JSON inválido.'}, status=400)
+
+    campos_texto = ['titulo', 'autor', 'editora', 'isbn', 'codigo_base',
+                    'categoria', 'colecao', 'prateleira', 'capa_url', 'sinopse']
+
+    for campo in campos_texto:
+        if campo in data:
+            valor = data[campo].strip()
+            setattr(livro, campo, valor if valor else None)
+
+    if 'quantidade' in data:
+        try:
+            livro.quantidade = max(0, int(data['quantidade']))
+        except (ValueError, TypeError):
+            return JsonResponse({'erro': 'Quantidade inválida.'}, status=400)
+
+    livro.save()
+    return JsonResponse({'sucesso': True})
+
+
 # ──────────────────────────────────────────
-# BUSCA (autocomplete para o modal de empréstimo)
+# BUSCA
 # ──────────────────────────────────────────
 
 def buscar_livro(request):
@@ -642,7 +751,7 @@ def buscar_livro(request):
             'titulo':                 livro.titulo,
             'autor':                  livro.autor or '',
             'prateleira':             livro.prateleira or '',
-            'capa_url':               livro.capa_url or '',   # ← adicionado
+            'capa_url':               livro.capa_url or '',
             'total_exemplares':       livro.quantidade,
             'exemplares_disponiveis': exemplares_list,
             'qtd_disponivel':         len(exemplares_list),
@@ -667,13 +776,13 @@ def buscar_usuario(request):
             usuario=u, data_devolucao_real__isnull=True
         ).count()
         resultado.append({
-            'id':                u.pk,
-            'nome':              u.get_full_name() or u.username,
-            'matricula':         str(u.matricula) if u.matricula else '',
-            'serie':             u.serie or '',
-            'tipo':              u.tipo_usuario,
+            'id':                 u.pk,
+            'nome':               u.get_full_name() or u.username,
+            'matricula':          str(u.matricula) if u.matricula else '',
+            'serie':              u.serie or '',
+            'tipo':               u.tipo_usuario,
             'emprestimos_ativos': emprestimos_ativos,
-            'pode_emprestar':    emprestimos_ativos < 2,
+            'pode_emprestar':     emprestimos_ativos < 2,
         })
 
     return JsonResponse({'usuarios': resultado})
