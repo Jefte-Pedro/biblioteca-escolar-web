@@ -8,8 +8,9 @@
 <!-- ── PAGE HEADER ─────────────────────────────────────────────── -->
 <div class="acervo-header">
     <div class="acervo-header-left">
-        <h1 class="acervo-titulo">Meu Acervo</h1>
-        <p class="acervo-sub">Acesse sua lista de desejos, acompanhe suas reservas e gerencie seus livros lidos.</p>
+        <h1 class="acervo-titulo" data-i18n="acervo_titulo">Meu Acervo</h1>
+        <p class="acervo-sub" data-i18n="acervo_desc">Acesse sua lista de desejos, acompanhe suas reservas e gerencie
+            seus livros lidos.</p>
     </div>
     <div class="acervo-header-right">
         <button class="btn-ordem">
@@ -20,7 +21,7 @@
                 <line x1="21" y1="14" x2="3" y2="14" />
                 <line x1="21" y1="18" x2="7" y2="18" />
             </svg>
-            Ordem
+            <span data-i18n="btn_ordem">Ordem</span>
         </button>
         <button class="btn-nova-lista" id="btn-abrir-modal">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -28,7 +29,7 @@
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            Nova lista
+            <span data-i18n="btn_nova_lista">Nova lista</span>
         </button>
     </div>
 </div>
@@ -42,7 +43,7 @@
             <path
                 d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
         </svg>
-        Minha Lista
+        <span data-i18n="aba_lista">Minha Lista</span>
         <span class="aba-count">{{ listas|length }}</span>
     </a>
     <a href="{% url 'reservados' %}" class="aba {% if aba == 'reservados' %}active{% endif %}">
@@ -50,7 +51,7 @@
             stroke-linecap="round" stroke-linejoin="round">
             <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
         </svg>
-        Reservados
+        <span data-i18n="aba_reservados">Reservados</span>
         <span class="aba-count">{{ reservas_count|default:0 }}</span>
     </a>
     <a href="{% url 'lidos' %}" class="aba {% if aba == 'lidos' %}active{% endif %}">
@@ -59,7 +60,7 @@
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
             <polyline points="22 4 12 14.01 9 11.01" />
         </svg>
-        Livros Lidos
+        <span data-i18n="aba_lidos">Livros Lidos</span>
         <span class="aba-count">{{ lidos_count|default:0 }}</span>
     </a>
 </div>
@@ -73,7 +74,6 @@
     <div class="lista-card" style="cursor: pointer;"
         onclick="if(!event.target.closest('.lista-card-menu') && !event.target.closest('.lista-menu-dropdown')) window.location.href='{% url 'detalhe_lista' lista_id=lista.id %}'">
 
-        
         <!-- Capas empilhadas -->
         <div class="lista-card-capas">
             {% for livro in lista.livros_preview %}
@@ -124,11 +124,11 @@
                         <circle cx="12" cy="19" r="1.5" />
                     </svg>
                 </button>
-
             </div>
 
             {% if lista.livros.count == 0 %}
-            <a href="#" class="lista-card-add-link">+ Adicionar primeiro livro →</a>
+            <a href="#" class="lista-card-add-link" data-i18n="lista_adicionar_primeiro">+ Adicionar primeiro livro
+                →</a>
             {% else %}
             <div class="lista-card-tags">
                 {% for tag in lista.tags_preview %}
@@ -139,8 +139,10 @@
         </div>
         <div class="lista-menu-dropdown" style="display: none;">
             <button class="menu-item renomear"
-                onclick="prepararRenomear('{{ lista.id }}', '{{ lista.nome }}', '{{ lista.descricao|default:'' }}')">Renomear</button>
-            <button class="menu-item excluir" onclick="confirmarExclusao('{% url 'excluir_lista' lista_id=lista.id %}')">
+                onclick="prepararRenomear('{{ lista.id }}', '{{ lista.nome }}', '{{ lista.descricao|default:'' }}')"
+                data-i18n="menu_renomear">Renomear</button>
+            <button class="menu-item excluir" onclick="confirmarExclusao('{% url 'excluir_lista' lista_id=lista.id %}')"
+                data-i18n="menu_excluir">
                 Excluir
             </button>
         </div>
@@ -156,8 +158,8 @@
                 <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
         </div>
-        <div class="criar-titulo">Criar nova lista</div>
-        <div class="criar-sub">Organize seus livros por tema, disciplina ou humor</div>
+        <div class="criar-titulo" data-i18n="criar_lista_titulo">Criar nova lista</div>
+        <div class="criar-sub" data-i18n="criar_lista_sub">Organize seus livros por tema, disciplina ou humor</div>
     </div>
 
 </div>
@@ -178,15 +180,17 @@
             <div class="loan-info">
                 <div class="loan-title">{{ reserva.livro.titulo }}</div>
                 <div class="loan-author">{{ reserva.livro.autor }}</div>
-                <div class="loan-status ok">🔖 Reservado em {{ reserva.data_reserva|date:"d/m/Y" }}</div>
+                <div class="loan-status ok">🔖 <span data-i18n="reservado_em">Reservado em</span> {{
+                    reserva.data_reserva|date:"d/m/Y" }}</div>
             </div>
         </div>
     </div>
     {% empty %}
     <div class="ph-page">
         <div class="ph-icon">🔖</div>
-        <div class="ph-title">Nenhum livro reservado</div>
-        <div class="ph-sub">Quando um livro estiver indisponível, você poderá reservá-lo aqui.</div>
+        <div class="ph-title" data-i18n="reservados_vazio_titulo">Nenhum livro reservado</div>
+        <div class="ph-sub" data-i18n="reservados_vazio_sub">Quando um livro estiver indisponível, você poderá
+            reservá-lo aqui.</div>
     </div>
     {% endfor %}
 </div>
@@ -205,19 +209,19 @@
                         <div class="bc-author">{{ lido.livro.autor_sobrenome }}</div>
                     </div>
                 </div>
-                <div class="bcard-avail av">● Lido</div>
+                <div class="bcard-avail av" data-i18n="status_lido">● Lido</div>
             </div>
             <div class="bcard-title">{{ lido.livro.titulo }}</div>
             <div class="bcard-author">{{ lido.livro.autor }}</div>
             <div class="bcard-tags">
-                <span class="tag-cat">{{ lido.data_devolucao|date:"d/m/Y" }}</span>
+                <span class="tag-cat">{{ lido.data_marcado|date:"d/m/Y" }}</span>
             </div>
         </div>
         {% empty %}
         <div class="ph-page">
             <div class="ph-icon">✅</div>
-            <div class="ph-title">Nenhum livro lido ainda</div>
-            <div class="ph-sub">Os livros devolvidos aparecerão aqui.</div>
+            <div class="ph-title" data-i18n="lidos_vazio_titulo">Nenhum livro lido ainda</div>
+            <div class="ph-sub" data-i18n="lidos_vazio_sub">Os livros marcados como lidos aparecerão aqui.</div>
         </div>
         {% endfor %}
     </div>
@@ -228,7 +232,7 @@
 <div id="modal-lista" class="modal-overlay" style="display:none">
     <div class="modal-box">
         <div class="modal-head">
-            <span class="modal-titulo">Nova lista</span>
+            <span class="modal-titulo" data-i18n="modal_lista_titulo">Nova lista</span>
             <button class="modal-fechar" onclick="fecharModal()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -237,32 +241,34 @@
                 </svg>
             </button>
         </div>
-        <p class="modal-sub">Dê um nome para sua nova coleção de livros.</p>
+        <p class="modal-sub" data-i18n="modal_lista_sub">Dê um nome para sua nova coleção de livros.</p>
         <input type="text" id="input-nome-lista" class="modal-input" placeholder="Ex: Livros para o ENEM..."
-            data-i18n-placeholder="modal_lista_placeholder"  />
+            data-i18n-placeholder="modal_lista_placeholder" />
         <div class="descricao-modal-lista">
-            <span class="modal-sub"> Crie uma deescrição para sua lista</span>
+            <span class="modal-sub" data-i18n="modal_lista_desc_label">Crie uma descrição para sua lista</span>
             <input type="text" id="input-lista-descricao" class="modal-input"
-            placeholder="Ex: Livros que me Ajudam com os Estudos" data-i18n-placeholder="modal_lista_placeholder">
+                placeholder="Ex: Livros que me Ajudam com os Estudos"
+                data-i18n-placeholder="modal_lista_desc_placeholder">
         </div>
         <div class="modal-btns">
-            <button onclick="fecharModal()" class="modal-btn-cancel">Cancelar</button>
-            <button id="btn-confirmar-lista" class="modal-btn-confirm">Criar Lista</button>
+            <button onclick="fecharModal()" class="modal-btn-cancel" data-i18n="btn_cancelar">Cancelar</button>
+            <button id="btn-confirmar-lista" class="modal-btn-confirm" data-i18n="btn_criar">Criar Lista</button>
         </div>
     </div>
 </div>
-
 
 <!-- ── MODAL CONFIRMAR EXCLUSÃO ───────────────────────────────── -->
 <div id="modal-confirmar-exclusao" class="modal-overlay" style="display:none">
     <div class="modal-box" style="max-width:360px;text-align:center;gap:12px">
         <div style="font-size:36px">🗑️</div>
-        <div class="modal-titulo" style="font-size:16px;font-weight:700">Excluir lista?</div>
-        <p class="modal-sub" style="margin:0">Essa ação não pode ser desfeita. Todos os livros serão removidos da lista.
-        </p>
+        <div class="modal-titulo" style="font-size:16px;font-weight:700" data-i18n="modal_excluir_titulo">Excluir lista?
+        </div>
+        <p class="modal-sub" style="margin:0" data-i18n="modal_excluir_sub">Essa ação não pode ser desfeita. Todos os
+            livros serão removidos da lista.</p>
         <div class="modal-btns" style="justify-content:center;gap:12px;margin-top:8px">
-            <button onclick="fecharModalExclusao()" class="modal-btn-cancel">Cancelar</button>
-            <button onclick="executarExclusao()" class="modal-btn-confirm" style="background:#ef4444">Excluir</button>
+            <button onclick="fecharModalExclusao()" class="modal-btn-cancel" data-i18n="btn_cancelar">Cancelar</button>
+            <button onclick="executarExclusao()" class="modal-btn-confirm" style="background:#ef4444"
+                data-i18n="btn_excluir">Excluir</button>
         </div>
     </div>
 </div>
@@ -271,7 +277,7 @@
 <div id="modal-renomear" class="modal-overlay" style="display:none">
     <div class="modal-box" style="max-width:400px">
         <div class="modal-head">
-            <span class="modal-titulo">Renomear lista</span>
+            <span class="modal-titulo" data-i18n="modal_renomear_titulo">Renomear lista</span>
             <button class="modal-fechar" onclick="fecharModalRenomear()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -280,16 +286,18 @@
                 </svg>
             </button>
         </div>
-        <p class="modal-sub">Digite o novo nome da lista.</p>
-        <span class="titulo-modal-editar-lista"> Editar Nome da Lista</span>
-        <input type="text" id="input-renomear" class="modal-input" placeholder="Novo nome da lista..." />
-        <span class="titulo-modal-editar-lista"> Descrição da Lista (opcional)</span>
-        <input type="text" id="editar-descricao" class="modal-input" placeholder="Descrição "
-            value="{{ lista.descricao|default:'' }}" />
+        <p class="modal-sub" data-i18n="modal_renomear_sub">Digite o novo nome da lista.</p>
+        <span class="titulo-modal-editar-lista" data-i18n="modal_renomear_nome_label">Editar Nome da Lista</span>
+        <input type="text" id="input-renomear" class="modal-input" placeholder="Novo nome da lista..."
+            data-i18n-placeholder="modal_renomear_placeholder" />
+        <span class="titulo-modal-editar-lista" data-i18n="modal_renomear_desc_label">Descrição da Lista
+            (opcional)</span>
+        <input type="text" id="editar-descricao" class="modal-input" placeholder="Descrição"
+            data-i18n-placeholder="modal_renomear_desc_placeholder" value="{{ lista.descricao|default:'' }}" />
 
         <div class="modal-btns">
-            <button onclick="fecharModalRenomear()" class="modal-btn-cancel">Cancelar</button>
-            <button onclick="executarRenomear()" class="modal-btn-confirm">Salvar</button>
+            <button onclick="fecharModalRenomear()" class="modal-btn-cancel" data-i18n="btn_cancelar">Cancelar</button>
+            <button onclick="executarRenomear()" class="modal-btn-confirm" data-i18n="btn_salvar">Salvar</button>
         </div>
     </div>
 </div>
