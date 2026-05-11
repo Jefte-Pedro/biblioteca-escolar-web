@@ -8,17 +8,17 @@
     <!-- ── HEADER ── -->
     <div class="al-header">
         <div>
-            <h2 class="titulo-cadastro">Lista de Alunos</h2>
-            <p class="descricao-cad-livro">Acompanhe a lista de alunos por turma ou cadastre novos via importação.</p>
+            <h2 class="titulo-cadastro" data-i18n="al_titulo"></h2>
+            <p class="descricao-cad-livro" data-i18n="al_descricao"></p>
         </div>
         <div class="al-header-acoes">
             <button class="al-btn-add" id="btn-abrir-modal-individual">
                 <i class="fa-solid fa-user-plus"></i>
-                Adicionar Aluno
+                <span data-i18n="al_btn_add"></span>
             </button>
             <button class="al-btn-importar" id="btn-abrir-modal">
                 <i class="fa-solid fa-file-arrow-up"></i>
-                Importar Planilha
+                <span data-i18n="al_btn_importar"></span>
             </button>
         </div>
     </div>
@@ -26,31 +26,35 @@
     <!-- ── CARDS DE RESUMO ── -->
     <div class="al-resumo-grid">
         <div class="al-resumo-card">
-            <span class="al-resumo-label">TOTAL DE ALUNOS</span>
+            <span class="al-resumo-label" data-i18n="al_total_label"></span>
             <div class="al-resumo-valor-row">
                 <span class="al-resumo-valor">{{ total_alunos }}</span>
-                <span class="al-resumo-sub">cadastrados</span>
+                <span class="al-resumo-sub" data-i18n="al_total_sub"></span>
             </div>
         </div>
         <div class="al-resumo-card">
-            <span class="al-resumo-label">TURMAS</span>
+            <span class="al-resumo-label" data-i18n="al_turmas_label"></span>
             <div class="al-resumo-valor-row">
                 <span class="al-resumo-valor">{{ total_turmas }}</span>
-                <span class="al-resumo-sub">ativas</span>
+                <span class="al-resumo-sub" data-i18n="al_turmas_sub"></span>
             </div>
         </div>
     </div>
 
-    <!-- ── BARRA DE BUSCA E FILTROS (inline, igual a Empréstimos) ── -->
+    <!-- ── BARRA DE BUSCA E FILTROS ── -->
     <div class="al-toolbar">
         <div class="al-toolbar-row">
-            <div class="al-search-wrap">
-                <i class="fa-solid fa-magnifying-glass al-search-ico"></i>
-                <input type="text" id="al-search" class="al-search" placeholder="Buscar aluno por nome ou matrícula…"
-                    autocomplete="off">
+            <div class="al-search-wrap" style="position:relative;">
+                <svg class="al-search-ico" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true">
+                    <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+                <input type="text" id="al-search" class="al-search" placeholder="Busque o Nome do Aluno ou Turma" data-i18n-placeholder="al_busca_placeholder" autocomplete="off">
             </div>
             <div class="al-filtros" id="al-filtros">
-                <button class="al-filtro-btn ativo" data-turma="todas">Todas</button>
+                <button class="al-filtro-btn ativo" data-turma="todas" data-i18n="al_filtro_todas"></button>
                 {% for turma in turmas %}
                 <button class="al-filtro-btn" data-turma="{{ turma }}">{{ turma }}</button>
                 {% endfor %}
@@ -70,9 +74,9 @@
                 <table class="al-table">
                     <thead>
                         <tr>
-                            <th>Aluno</th>
-                            <th>Matrícula</th>
-                            <th>Turma</th>
+                            <th data-i18n="al_col_aluno"></th>
+                            <th data-i18n="al_col_matricula"></th>
+                            <th data-i18n="al_col_turma"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -91,7 +95,7 @@
                                 </div>
                             </td>
                             <td><span class="al-matricula">{{ aluno.matricula }}</span></td>
-                            <td><span class="al-tag-turma">{{ aluno.serie }}</span></td>
+                            <td><span class="al-tag-turma">{{ aluno.serie|default:"—" }}</span></td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -101,8 +105,8 @@
         {% empty %}
         <div class="al-vazia">
             <i class="fa-solid fa-users-slash al-vazia-ico"></i>
-            <p>Nenhum aluno cadastrado ainda.</p>
-            <span>Importe uma planilha do SIEP ou adicione individualmente.</span>
+            <p data-i18n="al_vazia_titulo"></p>
+            <span data-i18n="al_vazia_desc"></span>
         </div>
         {% endfor %}
     </div>
@@ -110,8 +114,8 @@
     <!-- ── MENSAGEM SEM RESULTADO DE BUSCA ── -->
     <div class="al-vazia" id="al-sem-resultado" style="display:none;">
         <i class="fa-solid fa-magnifying-glass al-vazia-ico"></i>
-        <p>Nenhum aluno encontrado.</p>
-        <span>Tente buscar por outro nome ou matrícula.</span>
+        <p data-i18n="al_sem_resultado_titulo"></p>
+        <span data-i18n="al_sem_resultado_desc"></span>
     </div>
 
 </section>
@@ -121,8 +125,8 @@
     <div class="al-modal al-modal-sm">
         <div class="al-modal-header">
             <div>
-                <h3 class="al-modal-titulo">Adicionar Aluno</h3>
-                <p class="al-modal-sub">Cadastre um novo aluno individualmente em uma turma existente.</p>
+                <h3 class="al-modal-titulo" data-i18n="al_modal_ind_titulo"></h3>
+                <p class="al-modal-sub" data-i18n="al_modal_ind_sub"></p>
             </div>
             <button class="al-modal-close" id="btn-fechar-modal-individual" aria-label="Fechar">
                 <i class="fa-solid fa-xmark"></i>
@@ -131,39 +135,40 @@
 
         <div class="al-form-grid">
             <div class="al-form-group al-form-full">
-                <label class="al-form-label">Nome completo <span class="al-req">*</span></label>
-                <input type="text" class="al-form-input" id="ind-nome" placeholder="Ex: Maria da Silva Santos"
+                <label class="al-form-label"><span data-i18n="al_ind_nome_label"></span> <span
+                        class="al-req">*</span></label>
+                <input type="text" class="al-form-input" id="ind-nome" data-i18n-placeholder="al_ind_nome_placeholder"
                     autocomplete="off">
             </div>
             <div class="al-form-group">
-                <label class="al-form-label">Matrícula <span class="al-req">*</span></label>
-                <input type="text" class="al-form-input" id="ind-matricula" placeholder="Ex: 20240123"
-                    autocomplete="off">
+                <label class="al-form-label"><span data-i18n="al_ind_matricula_label"></span> <span
+                        class="al-req">*</span></label>
+                <input type="text" class="al-form-input" id="ind-matricula"
+                    data-i18n-placeholder="al_ind_matricula_placeholder" autocomplete="off">
             </div>
             <div class="al-form-group">
-                <label class="al-form-label">Turma <span class="al-req">*</span></label>
+                <label class="al-form-label"><span data-i18n="al_ind_turma_label"></span> <span
+                        class="al-req">*</span></label>
                 <div class="al-turma-input-wrap">
-                    <input type="text" class="al-form-input" id="ind-turma" placeholder="Ex: 3A" autocomplete="off"
-                        list="al-turmas-list">
+                    <input type="text" class="al-form-input" id="ind-turma"
+                        data-i18n-placeholder="al_ind_turma_placeholder" autocomplete="off" list="al-turmas-list">
                     <datalist id="al-turmas-list">
                         {% for turma in turmas %}
                         <option value="{{ turma }}">
                             {% endfor %}
                     </datalist>
                 </div>
-                <span class="al-form-hint">Turmas existentes aparecem como sugestão</span>
+                <span class="al-form-hint" data-i18n="al_ind_turma_hint"></span>
             </div>
-
         </div>
 
-        <!-- Resultado -->
         <div class="al-resultado" id="al-resultado-individual" style="display:none"></div>
 
         <div class="al-modal-footer">
-            <button class="al-btn-cancelar" id="btn-cancelar-individual">Cancelar</button>
+            <button class="al-btn-cancelar" id="btn-cancelar-individual" data-i18n="al_btn_cancelar"></button>
             <button class="al-btn-confirmar" id="btn-confirmar-individual">
                 <i class="fa-solid fa-user-plus"></i>
-                Adicionar aluno
+                <span data-i18n="al_btn_confirmar_ind"></span>
             </button>
         </div>
     </div>
@@ -174,16 +179,14 @@
     <div class="al-modal">
         <div class="al-modal-header">
             <div>
-                <h3 class="al-modal-titulo">Importar Planilha do SIEP</h3>
-                <p class="al-modal-sub">Selecione o arquivo exportado pelo SIEP. O sistema lerá nome, matrícula e turma
-                    de cada aluno.</p>
+                <h3 class="al-modal-titulo" data-i18n="al_modal_imp_titulo"></h3>
+                <p class="al-modal-sub" data-i18n="al_modal_imp_sub"></p>
             </div>
             <button class="al-modal-close" id="btn-fechar-modal" aria-label="Fechar">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
 
-        <!-- Formatos aceitos -->
         <div class="al-formatos">
             <div class="al-formato-item">
                 <i class="fa-solid fa-file-excel" style="color:#22c55e"></i>
@@ -199,16 +202,16 @@
             </div>
         </div>
 
-        <!-- Dropzone -->
         <div class="al-dropzone" id="al-dropzone">
             <input type="file" id="al-file-input" accept=".xlsx,.xls,.csv" style="display:none">
             <i class="fa-solid fa-cloud-arrow-up al-drop-ico"></i>
-            <div class="al-drop-txt">Arraste o arquivo aqui ou <span class="al-drop-link" id="al-drop-link">clique para
-                    selecionar</span></div>
-            <div class="al-drop-hint">Compatível com exportações do SIEP · Máx. 10 MB</div>
+            <div class="al-drop-txt">
+                <span data-i18n="al_drop_txt"></span> <span class="al-drop-link" id="al-drop-link"
+                    data-i18n="al_drop_link"></span>
+            </div>
+            <div class="al-drop-hint" data-i18n="al_drop_hint"></div>
         </div>
 
-        <!-- Preview do arquivo selecionado -->
         <div class="al-arquivo-preview" id="al-arquivo-preview" style="display:none">
             <i class="fa-solid fa-file-excel al-arq-ico"></i>
             <div class="al-arq-info">
@@ -220,36 +223,35 @@
             </button>
         </div>
 
-        <!-- Mapeamento de colunas -->
         <div class="al-mapeamento" id="al-mapeamento" style="display:none">
-            <div class="al-map-titulo">Mapeamento de colunas <span class="al-map-hint">(ajuste se necessário)</span>
+            <div class="al-map-titulo">
+                <span data-i18n="al_map_titulo"></span>
+                <span class="al-map-hint" data-i18n="al_map_hint"></span>
             </div>
             <div class="al-map-grid">
                 <div class="al-map-row">
-                    <label class="al-map-label">Nome completo</label>
+                    <label class="al-map-label" data-i18n="al_map_nome"></label>
                     <select class="al-map-select" id="map-nome"></select>
                 </div>
                 <div class="al-map-row">
-                    <label class="al-map-label">Matrícula</label>
+                    <label class="al-map-label" data-i18n="al_map_matricula"></label>
                     <select class="al-map-select" id="map-matricula"></select>
                 </div>
                 <div class="al-map-row">
-                    <label class="al-map-label">Turma</label>
+                    <label class="al-map-label" data-i18n="al_map_turma"></label>
                     <select class="al-map-select" id="map-turma"></select>
                 </div>
             </div>
             <div class="al-preview-table-wrap" id="al-preview-table-wrap"></div>
         </div>
 
-        <!-- Resultado da importação -->
         <div class="al-resultado" id="al-resultado" style="display:none"></div>
 
-        <!-- Rodapé do modal -->
         <div class="al-modal-footer">
-            <button class="al-btn-cancelar" id="btn-cancelar-modal">Cancelar</button>
+            <button class="al-btn-cancelar" id="btn-cancelar-modal" data-i18n="al_btn_cancelar"></button>
             <button class="al-btn-confirmar" id="btn-confirmar-importar" disabled>
                 <i class="fa-solid fa-file-import"></i>
-                Importar alunos
+                <span data-i18n="al_btn_confirmar_imp"></span>
             </button>
         </div>
     </div>
@@ -257,10 +259,9 @@
 
 <!-- ═══════════════ ESTILOS ═══════════════ -->
 <style>
-    /* ── HEADER ── */
     .al-header {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
         gap: 16px;
         margin-bottom: 20px;
@@ -319,7 +320,6 @@
         transform: translateY(-1px);
     }
 
-    /* ── RESUMO ── */
     .al-resumo-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -375,7 +375,7 @@
         color: var(--muted);
     }
 
-    /* ── TOOLBAR — busca + filtros em linha ── */
+    /* ── TOOLBAR ── */
     .al-toolbar {
         margin-bottom: 24px;
     }
@@ -388,14 +388,15 @@
     }
 
     .al-search-wrap {
-        position: relative;
-        width: 260px;
+        width: 290px;
+        min-width: 200px;
         flex-shrink: 0;
     }
 
     @media(max-width: 600px) {
         .al-search-wrap {
             width: 100%;
+            min-width: unset;
         }
 
         .al-toolbar-row {
@@ -403,17 +404,21 @@
         }
     }
 
+    /* ── CORREÇÃO: ícone de busca e placeholder ── */
     .al-search-ico {
         position: absolute;
         left: 14px;
         top: 50%;
         transform: translateY(-50%);
         font-size: 13px;
-        color: var(--faint);
+        color: var(--faint, #6b7fa3);
         pointer-events: none;
+        z-index: 3;
     }
 
     .al-search {
+        position: relative;
+        z-index: 1;
         width: 100%;
         height: 36px;
         padding: 0 14px 0 38px;
@@ -427,15 +432,20 @@
         box-sizing: border-box;
     }
 
+    .al-search::placeholder {
+        color: var(--faint, #6b7fa3);
+        opacity: 1;
+    }
+
     .al-search:focus {
         border-color: var(--accent-lt);
     }
 
     .al-filtros {
         display: flex;
+        align-items: center;
         gap: 8px;
         flex-wrap: wrap;
-        align-items: center;
     }
 
     .al-filtro-btn {
@@ -449,6 +459,7 @@
         font-weight: 600;
         cursor: pointer;
         transition: all .15s;
+        white-space: nowrap;
     }
 
     .al-filtro-btn:hover {
@@ -462,7 +473,6 @@
         color: #fff;
     }
 
-    /* ── BLOCO DE TURMA ── */
     .al-turma-bloco {
         margin-bottom: 28px;
     }
@@ -492,7 +502,6 @@
         color: var(--faint);
     }
 
-    /* ── TABELA ── */
     .al-table-wrap {
         border-radius: var(--r-lg);
         border: 1px solid var(--border);
@@ -549,7 +558,6 @@
         background: var(--surface);
     }
 
-    /* Células especiais */
     .al-aluno-cell {
         display: flex;
         align-items: center;
@@ -599,7 +607,6 @@
         color: #4f94d6;
     }
 
-    /* ── VAZIA ── */
     .al-vazia {
         display: flex;
         flex-direction: column;
@@ -638,7 +645,6 @@
         max-width: 320px;
     }
 
-    /* ═══ MODAL BASE ═══ */
     .al-modal-overlay {
         display: none;
         position: fixed;
@@ -719,7 +725,6 @@
         color: var(--text);
     }
 
-    /* ── FORM INDIVIDUAL ── */
     .al-form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -746,11 +751,6 @@
         color: #ef4444;
     }
 
-    .al-form-opt {
-        font-weight: 400;
-        color: var(--faint);
-    }
-
     .al-form-input {
         height: 38px;
         padding: 0 12px;
@@ -770,7 +770,8 @@
     }
 
     .al-form-input::placeholder {
-        color: var(--faint);
+        color: var(--faint, #6b7fa3);
+        opacity: 1;
     }
 
     .al-form-hint {
@@ -783,7 +784,6 @@
         position: relative;
     }
 
-    /* Formatos aceitos (importação) */
     .al-formatos {
         display: flex;
         gap: 10px;
@@ -803,7 +803,6 @@
         color: var(--muted);
     }
 
-    /* Dropzone */
     .al-dropzone {
         border: 2px dashed var(--border);
         border-radius: var(--r-lg);
@@ -844,7 +843,6 @@
         color: var(--faint);
     }
 
-    /* Preview arquivo */
     .al-arquivo-preview {
         display: flex;
         align-items: center;
@@ -891,7 +889,6 @@
         justify-content: center;
     }
 
-    /* Mapeamento */
     .al-mapeamento {
         border: 1px solid var(--border);
         border-radius: var(--r-lg);
@@ -944,7 +941,6 @@
         outline: none;
     }
 
-    /* Preview tabela */
     .al-preview-table-wrap {
         overflow-x: auto;
         border-radius: var(--r-md);
@@ -984,7 +980,6 @@
         color: var(--muted);
     }
 
-    /* Resultado */
     .al-resultado {
         border-radius: var(--r-md);
         padding: 14px 16px;
@@ -1004,7 +999,6 @@
         color: #ef4444;
     }
 
-    /* Footer */
     .al-modal-footer {
         display: flex;
         justify-content: flex-end;
@@ -1059,9 +1053,7 @@
 <script>
     (function () {
 
-        /* ════════════════════════════════════
-           MODAL INDIVIDUAL
-        ════════════════════════════════════ */
+        /* ════ MODAL INDIVIDUAL ════ */
         const overlayInd = document.getElementById('al-modal-individual-overlay');
         const btnAbrirInd = document.getElementById('btn-abrir-modal-individual');
         const btnFecharInd = document.getElementById('btn-fechar-modal-individual');
@@ -1072,13 +1064,11 @@
         function abrirModalInd() { overlayInd.classList.add('aberto'); }
         function fecharModalInd() {
             overlayInd.classList.remove('aberto');
-            // limpa form
             ['ind-nome', 'ind-matricula', 'ind-turma'].forEach(id => {
                 document.getElementById(id).value = '';
             });
             resultadoInd.style.display = 'none';
             btnConfirmarInd.disabled = false;
-            btnConfirmarInd.innerHTML = '<i class="fa-solid fa-user-plus"></i> Adicionar aluno';
         }
 
         btnAbrirInd.addEventListener('click', abrirModalInd);
@@ -1097,21 +1087,14 @@
             }
 
             btnConfirmarInd.disabled = true;
-            btnConfirmarInd.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando…';
 
             try {
                 const resp = await fetch('{% url "importar_alunos" %}', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                    },
-                    body: JSON.stringify({
-                        alunos: [{ nome, matricula, turma }]
-                    }),
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify({ alunos: [{ nome, matricula, turma }] }),
                 });
                 const data = await resp.json();
-
                 if (resp.ok) {
                     const acao = data.criados > 0 ? 'cadastrado' : 'atualizado';
                     mostrarResultadoInd('sucesso', `✓ Aluno ${acao} com sucesso!`);
@@ -1123,7 +1106,6 @@
                 mostrarResultadoInd('erro', 'Erro de conexão. Tente novamente.');
             } finally {
                 btnConfirmarInd.disabled = false;
-                btnConfirmarInd.innerHTML = '<i class="fa-solid fa-user-plus"></i> Adicionar aluno';
             }
         });
 
@@ -1133,9 +1115,7 @@
             resultadoInd.style.display = 'block';
         }
 
-        /* ════════════════════════════════════
-           MODAL IMPORTAR PLANILHA
-        ════════════════════════════════════ */
+        /* ════ MODAL IMPORTAR ════ */
         const overlay = document.getElementById('al-modal-overlay');
         const btnAbrir = document.getElementById('btn-abrir-modal');
         const btnFechar = document.getElementById('btn-fechar-modal');
@@ -1149,7 +1129,6 @@
         btnCancelar.addEventListener('click', fecharModal);
         overlay.addEventListener('click', e => { if (e.target === overlay) fecharModal(); });
 
-        /* Dropzone */
         const dropzone = document.getElementById('al-dropzone');
         const fileInput = document.getElementById('al-file-input');
         const dropLink = document.getElementById('al-drop-link');
@@ -1163,7 +1142,7 @@
 
         let arquivoAtual = null, dadosPlanilha = [], colunasPlanilha = [];
 
-        dropLink.addEventListener('click', () => fileInput.click());
+        dropLink.addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
         dropzone.addEventListener('click', () => fileInput.click());
         dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
         dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
@@ -1275,7 +1254,6 @@
             }
 
             btnConfirmar.disabled = true;
-            btnConfirmar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Importando…';
 
             try {
                 const resp = await fetch('{% url "importar_alunos" %}', {
@@ -1294,7 +1272,6 @@
                 mostrarResultado('erro', 'Erro de conexão. Tente novamente.');
             } finally {
                 btnConfirmar.disabled = false;
-                btnConfirmar.innerHTML = '<i class="fa-solid fa-file-import"></i> Importar alunos';
             }
         });
 
@@ -1312,12 +1289,8 @@
             mapeamento.style.display = 'none';
             resultado.style.display = 'none';
             btnConfirmar.disabled = true;
-            btnConfirmar.innerHTML = '<i class="fa-solid fa-file-import"></i> Importar alunos';
         }
 
-        /* ════════════════════════════════════
-           UTILITÁRIOS
-        ════════════════════════════════════ */
         function getCookie(name) {
             return document.cookie.split(';')
                 .map(c => c.trim())
@@ -1325,9 +1298,7 @@
                 ?.split('=')[1] ?? '';
         }
 
-        /* ════════════════════════════════════
-           BUSCA E FILTROS
-        ════════════════════════════════════ */
+        /* ════ BUSCA E FILTROS ════ */
         const searchInput = document.getElementById('al-search');
         const filtros = document.querySelectorAll('.al-filtro-btn');
         const semResultado = document.getElementById('al-sem-resultado');
@@ -1352,7 +1323,6 @@
             blocos.forEach(bloco => {
                 const turmaBloco = bloco.dataset.turma;
                 const mostrarBloco = filtroAtivo === 'todas' || filtroAtivo === turmaBloco;
-
                 if (!mostrarBloco) { bloco.style.display = 'none'; return; }
 
                 const rows = bloco.querySelectorAll('.al-row');

@@ -6,9 +6,8 @@
 
         <div class="cad-livro-header">
             <div>
-                <h2 class="titulo-cadastro">Novo Livro</h2>
-                <p class="descricao-cad-livro">Cadastre um livro novo no acervo. Campos com <span
-                        class="obrigatorio">*</span> são obrigatórios.</p>
+                <h2 class="titulo-cadastro" data-i18n="cad_titulo"></h2>
+                <p class="descricao-cad-livro" data-i18n="cad_descricao"></p>
             </div>
         </div>
 
@@ -19,20 +18,32 @@
             <div class="cad-secao">
                 <div class="cad-secao-titulo">
                     <span class="cad-secao-num">1</span>
-                    <h3>Identificação</h3>
+                    <h3 data-i18n="cad_sec_identificacao"></h3>
                 </div>
                 <div class="cad-campos-grid">
                     <div class="campo campo-largo">
-                        <label for="titulo">Título <span class="obrigatorio">*</span></label>
-                        <input type="text" id="titulo" name="titulo" placeholder="Ex: Dom Casmurro" required>
+                        <label for="titulo"><span data-i18n="cad_titulo_label"></span> <span
+                                class="obrigatorio">*</span></label>
+                        <input type="text" id="titulo" name="titulo" data-i18n-placeholder="cad_titulo_placeholder"
+                            required>
                     </div>
                     <div class="campo">
-                        <label for="autor">Autor </label>
-                        <input type="text" id="autor" name="autor" placeholder="Ex: Machado de Assis" required>
+                        <label for="autor" data-i18n="cad_autor_label"></label>
+                        <input type="text" id="autor" name="autor" data-i18n-placeholder="cad_autor_placeholder">
                     </div>
                     <div class="campo">
-                        <label for="editora">Editora</label>
-                        <input type="text" id="editora" name="editora" placeholder="Ex: Ática">
+                        <label for="editora" data-i18n="cad_editora_label"></label>
+                        <input type="text" id="editora" name="editora" data-i18n-placeholder="cad_editora_placeholder">
+                    </div>
+                    <div class="campo">
+                        <label for="isbn" data-i18n="cad_isbn_label"></label>
+                        <input type="text" id="isbn" name="isbn" data-i18n-placeholder="cad_isbn_placeholder"
+                            maxlength="17">
+                    </div>
+                    <div class="campo campo-largo">
+                        <label for="capa_url" data-i18n="cad_capa_url_label"></label>
+                        <input type="url" id="capa_url" name="capa_url"
+                            data-i18n-placeholder="cad_capa_url_placeholder">
                     </div>
                 </div>
             </div>
@@ -41,16 +52,17 @@
             <div class="cad-secao">
                 <div class="cad-secao-titulo">
                     <span class="cad-secao-num">2</span>
-                    <h3>Classificação</h3>
+                    <h3 data-i18n="cad_sec_classificacao"></h3>
                 </div>
                 <div class="cad-campos-grid">
                     <div class="campo">
-                        <label for="categoria">Categoria</label>
-                        <input type="text" id="categoria" name="categoria" placeholder="Ex: Literatura BR">
+                        <label for="categoria" data-i18n="cad_categoria_label"></label>
+                        <input type="text" id="categoria" name="categoria"
+                            data-i18n-placeholder="cad_categoria_placeholder">
                     </div>
                     <div class="campo">
-                        <label for="colecao">Coleção</label>
-                        <input type="text" id="colecao" name="colecao" placeholder="Ex: Clássicos BR">
+                        <label for="colecao" data-i18n="cad_colecao_label"></label>
+                        <input type="text" id="colecao" name="colecao" data-i18n-placeholder="cad_colecao_placeholder">
                     </div>
                 </div>
             </div>
@@ -59,19 +71,24 @@
             <div class="cad-secao">
                 <div class="cad-secao-titulo">
                     <span class="cad-secao-num">3</span>
-                    <h3>Localização</h3>
+                    <h3 data-i18n="cad_sec_localizacao"></h3>
                 </div>
                 <div class="cad-campos-grid">
                     <div class="campo">
-                        <label for="prateleira">Prateleira <span class="obrigatorio">*</span></label>
-                        <input type="text" id="prateleira" name="prateleira" placeholder="Ex: G">
+                        <label for="prateleira"><span data-i18n="cad_prateleira_label"></span> <span
+                                class="obrigatorio">*</span></label>
+                        <input type="text" id="prateleira" name="prateleira"
+                            data-i18n-placeholder="cad_prateleira_placeholder">
                     </div>
                     <div class="campo">
-                        <label for="codigo_base">Código Catalográfico <span class="obrigatorio">*</span></label>
-                        <input type="text" id="codigo_base" name="codigo_base" placeholder="Ex: G0042oP">
+                        <label for="codigo_base"><span data-i18n="cad_codigo_base_label"></span> <span
+                                class="obrigatorio">*</span></label>
+                        <input type="text" id="codigo_base" name="codigo_base"
+                            data-i18n-placeholder="cad_codigo_base_placeholder">
                     </div>
                     <div class="campo campo-pequeno">
-                        <label for="unidades">Unidades <span class="obrigatorio">*</span></label>
+                        <label for="unidades"><span data-i18n="cad_unidades_label"></span> <span
+                                class="obrigatorio">*</span></label>
                         <div class="input-contador">
                             <button type="button" id="btn-menos">−</button>
                             <input type="number" id="unidades" name="unidades" value="1" min="1" required>
@@ -85,11 +102,11 @@
             <div class="cad-secao">
                 <div class="cad-secao-titulo">
                     <span class="cad-secao-num">4</span>
-                    <h3>Observações</h3>
+                    <h3 data-i18n="cad_sec_observacoes"></h3>
                 </div>
                 <div class="campo">
                     <textarea id="observacoes" name="observacoes" rows="3"
-                        placeholder="Informações adicionais sobre o livro..."></textarea>
+                        data-i18n-placeholder="cad_observacoes_placeholder"></textarea>
                 </div>
             </div>
 
@@ -97,8 +114,8 @@
             <div id="msg-cadastro" class="msg-cadastro" style="display:none;"></div>
 
             <div class="cad-livro-actions">
-                <button type="button" class="btn-secundario" onclick="limparForm()">Limpar</button>
-                <button type="submit" class="btn-confirmar-cad-livro">Cadastrar Livro</button>
+                <button type="button" class="btn-secundario" onclick="limparForm()" data-i18n="cad_btn_limpar"></button>
+                <button type="submit" class="btn-confirmar-cad-livro" data-i18n="cad_btn_cadastrar"></button>
             </div>
 
         </form>
@@ -120,6 +137,7 @@
     function limparForm() {
         document.getElementById('form-cadastro-livro').reset();
         document.getElementById('unidades').value = 1;
+        document.getElementById('msg-cadastro').style.display = 'none';
     }
 
     // Envio do formulário
@@ -131,6 +149,8 @@
             titulo: document.getElementById('titulo').value.trim(),
             autor: document.getElementById('autor').value.trim(),
             editora: document.getElementById('editora').value.trim(),
+            isbn: document.getElementById('isbn').value.trim(),
+            capa_url: document.getElementById('capa_url').value.trim(),
             categoria: document.getElementById('categoria').value.trim(),
             colecao: document.getElementById('colecao').value.trim(),
             prateleira: document.getElementById('prateleira').value.trim(),
@@ -154,8 +174,9 @@
             msg.style.display = 'block';
             if (data.sucesso) {
                 msg.className = 'msg-cadastro sucesso';
-                msg.textContent = `✅ Livro "${payload.titulo}" cadastrado com sucesso!`;
+                msg.textContent = `✅ ${payload.titulo}`;
                 limparForm();
+                msg.style.display = 'block';
             } else {
                 msg.className = 'msg-cadastro erro';
                 msg.textContent = `❌ ${data.erro}`;
@@ -163,7 +184,7 @@
         } catch (err) {
             msg.style.display = 'block';
             msg.className = 'msg-cadastro erro';
-            msg.textContent = '❌ Erro ao cadastrar livro. Tente novamente.';
+            msg.textContent = '❌';
         }
     });
 </script>

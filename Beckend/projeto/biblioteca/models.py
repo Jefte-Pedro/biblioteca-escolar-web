@@ -166,10 +166,30 @@ class Lista(models.Model):
     nome = models.CharField(max_length=200)
     criada_em = models.DateTimeField(auto_now_add=True)
     descricao = models.TextField(blank=True, null=True)
-    livros = models.ManyToManyField(Livro, blank=True) 
+    livros = models.ManyToManyField(Livro, blank=True)
 
     class Meta:
         db_table = 'biblioteca_lista'
 
     def __str__(self):
         return self.nome
+
+
+# ──────────────────────────────────────────
+# LIVRO LIDO
+# ──────────────────────────────────────────
+
+class LivroLido(models.Model):
+    usuario      = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='livros_lidos')
+    livro        = models.ForeignKey(Livro,   on_delete=models.CASCADE, related_name='leitores')
+    data_marcado = models.DateField(auto_now_add=True)
+
+    class Meta:
+        db_table        = 'biblioteca_livrolido'
+        unique_together = ('usuario', 'livro')
+        ordering        = ['-data_marcado']
+        verbose_name    = 'Livro Lido'
+        verbose_name_plural = 'Livros Lidos'
+
+    def __str__(self):
+        return f'{self.usuario} – {self.livro.titulo}'

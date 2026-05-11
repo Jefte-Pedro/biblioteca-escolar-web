@@ -11,7 +11,7 @@ import json
 
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import Livro, Emprestimo, Reserva, Lista, Usuario, Exemplar
+from .models import Livro, Emprestimo, Reserva, Lista, Usuario, Exemplar, LivroLido
 from .serializers import LivroSerializer
 
 
@@ -282,7 +282,8 @@ def adicionar_livro_lista(request, lista_id):
         return JsonResponse({'status': 'ok'})
     except Exception as e:
         return JsonResponse({'erro': str(e)}, status=500)
-    
+
+
 @require_POST
 def remover_livro_lista(request, lista_id):
     if not request.user.is_authenticated:
@@ -329,8 +330,52 @@ def listas_do_usuario(request):
     return JsonResponse({'listas': resultado})
 
 
+# ──────────────────────────────────────────
+# LIVROS LIDOS
+# ──────────────────────────────────────────
+
+@require_POST
+@login_required
+def marcar_livro_lido(request, livro_id):
+    livro = get_object_or_404(Livro, id_livro=livro_id)
+    # get_or_create garante que não duplica se o user clicar duas vezes
+    _, criado = LivroLido.objects.get_or_create(usuario=request.user, livro=livro)
+    return JsonResponse({'status': 'ok', 'criado': criado})
+
+
+@require_POST
+@login_required
+def desmarcar_livro_lido(request, livro_id):
+    livro = get_object_or_404(Livro, id_livro=livro_id)
+    LivroLido.objects.filter(usuario=request.user, livro=livro).delete()
+    return JsonResponse({'status': 'ok'})
+
+
 def lidos(request):
-    return render(request, 'biblioteca/acervo.html', {'aba': 'lidos'})
+    livros_lidos = []
+    lidos_count = 0
+
+    if request.user.is_authenticated:
+        qs = LivroLido.objects.filter(
+            usuario=request.user
+        ).select_related('livro')
+
+        lidos_count = qs.count()
+
+        for registro in qs:
+            registro.livro.autor_sobrenome = (
+                registro.livro.autor.split()[-1] if registro.livro.autor else ''
+            )
+            # Cores de fallback para capa gradiente
+            registro.livro.cover_from = '#1e5aa8'
+            registro.livro.cover_to   = '#0b1526'
+            livros_lidos.append(registro)
+
+    return render(request, 'biblioteca/acervo.html', {
+        'aba':          'lidos',
+        'livros_lidos': livros_lidos,
+        'lidos_count':  lidos_count,
+    })
 
 
 def reservados(request):
@@ -393,7 +438,18 @@ def configuracoes(request):
 def detalhes_livro(request, livro_id):
     livro = get_object_or_404(Livro, id_livro=livro_id)
     disponivel = livro.esta_disponivel()
-    return render(request, 'biblioteca/detalhes_livro.html', {'livro': livro, 'disponivel': disponivel})
+
+    # Verifica se o usuário já marcou este livro como lido
+    ja_lido = (
+        request.user.is_authenticated and
+        LivroLido.objects.filter(usuario=request.user, livro=livro).exists()
+    )
+
+    return render(request, 'biblioteca/detalhes_livro.html', {
+        'livro':     livro,
+        'disponivel': disponivel,
+        'ja_lido':   ja_lido,
+    })
 
 
 def explorar(request):

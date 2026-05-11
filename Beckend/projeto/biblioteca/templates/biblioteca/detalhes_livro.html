@@ -8,7 +8,7 @@
 <div class="detalhe-wrap">
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-        <button class="detalhe-voltar" onclick="history.back()">← Voltar</button>
+        <button class="detalhe-voltar" onclick="history.back()" data-i18n="voltar">← Voltar</button>
 
         {% if user.is_staff or user.is_superuser %}
         <button class="btn-admin-editar" onclick="abrirModalEdicao()">
@@ -17,7 +17,7 @@
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
-            Editar livro
+            <span data-i18n="btn_editar_livro">Editar livro</span>
         </button>
         {% endif %}
     </div>
@@ -31,9 +31,9 @@
             </div>
             <div style="position:absolute;bottom:8px;right:8px">
                 {% if disponivel %}
-                <span class="bcard-avail av">Disponível</span>
+                <span class="bcard-avail av" data-i18n="status_disponivel">Disponível</span>
                 {% else %}
-                <span class="bcard-avail unav">Indisponível</span>
+                <span class="bcard-avail unav" data-i18n="status_indisponivel">Indisponível</span>
                 {% endif %}
             </div>
         </div>
@@ -44,9 +44,9 @@
             </div>
             <div style="position:absolute;bottom:8px;right:8px">
                 {% if disponivel %}
-                <span class="bcard-avail av">Disponível</span>
+                <span class="bcard-avail av" data-i18n="status_disponivel">Disponível</span>
                 {% else %}
-                <span class="bcard-avail unav">Indisponível</span>
+                <span class="bcard-avail unav" data-i18n="status_indisponivel">Indisponível</span>
                 {% endif %}
             </div>
         </div>
@@ -65,19 +65,19 @@
 
             <div class="detalhe-grid">
                 <div class="detalhe-grid-item">
-                    <div class="detalhe-grid-label">Unidades</div>
+                    <div class="detalhe-grid-label" data-i18n="grid_unidades">Unidades</div>
                     <div class="detalhe-grid-valor">{{ livro.quantidade }}</div>
                 </div>
                 <div class="detalhe-grid-item">
-                    <div class="detalhe-grid-label">Prateleira</div>
+                    <div class="detalhe-grid-label" data-i18n="grid_prateleira">Prateleira</div>
                     <div class="detalhe-grid-valor">{{ livro.prateleira|default:"—" }}</div>
                 </div>
                 <div class="detalhe-grid-item">
-                    <div class="detalhe-grid-label">Cód. Catalográfico</div>
+                    <div class="detalhe-grid-label" data-i18n="grid_codigo">Cód. Catalográfico</div>
                     <div class="detalhe-grid-valor sm">{{ livro.codigo_base|default:"—" }}</div>
                 </div>
                 <div class="detalhe-grid-item">
-                    <div class="detalhe-grid-label">ISBN</div>
+                    <div class="detalhe-grid-label" data-i18n="grid_isbn">ISBN</div>
                     <div class="detalhe-grid-valor sm">{{ livro.isbn|default:"—" }}</div>
                 </div>
             </div>
@@ -89,26 +89,30 @@
                         <path
                             d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                     </svg>
-                    Adicione nas suas listas
+                    <span data-i18n="btn_add_lista">Adicione nas suas listas</span>
                 </button>
-                <button class="btn-secundario">
+
+                <!-- Botão Marcar Como Lido — com estado dinâmico -->
+                <button class="btn-secundario" id="btn-marcar-lido" onclick="toggleMarcarLido()">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"
-                        stroke-linecap="round" stroke-linejoin="round">
+                        stroke-linecap="round" stroke-linejoin="round" id="icon-lido">
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
-                    Marcar Como Lido
+                    <span id="label-marcar-lido" data-i18n="btn_lido">Marcar Como Lido</span>
                 </button>
-                <button class="btn-secundario">🔖 Reservar</button>
+
+                <button class="btn-secundario" data-i18n="btn_reservar">🔖 Reservar</button>
             </div>
         </div>
     </div>
 
     <div class="detalhe-sinopse">
-        <h3>Sinopse</h3>
+        <h3 data-i18n="livro_sinopse_titulo">Sinopse</h3>
         {% if livro.sinopse %}
         <p>{{ livro.sinopse }}</p>
         {% else %}
-        <p><span style="font-size:20px">📖</span> Sinopse não disponível no momento.</p>
+        <p><span style="font-size:20px">📖</span> <span data-i18n="sinopse_indisponivel">Sinopse não disponível no
+                momento.</span></p>
         {% endif %}
     </div>
 
@@ -118,7 +122,7 @@
 <div id="modal-add-lista" class="modal-overlay" style="display:none">
     <div class="modal-box">
         <div class="modal-head">
-            <span class="modal-titulo">Salvar na lista</span>
+            <span class="modal-titulo" data-i18n="modal_lista_salvar_titulo">Salvar na lista</span>
             <button class="modal-fechar" onclick="fecharModalLista()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -129,24 +133,25 @@
         </div>
 
         <p class="modal-sub">
-            Escolha uma lista ou crie uma nova para salvar
+            <span data-i18n="modal_lista_escolha">Escolha uma lista ou crie uma nova para salvar</span>
             <strong>{{ livro.titulo|truncatechars:40 }}</strong>.
         </p>
 
         <div id="lista-opcoes"
             style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:260px;overflow-y:auto;padding:0 4px">
-            <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">
+            <div style="text-align:center;padding:20px;color:var(--muted);font-size:13px" data-i18n="carregando_listas">
                 Carregando suas listas...
             </div>
         </div>
 
         <div id="criar-nova-wrap" style="display:none;margin-top:4px">
             <input type="text" id="nova-lista-nome" class="modal-input" placeholder="Nome da nova lista..."
-                style="margin-bottom:8px" />
+                data-i18n-placeholder="modal_lista_placeholder" style="margin-bottom:8px" />
             <div style="display:flex;gap:8px">
-                <button onclick="cancelarCriarLista()" class="modal-btn-cancel" style="flex:1">Cancelar</button>
-                <button onclick="criarEAdicionarLista()" class="modal-btn-confirm" style="flex:1">Criar e
-                    adicionar</button>
+                <button onclick="cancelarCriarLista()" class="modal-btn-cancel" style="flex:1"
+                    data-i18n="btn_cancelar">Cancelar</button>
+                <button onclick="criarEAdicionarLista()" class="modal-btn-confirm" style="flex:1"
+                    data-i18n="btn_criar_e_adicionar">Criar e adicionar</button>
             </div>
         </div>
 
@@ -157,7 +162,7 @@
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            Criar nova lista
+            <span data-i18n="btn_criar_nova_lista">Criar nova lista</span>
         </button>
     </div>
 </div>
@@ -176,7 +181,7 @@
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                     </svg>
                 </div>
-                <span class="modal-titulo">Editar livro</span>
+                <span class="modal-titulo" data-i18n="modal_editar_titulo">Editar livro</span>
             </div>
             <button class="modal-fechar" onclick="fecharModalEdicao()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -187,7 +192,7 @@
             </button>
         </div>
 
-        <p class="modal-sub" style="margin-bottom:20px">
+        <p class="modal-sub" style="margin-bottom:20px" data-i18n="modal_editar_sub">
             Atualize as informações do livro. Os campos em branco serão mantidos com os valores atuais.
         </p>
 
@@ -195,71 +200,64 @@
 
         <div class="edicao-form">
 
-            <!-- Linha 1: Título -->
             <div class="edicao-grupo full">
-                <label class="edicao-label">Título</label>
+                <label class="edicao-label" data-i18n="cad_titulo_label">Título</label>
                 <input type="text" id="edit-titulo" class="modal-input" placeholder="{{ livro.titulo }}"
                     value="{{ livro.titulo }}" />
             </div>
 
-            <!-- Linha 2: Autor + Editora -->
             <div class="edicao-grupo">
-                <label class="edicao-label">Autor</label>
+                <label class="edicao-label" data-i18n="cad_autor_label">Autor</label>
                 <input type="text" id="edit-autor" class="modal-input" placeholder="{{ livro.autor|default:'—' }}"
                     value="{{ livro.autor|default:'' }}" />
             </div>
             <div class="edicao-grupo">
-                <label class="edicao-label">Editora</label>
+                <label class="edicao-label" data-i18n="cad_editora_label">Editora</label>
                 <input type="text" id="edit-editora" class="modal-input" placeholder="{{ livro.editora|default:'—' }}"
                     value="{{ livro.editora|default:'' }}" />
             </div>
 
-            <!-- Linha 3: ISBN + Cód. Catalográfico -->
             <div class="edicao-grupo">
-                <label class="edicao-label">ISBN</label>
+                <label class="edicao-label" data-i18n="cad_isbn_label">ISBN</label>
                 <input type="text" id="edit-isbn" class="modal-input" placeholder="{{ livro.isbn|default:'—' }}"
                     value="{{ livro.isbn|default:'' }}" />
             </div>
             <div class="edicao-grupo">
-                <label class="edicao-label">Cód. Catalográfico</label>
+                <label class="edicao-label" data-i18n="cad_codigo_base_label">Cód. Catalográfico</label>
                 <input type="text" id="edit-codigo" class="modal-input"
                     placeholder="{{ livro.codigo_base|default:'—' }}" value="{{ livro.codigo_base|default:'' }}" />
             </div>
 
-            <!-- Linha 4: Categoria + Coleção -->
             <div class="edicao-grupo">
-                <label class="edicao-label">Categoria</label>
+                <label class="edicao-label" data-i18n="cad_categoria_label">Categoria</label>
                 <input type="text" id="edit-categoria" class="modal-input"
                     placeholder="{{ livro.categoria|default:'—' }}" value="{{ livro.categoria|default:'' }}" />
             </div>
             <div class="edicao-grupo">
-                <label class="edicao-label">Coleção</label>
+                <label class="edicao-label" data-i18n="cad_colecao_label">Coleção</label>
                 <input type="text" id="edit-colecao" class="modal-input" placeholder="{{ livro.colecao|default:'—' }}"
                     value="{{ livro.colecao|default:'' }}" />
             </div>
 
-            <!-- Linha 5: Quantidade + Prateleira -->
             <div class="edicao-grupo">
-                <label class="edicao-label">Quantidade</label>
+                <label class="edicao-label" data-i18n="cad_unidades_label">Quantidade</label>
                 <input type="number" id="edit-quantidade" class="modal-input" min="0"
                     placeholder="{{ livro.quantidade|default:'0' }}" value="{{ livro.quantidade|default:'' }}" />
             </div>
             <div class="edicao-grupo">
-                <label class="edicao-label">Prateleira</label>
+                <label class="edicao-label" data-i18n="cad_prateleira_label">Prateleira</label>
                 <input type="text" id="edit-prateleira" class="modal-input"
                     placeholder="{{ livro.prateleira|default:'—' }}" value="{{ livro.prateleira|default:'' }}" />
             </div>
 
-            <!-- URL da capa -->
             <div class="edicao-grupo full">
-                <label class="edicao-label">URL da capa</label>
+                <label class="edicao-label" data-i18n="cad_capa_url_label">URL da capa</label>
                 <input type="url" id="edit-capa-url" class="modal-input"
                     placeholder="{{ livro.capa_url|default:'https://...' }}" value="{{ livro.capa_url|default:'' }}" />
             </div>
 
-            <!-- Sinopse -->
             <div class="edicao-grupo full">
-                <label class="edicao-label">Sinopse</label>
+                <label class="edicao-label" data-i18n="livro_sinopse_titulo">Sinopse</label>
                 <textarea id="edit-sinopse" class="modal-input modal-textarea"
                     placeholder="{{ livro.sinopse|default:'Sinopse não disponível.' }}">{{ livro.sinopse|default:'' }}</textarea>
             </div>
@@ -267,19 +265,35 @@
         </div>
 
         <div class="edicao-rodape">
-            <button onclick="fecharModalEdicao()" class="modal-btn-cancel">Cancelar</button>
+            <button onclick="fecharModalEdicao()" class="modal-btn-cancel" data-i18n="btn_cancelar">Cancelar</button>
             <button onclick="salvarEdicao()" class="modal-btn-confirm" id="btn-salvar-edicao">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                     stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                 </svg>
-                Salvar alterações
+                <span data-i18n="btn_salvar_alteracoes">Salvar alterações</span>
             </button>
         </div>
 
     </div>
 </div>
 {% endif %}
+
+<!-- ── TOAST DE FEEDBACK ──────────────────────────────────────── -->
+<div id="toast-lido" style="
+    position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:12px 20px;display:flex;align-items:center;gap:10px;
+    font-size:13px;font-weight:500;color:var(--text);
+    box-shadow:0 8px 32px rgba(0,0,0,0.35);
+    transition:transform 0.35s cubic-bezier(.34,1.56,.64,1),opacity 0.3s;
+    opacity:0;z-index:200;white-space:nowrap;pointer-events:none;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12" />
+    </svg>
+    <span id="toast-lido-msg"></span>
+</div>
 
 <style>
     /* ── DETALHE LIVRO ───────────────────────────────────────────── */
@@ -404,7 +418,6 @@
         gap: 7px;
     }
 
-    /* Feedback de sucesso/erro */
     .feedback-ok {
         display: flex;
         align-items: center;
@@ -613,11 +626,22 @@
         align-items: center;
         justify-content: center;
         gap: 6px;
-        transition: background var(--ease), color var(--ease);
+        transition: background var(--ease), color var(--ease), border-color 0.2s;
     }
 
     .btn-secundario:hover {
         background: var(--hover);
+    }
+
+    /* Estado "já lido" no botão */
+    .btn-secundario.lido-ativo {
+        border-color: rgba(34, 197, 94, 0.5);
+        background: rgba(34, 197, 94, 0.08);
+        color: #22c55e;
+    }
+
+    .btn-secundario.lido-ativo:hover {
+        background: rgba(34, 197, 94, 0.14);
     }
 
     .detalhe-sinopse {
@@ -933,6 +957,83 @@
     const LIVRO_ID = {{ livro.id_livro }};
     const USUARIO_LOGADO = "{{ user.is_authenticated|lower }}" === "true";
 
+    // Estado inicial vindo do backend (True/False renderizado pelo Django)
+    let jaEstaLido = {% if ja_lido %}true{% else %} false{% endif %};
+
+    /* ── MARCAR COMO LIDO ──────────────────────────────────────── */
+    function atualizarBotaoLido() {
+        const btn = document.getElementById('btn-marcar-lido');
+        const label = document.getElementById('label-marcar-lido');
+        const icon = document.getElementById('icon-lido');
+
+        if (jaEstaLido) {
+            btn.classList.add('lido-ativo');
+            // Usa a chave de i18n se o sistema estiver ativo, senão texto padrão
+            label.setAttribute('data-i18n', 'btn_ja_lido');
+            if (typeof aplicarIdioma === 'function') aplicarIdioma();
+            else label.textContent = '✓ Marcado como Lido';
+            icon.setAttribute('stroke', '#22c55e');
+        } else {
+            btn.classList.remove('lido-ativo');
+            label.setAttribute('data-i18n', 'btn_lido');
+            if (typeof aplicarIdioma === 'function') aplicarIdioma();
+            else label.textContent = 'Marcar Como Lido';
+            icon.setAttribute('stroke', '#22c55e');
+        }
+    }
+
+    function mostrarToast(msg) {
+        const toast = document.getElementById('toast-lido');
+        document.getElementById('toast-lido-msg').textContent = msg;
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(-50%) translateY(0)';
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(80px)';
+        }, 2800);
+    }
+
+    async function toggleMarcarLido() {
+        if (!USUARIO_LOGADO) {
+            alert('Faça login para marcar livros como lidos.');
+            return;
+        }
+
+        const btn = document.getElementById('btn-marcar-lido');
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+
+        const url = jaEstaLido
+            ? `/biblioteca/livro/${LIVRO_ID}/desmarcar-lido/`
+            : `/biblioteca/livro/${LIVRO_ID}/marcar-lido/`;
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+
+            if (res.ok) {
+                jaEstaLido = !jaEstaLido;
+                atualizarBotaoLido();
+                const msgLido = (typeof t === 'function') ? t('toast_marcado_lido') : 'Livro marcado como lido!';
+                const msgDesmarcado = (typeof t === 'function') ? t('toast_desmarcado_lido') : 'Livro removido dos lidos.';
+                mostrarToast(jaEstaLido ? msgLido : msgDesmarcado);
+            } else {
+                const data = await res.json().catch(() => ({}));
+                alert(data.erro || 'Erro ao atualizar. Tente novamente.');
+            }
+        } catch (err) {
+            alert('Erro de conexão. Verifique sua rede.');
+        } finally {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    }
+
     /* ── MODAL LISTAS ──────────────────────────────────────────── */
     function abrirModalLista() {
         if (!USUARIO_LOGADO) {
@@ -950,12 +1051,12 @@
 
     async function carregarListas() {
         const container = document.getElementById('lista-opcoes');
-        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Carregando...</div>';
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px" data-i18n="carregando_listas">Carregando...</div>';
         try {
             const res = await fetch(`/biblioteca/listas/minhas/?livro_id=${LIVRO_ID}`);
             const data = await res.json();
             if (!data.listas.length) {
-                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Você ainda não tem listas criadas.</div>';
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px" data-i18n="sem_listas">Você ainda não tem listas criadas.</div>';
                 return;
             }
             container.innerHTML = '';
@@ -985,7 +1086,7 @@
                 container.appendChild(item);
             });
         } catch (err) {
-            container.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;font-size:13px">Erro ao carregar listas.</div>';
+            container.innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444;font-size:13px" data-i18n="erro_carregar_listas">Erro ao carregar listas.</div>';
         }
     }
 
@@ -1123,6 +1224,9 @@
             {% if user.is_staff or user.is_superuser %} fecharModalEdicao(); {% endif %}
         }
     });
+
+    /* Inicializar estado do botão ao carregar a página */
+    document.addEventListener('DOMContentLoaded', atualizarBotaoLido);
 </script>
 
 {% endblock %}
