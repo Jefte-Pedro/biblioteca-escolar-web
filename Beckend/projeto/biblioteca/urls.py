@@ -39,6 +39,8 @@ urlpatterns = [
 
     path('livro/<int:livro_id>/', views.detalhes_livro, name='detalhes_livro'),
     path('livro/<int:livro_id>/editar/', views.editar_livro, name='editar_livro'),
+    path('livro/<int:livro_id>/marcar-lido/', views.marcar_livro_lido, name='marcar_livro_lido'),
+    path('livro/<int:livro_id>/desmarcar-lido/', views.desmarcar_livro_lido, name='desmarcar_livro_lido'),
 
     path('login/', views.pagina_login, name='login'),
     path('login/cadastro/', views.cadastro, name='cadastro'),
@@ -55,5 +57,7 @@ urlpatterns = [
     path('alunos/', views.alunos, name='alunos'),
     path('alunos/importar/', views.importar_alunos, name='importar_alunos'),
 
+    path('emprestimos/excluir-historico/<int:pk>/', views.excluir_historico, name='excluir-historico'),
+    
     path('api/', include(router.urls)),
 ]   

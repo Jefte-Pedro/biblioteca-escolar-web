@@ -187,26 +187,44 @@
         </div>
         <div class="lists-grid">
             {% for lista in listas %}
-            <a class="lcard" href="{% url 'minha_lista' %}">
-                <div class="lcard-stacked">
+            <a class="lcard" href="{% url 'detalhe_lista' lista.id %}">
+        
+                <!-- Capas empilhadas -->
+                <div style="position:relative;width:90px;height:80px;flex-shrink:0;">
                     {% for livro in lista.livros_preview %}
-                    <div class="lcard-stacked-book"
-                        style="left:{{ forloop.counter0|multiply:22 }}px;transform:rotate({{ livro.rot }}deg);background:linear-gradient(135deg,{{ livro.cover_from }},{{ livro.cover_to }});z-index:{{ forloop.counter0 }}">
+                    <div style="
+                        position:absolute;
+                        top:8px;
+                        left:{{ forloop.counter0|multiply:18 }}px;
+                        width:44px;
+                        height:62px;
+                        border-radius:5px;
+                        overflow:hidden;
+                        box-shadow:0 4px 12px rgba(0,0,0,0.4);
+                        transform:rotate({{ livro.rot }}deg);
+                        z-index:{{ forloop.counter0 }};
+                        background:linear-gradient(135deg,{{ livro.cover_from }},{{ livro.cover_to }});">
+                        {% if livro.capa_url %}
+                        <img src="{{ livro.capa_url }}" alt="{{ livro.titulo }}"
+                            style="width:100%;height:100%;object-fit:cover;display:block;">
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
+        
+                <!-- Info -->
                 <div class="lcard-info">
                     <div class="lcard-name-row">
                         <span class="lcard-emoji">{{ lista.icone }}</span>
                         <span class="lcard-name">{{ lista.nome }}</span>
                     </div>
-                    <div class="lcard-meta">{{ lista.livros.count }} livros · criada em {{ lista.criada|date:"d/m/Y" }}
-                    </div>
+                    <div class="lcard-meta">{{ lista.livros.count }} livros · criada em {{ lista.criada|date:"d/m/Y" }}</div>
                     <div class="lcard-vis">
                         <div class="vis-dot" style="background:{{ lista.cor }}"></div>
                         <span class="vis-lbl">{% if lista.vis == 'privada' %}🔒 privada{% else %}🌐 compartilhável{% endif %}</span>
                     </div>
                 </div>
+        
                 <div class="lcard-arrow">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                         stroke-linecap="round" stroke-linejoin="round">

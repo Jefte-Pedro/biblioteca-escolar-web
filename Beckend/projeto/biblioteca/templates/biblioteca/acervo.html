@@ -200,21 +200,41 @@
 <div class="carousel-wrap" style="margin-top:24px">
     <div class="carousel hide-scroll">
         {% for lido in livros_lidos %}
-        <div class="bcard">
+        <div class="bcard" style="cursor:pointer;position:relative;"
+            onclick="window.location.href='/biblioteca/livro/{{ lido.livro.id_livro }}/'">
+        
+            <!-- Botão X para desmarcar -->
+            <button onclick="event.stopPropagation(); desmarcarLido({{ lido.livro.id_livro }}, this)" title="Remover dos lidos"
+                style="position:absolute;top:6px;right:6px;z-index:10;
+                       width:22px;height:22px;border-radius:50%;
+                       background:rgba(0,0,0,0.55);border:none;cursor:pointer;
+                       display:flex;align-items:center;justify-content:center;color:#fff;">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        
             <div class="bcard-cover-wrap">
                 <div class="bcard-cover"
-                    style="background:linear-gradient(135deg,{{ lido.livro.cover_from }},{{ lido.livro.cover_to }})">
+                    style="background:linear-gradient(135deg,{{ lido.livro.cover_from }},{{ lido.livro.cover_to }});position:relative;overflow:hidden;">
+                    {% if lido.livro.capa_url %}
+                    <img src="{{ lido.livro.capa_url }}" alt="{{ lido.livro.titulo }}"
+                        style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;">
+                    {% else %}
                     <div class="bc-inner">
                         <div class="bc-title">{{ lido.livro.titulo|truncatechars:22 }}</div>
                         <div class="bc-author">{{ lido.livro.autor_sobrenome }}</div>
                     </div>
+                    {% endif %}
                 </div>
                 <div class="bcard-avail av" data-i18n="status_lido">● Lido</div>
             </div>
             <div class="bcard-title">{{ lido.livro.titulo }}</div>
             <div class="bcard-author">{{ lido.livro.autor }}</div>
             <div class="bcard-tags">
-                <span class="tag-cat">{{ lido.data_marcado|date:"d/m/Y" }}</span>
+                <span class="tag-cat">📅 Lido em {{ lido.data_marcado|date:"d/m/Y" }}</span>
             </div>
         </div>
         {% empty %}
@@ -382,6 +402,29 @@
             fecharModalRenomear();
         };
 
+        // ── DESMARCAR LIDO (global para o onclick do botão X) ─────
+        window.desmarcarLido = async function (livroId, btn) {
+            btn.disabled = true;
+            try {
+                const res = await fetch(`/biblioteca/livro/${livroId}/desmarcar-lido/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+                if (res.ok) {
+                    btn.closest('.bcard').remove();
+                } else {
+                    alert('Erro ao remover.');
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                alert('Erro de conexão.');
+                btn.disabled = false;
+            }
+        };
+
         // ── EVENTOS ────────────────────────────────────────────────
         document.addEventListener('DOMContentLoaded', function () {
 
@@ -445,6 +488,7 @@
                 }
             });
         });
+
     })();
 </script>
 {% endblock %}
