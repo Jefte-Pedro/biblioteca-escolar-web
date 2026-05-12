@@ -44,7 +44,7 @@ COL_CAPA   = "capa_url"            # será criada se não existir
 
 # Opcional: adicione sua chave da Google Books API para evitar limites
 # Obtenha gratuitamente em: https://console.cloud.google.com/
-GOOGLE_BOOKS_API_KEY = "AIzaSyC4IaCZkYMFeNLSZCsRMRWGCBehCq1DGcs"          # deixe "" para usar sem chave (limite menor)
+GOOGLE_BOOKS_API_KEY = "AIzaSyDnhLhKLGkAkGz1nRCd69QAfyjbpNbxwOo"          # deixe "" para usar sem chave (limite menor)
 
 DELAY_ENTRE_REQUESTS = 0.5         # segundos entre chamadas à API (evitar bloqueio)
 # ──────────────────────────────────────────────

@@ -138,6 +138,8 @@ def inicio(request):
     usuario = request.user if request.user.is_authenticated else None
 
     CORES = ['#1e5aa8', '#7c3aed', '#059669', '#b45309', '#dc2626', '#0891b2', '#be185d']
+    ICONES_LISTA = ['📚', '⭐', '🎯', '📖', '🔖', '💡', '🏆']
+    ROTS = [-6, -2, 4]
 
     exemplares_emprestados_ids = Emprestimo.objects.filter(
         data_devolucao_real__isnull=True
@@ -151,12 +153,30 @@ def inicio(request):
         id_livro__in=livros_sem_disponivel
     ).order_by('?')[:10]
 
-    listas = Lista.objects.filter(usuario=usuario) if usuario else []
-
+    listas = []
     emprestimos_recentes = []
     prazo_urgente = None
 
     if usuario:
+        listas_qs = Lista.objects.filter(usuario=usuario).prefetch_related('livros')
+        for l in listas_qs:
+            livros = l.livros.all()[:3]
+            l.livros_preview = [
+                {
+                    'titulo':     livro.titulo,
+                    'capa_url':   livro.capa_url or '',
+                    'cover_from': '#1e5aa8',
+                    'cover_to':   '#0b1526',
+                    'rot':        ROTS[i % len(ROTS)],
+                }
+                for i, livro in enumerate(livros)
+            ]
+            l.icone  = ICONES_LISTA[l.pk % len(ICONES_LISTA)]
+            l.cor    = CORES[l.pk % len(CORES)]
+            l.vis    = 'privada'
+            l.criada = l.criada_em
+            listas.append(l)
+
         qs = Emprestimo.objects.filter(
             usuario=usuario,
             data_devolucao_real__isnull=True,
@@ -164,15 +184,15 @@ def inicio(request):
 
         for emp in qs:
             delta = (emp.data_devolucao_prevista - hoje).days
-            emp.livro            = emp.exemplar.livro
-            emp.dias_restantes   = max(delta, 0)
-            emp.dias_usados      = max((hoje - emp.data_emprestimo).days, 0)
-            emp.dias_total       = 15
-            emp.percentual_usado = min(int((emp.dias_usados / 15) * 100), 100)
-            emp.urgente          = 0 <= delta <= 3 or delta < 0
+            emp.livro             = emp.exemplar.livro
+            emp.dias_restantes    = max(delta, 0)
+            emp.dias_usados       = max((hoje - emp.data_emprestimo).days, 0)
+            emp.dias_total        = 15
+            emp.percentual_usado  = min(int((emp.dias_usados / 15) * 100), 100)
+            emp.urgente           = 0 <= delta <= 3 or delta < 0
             emp.renovacoes_usadas = 0
             emp.renovacoes_max    = 1
-            emp.cor_avatar       = CORES[emp.pk % len(CORES)]
+            emp.cor_avatar        = CORES[emp.pk % len(CORES)]
             emprestimos_recentes.append(emp)
 
         urgentes = [e for e in emprestimos_recentes if e.urgente]
@@ -529,13 +549,11 @@ def emprestimos(request):
 
     CORES = ['#1e5aa8', '#7c3aed', '#059669', '#b45309', '#dc2626', '#0891b2']
 
-    emprestimos_enriched = []
-    for emp in emprestimos_ativos:
+    def enrich(emp, hoje, CORES):
         delta = (emp.data_devolucao_prevista - hoje).days
         emp.vence_hoje     = (delta == 0)
         emp.dias_restantes = max(delta, 0)
         emp.dias_atraso    = abs(delta) if delta < 0 else 0
-
         partes = emp.usuario.get_full_name().split() if emp.usuario else []
         if len(partes) >= 2:
             emp.iniciais_av = partes[0][0].upper() + partes[-1][0].upper()
@@ -543,18 +561,47 @@ def emprestimos(request):
             emp.iniciais_av = partes[0][0].upper()
         else:
             emp.iniciais_av = '?'
-
         emp.cor_avatar           = CORES[emp.pk % len(CORES)]
         emp.nome_aluno           = emp.usuario.get_full_name() if emp.usuario else 'Desconhecido'
         emp.turma                = emp.usuario.serie if emp.usuario else ''
         emp.matricula_aluno      = emp.usuario.matricula if emp.usuario else ''
         emp.codigo_catalografico = emp.exemplar.codigo_completo if emp.exemplar else ''
         emp.livro_obj            = emp.exemplar.livro if emp.exemplar else None
+        return emp
 
-        emprestimos_enriched.append(emp)
+    emprestimos_enriched = [enrich(e, hoje, CORES) for e in emprestimos_ativos]
+
+    # ── HISTÓRICO (devolvidos) ──────────────────────────────────
+    historico_qs = Emprestimo.objects.filter(
+        data_devolucao_real__isnull=False
+    ).select_related('exemplar__livro', 'usuario').order_by('-data_devolucao_real')[:100]
+
+    historico_enriched = []
+    for emp in historico_qs:
+        # Para devolvidos, delta é baseado na data prevista vs real
+        delta = (emp.data_devolucao_prevista - emp.data_devolucao_real).days
+        emp.vence_hoje     = False
+        emp.dias_restantes = 0
+        emp.dias_atraso    = 0
+        emp.foi_devolvido_atrasado = emp.data_devolucao_real > emp.data_devolucao_prevista
+        partes = emp.usuario.get_full_name().split() if emp.usuario else []
+        if len(partes) >= 2:
+            emp.iniciais_av = partes[0][0].upper() + partes[-1][0].upper()
+        elif partes:
+            emp.iniciais_av = partes[0][0].upper()
+        else:
+            emp.iniciais_av = '?'
+        emp.cor_avatar           = CORES[emp.pk % len(CORES)]
+        emp.nome_aluno           = emp.usuario.get_full_name() if emp.usuario else 'Desconhecido'
+        emp.turma                = emp.usuario.serie if emp.usuario else ''
+        emp.matricula_aluno      = emp.usuario.matricula if emp.usuario else ''
+        emp.codigo_catalografico = emp.exemplar.codigo_completo if emp.exemplar else ''
+        emp.livro_obj            = emp.exemplar.livro if emp.exemplar else None
+        historico_enriched.append(emp)
 
     return render(request, 'biblioteca/emp-livro.html', {
         'emprestimos':     emprestimos_enriched,
+        'historico':       historico_enriched,          # ← novo
         'vencem_hoje':     vencem_hoje,
         'atrasados':       atrasados,
         'devolvidos_hoje': devolvidos_hoje,
@@ -658,6 +705,18 @@ def renovar_emprestimo(request, pk):
         'status':    'Sucesso'
     })
 
+@require_POST
+def excluir_historico(request, pk):
+    emprestimo = get_object_or_404(Emprestimo, pk=pk)
+    
+    # Só permite excluir registros já devolvidos
+    if emprestimo.data_devolucao_real is None:
+        return JsonResponse({
+            'erro': 'Não é possível excluir um empréstimo ainda ativo.'
+        }, status=400)
+    
+    emprestimo.delete()
+    return JsonResponse({'sucesso': 'Registro excluído do histórico.'})
 
 @require_POST
 def cancelar_reserva(request, pk):

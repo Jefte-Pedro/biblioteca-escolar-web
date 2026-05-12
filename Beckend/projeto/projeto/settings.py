@@ -27,8 +27,8 @@ DEBUG = True
 
 APPEND_SLASH = False
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['hefty-humiliate-stainless.ngrok-free.dev', 'localhost', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://hefty-humiliate-stainless.ngrok-free.dev']
 
 # Application definition
 

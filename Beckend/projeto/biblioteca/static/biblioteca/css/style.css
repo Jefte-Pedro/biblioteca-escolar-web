@@ -3990,3 +3990,97 @@ svg {
 .lang-menu button:hover {
   background: var(--hover);
 }
+
+/* ── FIX: container-conteudo-branco ─────────────────────────── */
+.container-conteudo-branco {
+  background: var(--sidebar-bg);
+  border-radius: var(--r-xl);
+  border: 1px solid var(--border);
+}
+
+/* ── FIX: gaveta de observações ──────────────────────────────── */
+.emp-gaveta {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  padding: 0 16px;
+  background: var(--hover);
+  border-top: 1px solid transparent;
+}
+.emp-gaveta.aberta {
+  max-height: 200px;
+  padding: 12px 16px;
+  border-top-color: var(--border);
+}
+.emp-gaveta-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.emp-gaveta-inner i {
+  color: var(--accent-lt);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.emp-gaveta-inner strong {
+  color: var(--text);
+  display: block;
+  margin-bottom: 3px;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ── MELHORIAS VISUAIS EMPRÉSTIMOS ─── */
+.emp-linha {
+  border-radius: 0;
+  transition: background 0.15s, transform 0.1s;
+}
+.emp-linha:hover {
+  transform: none; /* remove se causar salto */
+}
+
+/* Cabeçalho mais elegante */
+.emp-tabela-header {
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  padding: 12px 20px;
+}
+
+/* Botões de ação mais compactos e elegantes */
+.emp-btn-renovar,
+.emp-btn-devolver,
+.emp-btn-notificar {
+  border-radius: 8px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 11px;
+  gap: 5px;
+}
+
+/* Avatar do aluno com borda */
+.emp-av {
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
+}
+
+/* Mini-capa do livro com sombra */
+.emp-capa {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  border-radius: 6px;
+}
+
+/* Status badges mais redondos */
+.emp-status {
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+
+/* Paginação mais elegante */
+.emp-paginacao {
+  background: transparent;
+  padding: 14px 20px;
+}
