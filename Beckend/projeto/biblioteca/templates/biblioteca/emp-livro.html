@@ -72,15 +72,15 @@
         </div>
 
         <!-- TABELA -->
-        <div class="container-conteudo-branco emp-tabela-wrap">
-            <div class="emp-tabela-header">
-                <span>LIVRO</span>
-                <span>ALUNO</span>
-                <span>EMPRESTADO</span>
-                <span>DEVOLVER</span>
-                <span>STATUS</span>
-                <span>AÇÕES</span>
-            </div>
+    <div class="container-conteudo-branco" style="margin-top:8px;">
+        <div class="emp-tabela-header">
+            <span>LIVRO</span>
+            <span>ALUNO</span>
+            <span>EMPRESTADO</span>
+            <span>DATA</span>
+            <span>STATUS</span>
+            <span>AÇÕES</span>
+        </div>
 
             <div id="conteudo-dinamico-emprestimo">
                 {% for emp in emprestimos %}
@@ -90,8 +90,14 @@
 
                     <!-- LIVRO -->
                     <div class="emp-cell-livro">
-                        <div class="emp-capa" style="background: linear-gradient(135deg, #1e5aa8, #0b1526);">
+                        <div class="emp-capa"
+                            style="background: linear-gradient(135deg, #1e5aa8, #0b1526); position:relative; overflow:hidden;">
+                            {% if emp.livro_obj.capa_url %}
+                            <img src="{{ emp.livro_obj.capa_url }}" alt="{{ emp.livro_obj.titulo }}"
+                                style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+                            {% else %}
                             <span>{{ emp.livro_obj.titulo|slice:":1" }}</span>
+                            {% endif %}
                         </div>
                         <div>
                             <div class="emp-livro-titulo">{{ emp.livro_obj.titulo }}</div>
@@ -200,8 +206,14 @@
                 
                     <!-- LIVRO -->
                     <div class="emp-cell-livro">
-                        <div class="emp-capa" style="background: linear-gradient(135deg, #374151, #1f2937);">
+                        <div class="emp-capa"
+                            style="background: linear-gradient(135deg, #374151, #1f2937); position:relative; overflow:hidden;">
+                            {% if emp.livro_obj.capa_url %}
+                            <img src="{{ emp.livro_obj.capa_url }}" alt="{{ emp.livro_obj.titulo }}"
+                                style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+                            {% else %}
                             <span>{{ emp.livro_obj.titulo|slice:":1" }}</span>
+                            {% endif %}
                         </div>
                         <div>
                             <div class="emp-livro-titulo">{{ emp.livro_obj.titulo }}</div>
@@ -240,9 +252,9 @@
                         </span>
                     </div>
                 
-                    <!-- AÇÕES (nenhuma para histórico) -->
+                    <!-- AÇÕES (histórico) -->
                     <div class="emp-cell-acoes">
-                        <button class="emp-btn-mais" onclick="abrirMenuEmp(this, {{ emp.pk }})" title="Mais opções">
+                        <button class="emp-btn-mais" onclick="abrirMenuEmp(this, {{ emp.pk }}, 'historico')" title="Mais opções">
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
                     </div>
@@ -274,7 +286,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 </section>
 
@@ -410,28 +421,177 @@
 
 <!-- MENU CONTEXTO -->
 <div id="emp-ctx-menu" class="emp-ctx-menu" style="display:none;">
-    <button onclick="ctxObservacoes()"><i class="fa-solid fa-note-sticky"></i> Ver observações</button>
+    <button onclick="ctxObservacoes()">
+        <i class="fa-solid fa-note-sticky"></i> Ver observações
+    </button>
     <hr>
-    <button onclick="ctxDevolver()" class="ctx-danger"><i class="fa-solid fa-rotate-left"></i> Devolver</button>
+    <button id="ctx-btn-acao" class="ctx-danger" onclick="ctxDevolver()">
+        <i class="fa-solid fa-rotate-left"></i> Devolver
+    </button>
 </div>
 
+<!-- MODAL CONFIRMAR DEVOLUÇÃO -->
+<div id="modal-devolver" class="modal-overlay" style="display:none">
+    <div class="modal-box" style="max-width:380px">
+        <div class="modal-head">
+            <span class="modal-titulo">Confirmar devolução</span>
+            <button class="modal-fechar" onclick="fecharModalDevolver()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <p class="modal-sub" style="margin:12px 0 8px">
+            O livro <strong id="modal-devolver-titulo">—</strong> será marcado como devolvido e voltará ao acervo.
+        </p>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+            <button class="modal-btn-cancel" onclick="fecharModalDevolver()">Cancelar</button>
+            <button class="modal-btn-confirm" id="btn-confirmar-devolver" onclick="confirmarDevolver()"
+                style="display:flex;align-items:center;gap:6px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+                    <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Confirmar devolução
+            </button>
+        </div>
+    </div>
+</div>
 
+<!-- MODAL CONFIRMAR RENOVAÇÃO -->
+<div id="modal-renovar" class="modal-overlay" style="display:none">
+    <div class="modal-box" style="max-width:380px">
+        <div class="modal-head">
+            <span class="modal-titulo">Confirmar renovação</span>
+            <button class="modal-fechar" onclick="fecharModalRenovar()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <p class="modal-sub" style="margin:12px 0 8px">
+            O prazo de <strong id="modal-renovar-titulo">—</strong> será estendido em mais 15 dias.
+        </p>
+        <div id="modal-renovar-feedback" style="display:none;margin-top:12px"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px" id="modal-renovar-btns">
+            <button class="modal-btn-cancel" onclick="fecharModalRenovar()">Cancelar</button>
+            <button class="modal-btn-confirm" id="btn-confirmar-renovar" onclick="confirmarRenovar()"
+                style="display:flex;align-items:center;gap:6px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+                    <path d="M21 2v6h-6" />
+                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+                </svg>
+                Confirmar renovação
+            </button>
+        </div>
+    </div>
+</div>
 
+<!-- MODAL EXCLUIR HISTÓRICO -->
+<div id="modal-excluir-historico" class="modal-overlay" style="display:none">
+    <div class="modal-box" style="max-width:380px">
+        <div class="modal-head">
+            <span class="modal-titulo">Excluir do histórico</span>
+            <button class="modal-fechar" onclick="fecharModalExcluirHistorico()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <p class="modal-sub" style="margin:12px 0 8px">
+            Este registro será removido permanentemente do histórico. Essa ação não pode ser desfeita.
+        </p>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+            <button class="modal-btn-cancel" onclick="fecharModalExcluirHistorico()">Cancelar</button>
+            <button class="modal-btn-confirm" onclick="confirmarExcluirHistoricoModal()"
+                style="background:#ef4444;display:inline-flex;align-items:center;gap:6px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                </svg>
+                Excluir permanentemente
+            </button>
+        </div>
+    </div>
+</div>
+<style>
+    #modal-excluir-historico .modal-btn-confirm,
+    #modal-devolver .modal-btn-confirm,
+    #modal-renovar .modal-btn-confirm {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    #modal-excluir-historico .modal-btn-confirm svg,
+    #modal-devolver .modal-btn-confirm svg,
+    #modal-renovar .modal-btn-confirm svg {
+        flex-shrink: 0;
+    }
+
+    .emp-linha-historico .emp-cell-acoes {
+        justify-content: flex-end;
+    }
+
+    .emp-linha-historico {
+        border-bottom: 1px solid var(--border);
+    }
+
+    /* FIX ALINHAMENTO: força padding igual em header e linhas */
+    .emp-tabela-header {
+        padding: 12px 16px !important;
+    }
+
+    /* FIX GAVETA: sem border quando fechada */
+    .emp-gaveta {
+        border-top: none !important;
+    }
+
+    .emp-gaveta.aberta {
+        border-top: 1px solid var(--border) !important;
+    }
+
+    /* FIX WRAPPER: border-radius nos cantos do header */
+    .container-conteudo-branco .emp-tabela-header:first-child {
+        border-radius: var(--r-xl) var(--r-xl) 0 0;
+    }
+ /* Grid padrão (ativos/atrasados) */
+.emp-tabela-header,
+.emp-linha {
+    grid-template-columns: 1.8fr 1.8fr 1.2fr 1.5fr 1.3fr 1fr !important;
+    padding: 12px 16px !important;
+}
+
+.emp-tabela-header.modo-historico,
+.emp-linha.modo-historico:not(.emp-gaveta) {
+    grid-template-columns: 1.8fr 1.8fr 1.2fr 1.5fr 1.3fr 0.6fr !important;
+}
+</style>
 <script>
     // ═══════════════════════════════════════════════════════════
     // ESTADO DO MODAL
     // ═══════════════════════════════════════════════════════════
-    let livroSelecionado = null;   // objeto do livro escolhido
-    let exemplarSelecionado = null; // { id, codigo_completo, codigo_variante }
-    let alunoSelecionado = null;   // objeto do aluno escolhido
+    let livroSelecionado = null;
+    let exemplarSelecionado = null;
+    let alunoSelecionado = null;
     let timerLivro = null;
     let timerAluno = null;
+    let pkDevolver = null;
+    let pkRenovar = null;
+    let ctxPk = null;
+    let ctxTipo = null;
 
     const CORES_AV = ['#1e5aa8', '#7c3aed', '#059669', '#b45309', '#dc2626', '#0891b2'];
 
-    function corAvatar(id) {
-        return CORES_AV[id % CORES_AV.length];
-    }
+    function corAvatar(id) { return CORES_AV[id % CORES_AV.length]; }
 
     function iniciaisNome(nome) {
         const p = (nome || '').split(' ').filter(Boolean);
@@ -447,7 +607,7 @@
     }
 
     // ═══════════════════════════════════════════════════════════
-    // MODAL ABRIR / FECHAR
+    // MODAL NOVO EMPRÉSTIMO
     // ═══════════════════════════════════════════════════════════
     document.getElementById('btn-abrir-modal-emp').addEventListener('click', abrirModalEmp);
 
@@ -461,8 +621,7 @@
     }
 
     function fecharModalEmp() {
-        const modal = document.getElementById('modal-emprestimo');
-        modal.style.setProperty('display', 'none', 'important');
+        document.getElementById('modal-emprestimo').style.setProperty('display', 'none', 'important');
         resetModal();
     }
 
@@ -470,7 +629,6 @@
         livroSelecionado = null;
         exemplarSelecionado = null;
         alunoSelecionado = null;
-
         document.getElementById('emp-titulo').value = '';
         document.getElementById('emp-titulo').style.display = '';
         document.getElementById('emp-nome').value = '';
@@ -478,14 +636,12 @@
         document.getElementById('emp-obs').value = '';
         document.getElementById('emp-data-dev').value = '';
         document.getElementById('hint-dev-data').textContent = '+15d automático';
-
         document.getElementById('preview-livro').style.display = 'none';
         document.getElementById('preview-aluno').style.display = 'none';
         document.getElementById('wrap-volume').style.display = 'none';
         document.getElementById('ac-livro').style.display = 'none';
         document.getElementById('ac-aluno').style.display = 'none';
         document.getElementById('emp-modal-status-wrap').style.display = 'none';
-
         const btn = document.getElementById('btn-confirmar-emp');
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-check"></i> Registrar Empréstimo';
@@ -496,10 +652,7 @@
     // ═══════════════════════════════════════════════════════════
     function onLivroInput(val) {
         clearTimeout(timerLivro);
-        if (val.length < 2) {
-            document.getElementById('ac-livro').style.display = 'none';
-            return;
-        }
+        if (val.length < 2) { document.getElementById('ac-livro').style.display = 'none'; return; }
         timerLivro = setTimeout(() => buscarLivro(val), 300);
     }
 
@@ -512,13 +665,11 @@
     function renderAcLivro(livros) {
         const lista = document.getElementById('ac-livro');
         lista.innerHTML = '';
-
         if (!livros.length) {
             lista.innerHTML = '<div class="emp-ac-vazio">Nenhum livro encontrado.</div>';
             lista.style.display = 'block';
             return;
         }
-
         livros.forEach(livro => {
             const item = document.createElement('div');
             item.className = 'emp-ac-item';
@@ -526,55 +677,38 @@
             const dispBadge = livro.qtd_disponivel > 0
                 ? `<span class="emp-ac-badge emp-ac-badge-green">${livro.qtd_disponivel} disponível</span>`
                 : `<span class="emp-ac-badge emp-ac-badge-red">Indisponível</span>`;
-
             item.innerHTML = `
-            <div class="emp-ac-mini-capa" style="background:linear-gradient(135deg,${cor},#0b1526);">
-                ${livro.titulo[0]}
-            </div>
-            <div class="emp-ac-info">
-                <div class="emp-ac-nome">${livro.titulo}</div>
-                <div class="emp-ac-sub">${livro.autor || 'Autor desconhecido'} · Prateleira ${livro.prateleira || '—'}</div>
-            </div>
-            ${dispBadge}
-        `;
+                <div class="emp-ac-mini-capa" style="background:linear-gradient(135deg,${cor},#0b1526);">${livro.titulo[0]}</div>
+                <div class="emp-ac-info">
+                    <div class="emp-ac-nome">${livro.titulo}</div>
+                    <div class="emp-ac-sub">${livro.autor || 'Autor desconhecido'} · Prateleira ${livro.prateleira || '—'}</div>
+                </div>
+                ${dispBadge}`;
             item.addEventListener('click', () => selecionarLivro(livro));
             lista.appendChild(item);
         });
-
         lista.style.display = 'block';
     }
 
     function selecionarLivro(livro) {
         livroSelecionado = livro;
         exemplarSelecionado = null;
-
-        // Esconde campo de busca e dropdown
         document.getElementById('emp-titulo').style.display = 'none';
         document.getElementById('ac-livro').style.display = 'none';
-
-        // Mostra pré-visualização
         const cor = corAvatar(livro.id);
         document.getElementById('preview-livro-capa').style.background = `linear-gradient(135deg,${cor},#0b1526)`;
         document.getElementById('preview-livro-capa').textContent = livro.titulo[0];
         document.getElementById('preview-livro-titulo').textContent = livro.titulo;
-        document.getElementById('preview-livro-sub').textContent =
-            `${livro.autor || 'Autor desconhecido'} · Prateleira ${livro.prateleira || '—'}`;
-
+        document.getElementById('preview-livro-sub').textContent = `${livro.autor || 'Autor desconhecido'} · Prateleira ${livro.prateleira || '—'}`;
         const badges = document.getElementById('preview-livro-badges');
-        const dispTxt = livro.qtd_disponivel > 0
+        badges.innerHTML = livro.qtd_disponivel > 0
             ? `<span class="emp-ac-badge emp-ac-badge-green">${livro.qtd_disponivel} exemplar${livro.qtd_disponivel > 1 ? 'es' : ''} disponível${livro.qtd_disponivel > 1 ? 'is' : ''}</span>`
             : `<span class="emp-ac-badge emp-ac-badge-red">Sem exemplares disponíveis</span>`;
-        badges.innerHTML = dispTxt;
-
         document.getElementById('preview-livro').style.display = 'flex';
-
-        // Seletor de volume
         const wrapVol = document.getElementById('wrap-volume');
         const selectVol = document.getElementById('emp-volume');
         selectVol.innerHTML = '<option value="">Selecione o exemplar...</option>';
-
         if (livro.exemplares_disponiveis.length === 1) {
-            // Seleciona automaticamente se houver só 1
             exemplarSelecionado = livro.exemplares_disponiveis[0];
             const opt = document.createElement('option');
             opt.value = livro.exemplares_disponiveis[0].id_exemplar;
@@ -593,7 +727,6 @@
         } else {
             wrapVol.style.display = 'none';
         }
-
         checkFormStatus();
     }
 
@@ -621,10 +754,7 @@
     // ═══════════════════════════════════════════════════════════
     function onAlunoInput(val) {
         clearTimeout(timerAluno);
-        if (val.length < 2) {
-            document.getElementById('ac-aluno').style.display = 'none';
-            return;
-        }
+        if (val.length < 2) { document.getElementById('ac-aluno').style.display = 'none'; return; }
         timerAluno = setTimeout(() => buscarAluno(val), 300);
     }
 
@@ -637,67 +767,50 @@
     function renderAcAluno(usuarios) {
         const lista = document.getElementById('ac-aluno');
         lista.innerHTML = '';
-
         if (!usuarios.length) {
             lista.innerHTML = '<div class="emp-ac-vazio">Nenhum usuário encontrado.</div>';
             lista.style.display = 'block';
             return;
         }
-
         usuarios.forEach(u => {
             const item = document.createElement('div');
             item.className = 'emp-ac-item';
             const cor = corAvatar(u.id);
             const ini = iniciaisNome(u.nome);
-
             const statusBadge = !u.pode_emprestar
                 ? `<span class="emp-ac-badge emp-ac-badge-red">Limite atingido</span>`
                 : u.emprestimos_ativos > 0
                     ? `<span class="emp-ac-badge emp-ac-badge-blue">${u.emprestimos_ativos}/2 livros</span>`
                     : `<span class="emp-ac-badge emp-ac-badge-green">Sem empréstimos</span>`;
-
             item.innerHTML = `
-            <div class="emp-ac-mini-av" style="background:${cor};">${ini}</div>
-            <div class="emp-ac-info">
-                <div class="emp-ac-nome">${u.nome}</div>
-                <div class="emp-ac-sub">${u.serie || 'Sem turma'} · Matrícula ${u.matricula || '—'}</div>
-            </div>
-            ${statusBadge}
-        `;
+                <div class="emp-ac-mini-av" style="background:${cor};">${ini}</div>
+                <div class="emp-ac-info">
+                    <div class="emp-ac-nome">${u.nome}</div>
+                    <div class="emp-ac-sub">${u.serie || 'Sem turma'} · Matrícula ${u.matricula || '—'}</div>
+                </div>
+                ${statusBadge}`;
             item.addEventListener('click', () => selecionarAluno(u));
             lista.appendChild(item);
         });
-
         lista.style.display = 'block';
     }
 
     function selecionarAluno(u) {
         alunoSelecionado = u;
-
-        // Esconde campo de busca e dropdown
         document.getElementById('emp-nome').style.display = 'none';
         document.getElementById('ac-aluno').style.display = 'none';
-
-        // Pré-visualização
         const cor = corAvatar(u.id);
         const ini = iniciaisNome(u.nome);
         document.getElementById('preview-aluno-av').style.background = cor;
         document.getElementById('preview-aluno-av').textContent = ini;
         document.getElementById('preview-aluno-nome').textContent = u.nome;
-        document.getElementById('preview-aluno-sub').textContent =
-            `${u.serie || 'Sem turma'} · Matrícula ${u.matricula || '—'}`;
-
+        document.getElementById('preview-aluno-sub').textContent = `${u.serie || 'Sem turma'} · Matrícula ${u.matricula || '—'}`;
         const badges = document.getElementById('preview-aluno-badges');
-        let badgeHtml = '';
-        if (!u.pode_emprestar) {
-            badgeHtml = `<span class="emp-ac-badge emp-ac-badge-red">Limite de 2 livros atingido</span>`;
-        } else if (u.emprestimos_ativos > 0) {
-            badgeHtml = `<span class="emp-ac-badge emp-ac-badge-blue">${u.emprestimos_ativos} empréstimo${u.emprestimos_ativos > 1 ? 's' : ''} ativo${u.emprestimos_ativos > 1 ? 's' : ''} · ainda pode pegar ${2 - u.emprestimos_ativos}</span>`;
-        } else {
-            badgeHtml = `<span class="emp-ac-badge emp-ac-badge-green">Nenhum empréstimo ativo</span>`;
-        }
-        badges.innerHTML = badgeHtml;
-
+        badges.innerHTML = !u.pode_emprestar
+            ? `<span class="emp-ac-badge emp-ac-badge-red">Limite de 2 livros atingido</span>`
+            : u.emprestimos_ativos > 0
+                ? `<span class="emp-ac-badge emp-ac-badge-blue">${u.emprestimos_ativos} empréstimo${u.emprestimos_ativos > 1 ? 's' : ''} ativo${u.emprestimos_ativos > 1 ? 's' : ''} · ainda pode pegar ${2 - u.emprestimos_ativos}</span>`
+                : `<span class="emp-ac-badge emp-ac-badge-green">Nenhum empréstimo ativo</span>`;
         document.getElementById('preview-aluno').style.display = 'flex';
         checkFormStatus();
     }
@@ -729,13 +842,8 @@
     function onDataDevChange() {
         const val = document.getElementById('emp-data-dev').value;
         const hint = document.getElementById('hint-dev-data');
-        if (val) {
-            hint.textContent = 'personalizado';
-            hint.style.color = 'var(--accent-lt)';
-        } else {
-            hint.textContent = '+15d automático';
-            hint.style.color = '';
-        }
+        if (val) { hint.textContent = 'personalizado'; hint.style.color = 'var(--accent-lt)'; }
+        else { hint.textContent = '+15d automático'; hint.style.color = ''; }
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -744,15 +852,8 @@
     function checkFormStatus() {
         const statusWrap = document.getElementById('emp-modal-status-wrap');
         const statusMsg = document.getElementById('emp-modal-status-msg');
-
-        // Verifica se livro tem exemplar selecionado
-        const livroOk = livroSelecionado &&
-            (livroSelecionado.exemplares_disponiveis.length === 0 ||
-                exemplarSelecionado !== null);
-
-        // Aluno deve existir e poder emprestar
+        const livroOk = livroSelecionado && (livroSelecionado.exemplares_disponiveis.length === 0 || exemplarSelecionado !== null);
         const alunoOk = alunoSelecionado && alunoSelecionado.pode_emprestar;
-
         if (livroSelecionado && alunoSelecionado && !alunoSelecionado.pode_emprestar) {
             statusWrap.style.display = 'flex';
             statusWrap.style.background = 'rgba(239,68,68,.08)';
@@ -762,7 +863,6 @@
             document.getElementById('btn-confirmar-emp').disabled = true;
             return;
         }
-
         if (livroOk && alunoOk) {
             statusWrap.style.display = 'flex';
             statusWrap.style.background = 'rgba(34,197,94,.08)';
@@ -781,20 +881,13 @@
     // ═══════════════════════════════════════════════════════════
     function confirmarEmprestimo() {
         if (!livroSelecionado) { alert('Selecione um livro.'); return; }
-        if (!exemplarSelecionado && livroSelecionado.exemplares_disponiveis.length > 0) {
-            alert('Selecione o exemplar (volume) do livro.'); return;
-        }
+        if (!exemplarSelecionado && livroSelecionado.exemplares_disponiveis.length > 0) { alert('Selecione o exemplar do livro.'); return; }
         if (!alunoSelecionado) { alert('Selecione um aluno.'); return; }
-        if (!alunoSelecionado.pode_emprestar) {
-            alert('Este aluno já atingiu o limite de 2 empréstimos.'); return;
-        }
-
+        if (!alunoSelecionado.pode_emprestar) { alert('Este aluno já atingiu o limite de 2 empréstimos.'); return; }
         const dataEmp = document.getElementById('emp-data-emp').value;
         const dataDev = document.getElementById('emp-data-dev').value;
         const obs = document.getElementById('emp-obs').value.trim();
-
         if (!dataEmp) { alert('Informe a data do empréstimo.'); return; }
-
         const payload = {
             codigo_completo: exemplarSelecionado ? exemplarSelecionado.codigo_completo : '',
             nome_aluno: alunoSelecionado.nome,
@@ -804,11 +897,9 @@
             observacoes: obs,
             usuario_id: alunoSelecionado.id,
         };
-
         const btn = document.getElementById('btn-confirmar-emp');
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registrando...';
-
         fetch('/biblioteca/emprestimos/criar/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
@@ -837,10 +928,8 @@
         const container = document.getElementById('conteudo-dinamico-emprestimo');
         const vazia = container.querySelector('.emp-vazia');
         if (vazia) vazia.remove();
-
         const cor = CORES_AV[Math.floor(Math.random() * CORES_AV.length)];
         const ini = iniciaisNome(data.usuario);
-
         const linha = document.createElement('div');
         linha.className = 'emp-linha';
         linha.id = `emp-${data.id}`;
@@ -849,42 +938,41 @@
         linha.dataset.titulo = (data.titulo || '').toLowerCase();
         linha.dataset.turma = (data.turma || '').toLowerCase();
         linha.innerHTML = `
-        <div class="emp-cell-livro">
-            <div class="emp-capa" style="background:linear-gradient(135deg,${cor},#0b1526);">${(data.titulo || '?')[0]}</div>
-            <div>
-                <div class="emp-livro-titulo">${data.titulo}</div>
-                <div class="emp-livro-codigo">${data.codigo_completo || ''}</div>
+            <div class="emp-cell-livro">
+                <div class="emp-capa" style="background:linear-gradient(135deg,${cor},#0b1526);">${(data.titulo || '?')[0]}</div>
+                <div>
+                    <div class="emp-livro-titulo">${data.titulo}</div>
+                    <div class="emp-livro-codigo">${data.codigo_completo || ''}</div>
+                </div>
             </div>
-        </div>
-        <div class="emp-cell-aluno">
-            <div class="emp-av" style="background:${cor};">${ini}</div>
-            <div>
-                <div class="emp-aluno-nome">${data.usuario}</div>
-                <div class="emp-aluno-info">${data.turma || ''}</div>
+            <div class="emp-cell-aluno">
+                <div class="emp-av" style="background:${cor};">${ini}</div>
+                <div>
+                    <div class="emp-aluno-nome">${data.usuario}</div>
+                    <div class="emp-aluno-info">${data.turma || ''}</div>
+                </div>
             </div>
-        </div>
-        <div class="emp-cell-data">${formatarData(data.data_emprestimo)}</div>
-        <div class="emp-cell-devolver">
-            <span class="emp-data-ok">
-                ${formatarData(data.data_devolucao_prevista)}
-                <span class="emp-days-badge emp-badge-green">+15d</span>
-            </span>
-        </div>
-        <div class="emp-cell-status">
-            <span class="emp-status emp-status-ok"><i class="fa-solid fa-check"></i> EM DIA</span>
-        </div>
-        <div class="emp-cell-acoes">
-            <button class="emp-btn-renovar" onclick="renovarEmprestimo(${data.id})">
-                <i class="fa-solid fa-rotate-right"></i> Renovar
-            </button>
-            <button class="emp-btn-devolver" onclick="devolverEmprestimo(${data.id})">
-                <i class="fa-solid fa-check"></i> Devolver
-            </button>
-            <button class="emp-btn-mais" onclick="abrirMenuEmp(this,${data.id})">
-                <i class="fa-solid fa-ellipsis-vertical"></i>
-            </button>
-        </div>
-    `;
+            <div class="emp-cell-data">${formatarData(data.data_emprestimo)}</div>
+            <div class="emp-cell-devolver">
+                <span class="emp-data-ok">
+                    ${formatarData(data.data_devolucao_prevista)}
+                    <span class="emp-days-badge emp-badge-green">+15d</span>
+                </span>
+            </div>
+            <div class="emp-cell-status">
+                <span class="emp-status emp-status-ok"><i class="fa-solid fa-check"></i> EM DIA</span>
+            </div>
+            <div class="emp-cell-acoes">
+                <button class="emp-btn-renovar" onclick="renovarEmprestimo(${data.id})">
+                    <i class="fa-solid fa-rotate-right"></i> Renovar
+                </button>
+                <button class="emp-btn-devolver" onclick="devolverEmprestimo(${data.id})">
+                    <i class="fa-solid fa-check"></i> Devolver
+                </button>
+                <button class="emp-btn-mais" onclick="abrirMenuEmp(this,${data.id})">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+            </div>`;
         container.prepend(linha);
         linha.style.opacity = '0';
         linha.style.transform = 'translateY(-8px)';
@@ -897,50 +985,190 @@
     }
 
     // ═══════════════════════════════════════════════════════════
-    // DEVOLVER / RENOVAR
+    // DEVOLVER — modal customizado
     // ═══════════════════════════════════════════════════════════
     function devolverEmprestimo(pk) {
-        if (!confirm('Confirmar devolução deste livro?')) return;
-        fetch(`/biblioteca/emprestimos/devolver/${pk}/`, {
+        pkDevolver = pk;
+        const linha = document.getElementById(`emp-${pk}`);
+        const titulo = linha?.querySelector('.emp-livro-titulo')?.textContent || 'este livro';
+        document.getElementById('modal-devolver-titulo').textContent = titulo;
+        document.getElementById('btn-confirmar-devolver').disabled = false;
+        document.getElementById('btn-confirmar-devolver').style.opacity = '1';
+        document.getElementById('modal-devolver').style.display = 'flex';
+    }
+
+    function fecharModalDevolver() {
+        document.getElementById('modal-devolver').style.display = 'none';
+        pkDevolver = null;
+    }
+
+    function confirmarDevolver() {
+        if (!pkDevolver) return;
+        const btn = document.getElementById('btn-confirmar-devolver');
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        fetch(`/biblioteca/emprestimos/devolver/${pkDevolver}/`, {
             method: 'POST',
             headers: { 'X-CSRFToken': getCookie('csrftoken') }
         })
             .then(r => r.json())
             .then(data => {
                 if (data.sucesso) {
+                    const pk = pkDevolver;
+                    fecharModalDevolver();
                     const linha = document.getElementById(`emp-${pk}`);
+                    const gaveta = document.getElementById(`gaveta-${pk}`);
                     if (linha) {
                         linha.style.transition = 'opacity .3s, transform .3s';
                         linha.style.opacity = '0';
                         linha.style.transform = 'translateX(20px)';
-                        setTimeout(() => { linha.remove(); atualizarContadores(); verificarVazio(); }, 300);
+                        setTimeout(() => { linha.remove(); if (gaveta) gaveta.remove(); atualizarContadores(); verificarVazio(); }, 300);
                     }
-                } else alert('Erro: ' + (data.erro || 'Falha ao devolver.'));
-            });
+                } else {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    alert('Erro: ' + (data.erro || 'Falha ao devolver.'));
+                }
+            })
+            .catch(() => { btn.disabled = false; btn.style.opacity = '1'; alert('Erro de conexão.'); });
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // RENOVAR — modal customizado
+    // ═══════════════════════════════════════════════════════════
     function renovarEmprestimo(pk) {
-        fetch(`/biblioteca/emprestimos/renovar/${pk}/`, {
+        pkRenovar = pk;
+        const linha = document.getElementById(`emp-${pk}`);
+        const titulo = linha?.querySelector('.emp-livro-titulo')?.textContent || 'este livro';
+        document.getElementById('modal-renovar-titulo').textContent = titulo;
+        document.getElementById('modal-renovar-feedback').style.display = 'none';
+        document.getElementById('modal-renovar-btns').style.display = 'flex';
+        document.getElementById('btn-confirmar-renovar').disabled = false;
+        document.getElementById('btn-confirmar-renovar').style.opacity = '1';
+        document.getElementById('modal-renovar').style.display = 'flex';
+    }
+
+    function fecharModalRenovar() {
+        document.getElementById('modal-renovar').style.display = 'none';
+        pkRenovar = null;
+    }
+
+    function confirmarRenovar() {
+        if (!pkRenovar) return;
+        const btn = document.getElementById('btn-confirmar-renovar');
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        fetch(`/biblioteca/emprestimos/renovar/${pkRenovar}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+            .then(r => r.json())
+            .then(data => {
+                const feedback = document.getElementById('modal-renovar-feedback');
+                if (data.sucesso) {
+                    const pk = pkRenovar;
+                    const linha = document.getElementById(`emp-${pk}`);
+                    if (linha && data.nova_data) {
+                        linha.querySelector('.emp-cell-devolver').innerHTML = `
+                            <span class="emp-data-ok">
+                                ${formatarData(data.nova_data)}
+                                <span class="emp-days-badge emp-badge-green">Renovado</span>
+                            </span>`;
+                        linha.style.transition = 'background .3s';
+                        linha.style.background = 'rgba(34,197,94,.08)';
+                        setTimeout(() => { linha.style.background = ''; }, 800);
+                    }
+                    feedback.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);color:#22c55e;font-size:13px;font-weight:500;margin-top:12px';
+                    feedback.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Renovado! Nova data: ${formatarData(data.nova_data)}`;
+                    document.getElementById('modal-renovar-btns').style.display = 'none';
+                    setTimeout(() => fecharModalRenovar(), 1500);
+                } else {
+                    feedback.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#ef4444;font-size:13px;font-weight:500;margin-top:12px';
+                    feedback.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> ${data.erro || 'Não foi possível renovar.'}`;
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
+            })
+            .catch(() => { btn.disabled = false; btn.style.opacity = '1'; alert('Erro de conexão.'); });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // EXCLUIR HISTÓRICO — modal customizado
+    // ═══════════════════════════════════════════════════════════
+    function fecharModalExcluirHistorico() {
+        document.getElementById('modal-excluir-historico').style.display = 'none';
+    }
+
+    function ctxExcluirHistorico() {
+        fecharCtxMenu();
+        if (!ctxPk) return;
+        document.getElementById('modal-excluir-historico').style.display = 'flex';
+    }
+
+    function confirmarExcluirHistoricoModal() {
+        if (!ctxPk) return;
+        fetch(`/biblioteca/emprestimos/excluir-historico/${ctxPk}/`, {
             method: 'POST',
             headers: { 'X-CSRFToken': getCookie('csrftoken') }
         })
             .then(r => r.json())
             .then(data => {
                 if (data.sucesso) {
-                    const linha = document.getElementById(`emp-${pk}`);
-                    if (linha && data.nova_data) {
-                        linha.querySelector('.emp-cell-devolver').innerHTML = `
-                    <span class="emp-data-ok">
-                        ${formatarData(data.nova_data)}
-                        <span class="emp-days-badge emp-badge-green">Renovado</span>
-                    </span>`;
-                        linha.style.transition = 'background .3s';
-                        linha.style.background = 'rgba(34,197,94,.08)';
-                        setTimeout(() => { linha.style.background = ''; }, 800);
+                    fecharModalExcluirHistorico();
+                    const linha = document.getElementById(`emp-hist-${ctxPk}`);
+                    const gaveta = document.getElementById(`gaveta-hist-${ctxPk}`);
+                    if (linha) {
+                        linha.style.transition = 'opacity .3s, transform .3s';
+                        linha.style.opacity = '0';
+                        linha.style.transform = 'translateX(20px)';
+                        setTimeout(() => { linha.remove(); if (gaveta) gaveta.remove(); verificarVazio(); }, 300);
                     }
-                    alert(data.sucesso);
-                } else alert('Erro: ' + (data.erro || 'Não foi possível renovar.'));
-            });
+                } else {
+                    alert('Erro: ' + (data.erro || 'Não foi possível excluir.'));
+                }
+            })
+            .catch(() => alert('Erro de conexão.'));
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // MENU CONTEXTO
+    // ═══════════════════════════════════════════════════════════
+    function abrirMenuEmp(btn, pk, tipo) {
+        ctxPk = pk;
+        ctxTipo = tipo || 'ativo';
+        const menu = document.getElementById('emp-ctx-menu');
+        const btnAcao = document.getElementById('ctx-btn-acao');
+        if (ctxTipo === 'historico') {
+            btnAcao.innerHTML = '<i class="fa-solid fa-trash"></i> Excluir do histórico';
+            btnAcao.onclick = ctxExcluirHistorico;
+        } else {
+            btnAcao.innerHTML = '<i class="fa-solid fa-rotate-left"></i> Devolver';
+            btnAcao.onclick = ctxDevolver;
+        }
+        const rect = btn.getBoundingClientRect();
+        menu.style.display = 'block';
+        const menuW = 190;
+        const left = Math.min(rect.right - menuW, window.innerWidth - menuW - 8);
+        menu.style.top = (rect.bottom + 4) + 'px';
+        menu.style.left = left + 'px';
+        setTimeout(() => document.addEventListener('click', fecharCtxMenu, { once: true }), 10);
+    }
+
+    function fecharCtxMenu() {
+        document.getElementById('emp-ctx-menu').style.display = 'none';
+    }
+
+    function ctxDevolver() {
+        fecharCtxMenu();
+        if (ctxPk) devolverEmprestimo(ctxPk);
+    }
+
+    function ctxObservacoes() {
+        fecharCtxMenu();
+        if (!ctxPk) return;
+        const gaveta = document.getElementById(`gaveta-${ctxPk}`) || document.getElementById(`gaveta-hist-${ctxPk}`);
+        if (!gaveta) return;
+        gaveta.classList.toggle('aberta');
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -958,25 +1186,55 @@
     document.getElementById('filtro-turma').addEventListener('change', filtrarLinhas);
 
     function filtrarLinhas() {
-        const abaAtiva = document.querySelector('.emp-aba.ativa')?.dataset.aba || 'ativos';
-        const busca = document.getElementById('emp-busca').value.toLowerCase();
-        const turma = document.getElementById('filtro-turma').value.toLowerCase();
-        let visiveis = 0;
+            const abaAtiva = document.querySelector('.emp-aba.ativa')?.dataset.aba || 'ativos';
+            const busca = document.getElementById('emp-busca').value.toLowerCase();
+            const turma = document.getElementById('filtro-turma').value.toLowerCase();
+            let visiveis = 0;
 
-        document.querySelectorAll('.emp-linha').forEach(linha => {
-            const atrasado = linha.dataset.atrasado === '1';
-            let show = true;
-            if (abaAtiva === 'atrasados' && !atrasado) show = false;
-            if (busca && !linha.dataset.nome?.includes(busca) && !linha.dataset.titulo?.includes(busca)) show = false;
-            if (turma && !(linha.dataset.turma || '').toLowerCase().includes(turma)) show = false;
-            linha.style.display = show ? '' : 'none';
-            if (show) visiveis++;
-        });
+            // ── TROCA O HEADER CONFORME A ABA ──
+            const header = document.querySelector('.emp-tabela-header');
+            if (abaAtiva === 'historico') {
+                header.innerHTML = `
+            <span>LIVRO</span><span>ALUNO</span><span>EMPRESTADO</span>
+            <span>DEVOLVIDO</span><span>STATUS</span><span>AÇÕES</span>`;
+                header.classList.add('modo-historico');
+            } else {
+                header.innerHTML = `
+            <span>LIVRO</span><span>ALUNO</span><span>EMPRESTADO</span>
+            <span>DATA</span><span>STATUS</span><span>AÇÕES</span>`;
+                header.classList.remove('modo-historico');
+            }
 
-        document.getElementById('emp-paginacao-info').textContent =
-            `Mostrando ${visiveis} resultado${visiveis !== 1 ? 's' : ''}`;
-        verificarVazio();
-    }
+            // ── LINHAS ATIVAS/ATRASADAS ──
+            document.querySelectorAll('.emp-linha.emp-linha-historico').forEach(linha => {
+                const atrasado = linha.dataset.atrasado === '1';
+                let show = true;
+                if (abaAtiva === 'historico') show = false;
+                if (abaAtiva === 'atrasados' && !atrasado) show = false;
+                if (busca && !linha.dataset.nome?.includes(busca) && !linha.dataset.titulo?.includes(busca)) show = false;
+                if (turma && !(linha.dataset.turma || '').toLowerCase().includes(turma)) show = false;
+                linha.classList.remove('modo-historico');
+                linha.style.display = show ? '' : 'none';
+                if (show) visiveis++;
+            });
+
+            // ── LINHAS DO HISTÓRICO ──
+            document.querySelectorAll('.emp-linha-historico').forEach(linha => {
+                let show = abaAtiva === 'historico';
+                if (show && busca && !linha.dataset.nome?.includes(busca) && !linha.dataset.titulo?.includes(busca)) show = false;
+                if (show && turma && !(linha.dataset.turma || '').toLowerCase().includes(turma)) show = false;
+                if (abaAtiva === 'historico') {
+                    linha.classList.add('modo-historico');
+                } else {
+                    linha.classList.remove('modo-historico');
+                }
+                linha.style.display = show ? '' : 'none';
+                if (show) visiveis++;
+            });
+
+            document.getElementById('emp-paginacao-info').textContent = `Mostrando ${visiveis} resultado${visiveis !== 1 ? 's' : ''}`;
+            verificarVazio();
+        }
 
     function verificarVazio() {
         const container = document.getElementById('conteudo-dinamico-emprestimo');
@@ -992,6 +1250,15 @@
         } else if (msg) msg.remove();
     }
 
+    function atualizarContadores() {
+        const linhas = document.querySelectorAll('.emp-linha:not(.emp-linha-historico)');
+        document.getElementById('total-ativos').textContent = linhas.length;
+        document.getElementById('badge-ativos').textContent = linhas.length;
+        const atrasados = document.querySelectorAll('.emp-linha[data-atrasado="1"]').length;
+        document.getElementById('total-atrasados').textContent = atrasados;
+        document.getElementById('badge-atrasados').textContent = atrasados;
+    }
+
     (function () {
         const select = document.getElementById('filtro-turma');
         const turmas = new Set();
@@ -1003,151 +1270,28 @@
         });
     })();
 
-    function atualizarContadores() {
-        const linhas = document.querySelectorAll('.emp-linha');
-        document.getElementById('total-ativos').textContent = linhas.length;
-        document.getElementById('badge-ativos').textContent = linhas.length;
-        const atrasados = document.querySelectorAll('.emp-linha[data-atrasado="1"]').length;
-        document.getElementById('total-atrasados').textContent = atrasados;
-        document.getElementById('badge-atrasados').textContent = atrasados;
-    }
-
     // ═══════════════════════════════════════════════════════════
-    // MENU CONTEXTO
+    // FECHAR COM ESCAPE / CLIQUE FORA
     // ═══════════════════════════════════════════════════════════
-    // SUBSTITUA a variável ctxPk e a função abrirMenuEmp por:
-        let ctxPk = null;
-        let ctxTipo = null; // 'ativo' ou 'historico'
-
-        function abrirMenuEmp(btn, pk, tipo) {
-            ctxPk = pk;
-            ctxTipo = tipo || 'ativo';
-            const menu = document.getElementById('emp-ctx-menu');
-
-            // Atualiza o botão de ação conforme o tipo
-            const btnAcao = document.getElementById('ctx-btn-acao');
-            if (ctxTipo === 'historico') {
-                btnAcao.innerHTML = '<i class="fa-solid fa-trash"></i> Excluir do histórico';
-                btnAcao.onclick = ctxExcluirHistorico;
-                btnAcao.className = 'ctx-danger';
-            } else {
-                btnAcao.innerHTML = '<i class="fa-solid fa-rotate-left"></i> Devolver';
-                btnAcao.onclick = ctxDevolver;
-                btnAcao.className = 'ctx-danger';
-            }
-
-            const rect = btn.getBoundingClientRect();
-            menu.style.display = 'block';
-            // Posiciona à esquerda se muito perto da borda direita
-            const menuW = 190;
-            const left = Math.min(rect.right - menuW, window.innerWidth - menuW - 8);
-            menu.style.top = (rect.bottom + 4) + 'px';
-            menu.style.left = left + 'px';
-            setTimeout(() => document.addEventListener('click', fecharCtxMenu, { once: true }), 10);
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            fecharModalEmp();
+            fecharModalDevolver();
+            fecharModalRenovar();
+            fecharModalExcluirHistorico();
         }
+    });
 
-        function ctxExcluirHistorico() {
-            fecharCtxMenu();
-            if (!ctxPk) return;
-            if (!confirm('Excluir este registro do histórico permanentemente?')) return;
-
-            fetch(`/biblioteca/emprestimos/excluir-historico/${ctxPk}/`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': getCookie('csrftoken') }
-            })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.sucesso) {
-                        // Remove a linha e a gaveta do DOM
-                        const linha = document.getElementById(`emp-hist-${ctxPk}`);
-                        const gaveta = document.getElementById(`gaveta-hist-${ctxPk}`);
-                        if (linha) {
-                            linha.style.transition = 'opacity .3s, transform .3s';
-                            linha.style.opacity = '0';
-                            linha.style.transform = 'translateX(20px)';
-                            setTimeout(() => {
-                                linha.remove();
-                                if (gaveta) gaveta.remove();
-                                verificarVazio();
-                                // Atualiza contador da paginação
-                                const visiveis = document.querySelectorAll('.emp-linha-historico:not([style*="display: none"])').length;
-                                document.getElementById('emp-paginacao-info').textContent =
-                                    `Mostrando ${visiveis} resultado${visiveis !== 1 ? 's' : ''}`;
-                            }, 300);
-                        }
-                    } else {
-                        alert('Erro: ' + (data.erro || 'Não foi possível excluir.'));
-                    }
-                })
-                .catch(() => alert('Erro de conexão. Tente novamente.'));
-        }
-
-    // ═══════════════════════════════════════════════════════════
-    // UTILITÁRIOS
-    // ═══════════════════════════════════════════════════════════
-    function getCookie(name) {
-        const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
-        return v ? v[2] : null;
-    }
-
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharModalEmp(); });
     document.getElementById('modal-emprestimo').addEventListener('click', e => {
         if (e.target === document.getElementById('modal-emprestimo')) fecharModalEmp();
     });
 
-    // Fecha autocomplete ao clicar fora
     document.addEventListener('click', e => {
         if (!document.getElementById('wrap-livro').contains(e.target))
             document.getElementById('ac-livro').style.display = 'none';
         if (!document.getElementById('wrap-aluno').contains(e.target))
             document.getElementById('ac-aluno').style.display = 'none';
     });
-    // ── GAVETA DE OBSERVAÇÕES ─────────────────────────────────────
-        function ctxObservacoes() {
-            fecharCtxMenu();
-            if (!ctxPk) return;
-            // Tenta gaveta de ativo, depois de histórico
-            const gaveta = document.getElementById(`gaveta-${ctxPk}`)
-                || document.getElementById(`gaveta-hist-${ctxPk}`);
-            if (!gaveta) return;
-            gaveta.classList.toggle('aberta');
-        }
-
-        // ── FILTRAR LINHAS (com suporte à aba histórico) ──────────────
-        function filtrarLinhas() {
-            const abaAtiva = document.querySelector('.emp-aba.ativa')?.dataset.aba || 'ativos';
-            const busca = document.getElementById('emp-busca').value.toLowerCase();
-            const turma = document.getElementById('filtro-turma').value.toLowerCase();
-            let visiveis = 0;
-
-            // Linhas ativas (sem classe historico)
-            document.querySelectorAll('.emp-linha:not(.emp-linha-historico)').forEach(linha => {
-                const atrasado = linha.dataset.atrasado === '1';
-                let show = true;
-
-                if (abaAtiva === 'historico') show = false;
-                if (abaAtiva === 'atrasados' && !atrasado) show = false;
-                if (busca && !linha.dataset.nome?.includes(busca) && !linha.dataset.titulo?.includes(busca)) show = false;
-                if (turma && !(linha.dataset.turma || '').toLowerCase().includes(turma)) show = false;
-
-                linha.style.display = show ? '' : 'none';
-                if (show) visiveis++;
-            });
-
-            // Linhas do histórico
-            document.querySelectorAll('.emp-linha-historico').forEach(linha => {
-                let show = abaAtiva === 'historico';
-                if (show && busca && !linha.dataset.nome?.includes(busca) && !linha.dataset.titulo?.includes(busca)) show = false;
-                if (show && turma && !(linha.dataset.turma || '').toLowerCase().includes(turma)) show = false;
-
-                linha.style.display = show ? '' : 'none';
-                if (show) visiveis++;
-            });
-
-            document.getElementById('emp-paginacao-info').textContent =
-                `Mostrando ${visiveis} resultado${visiveis !== 1 ? 's' : ''}`;
-            verificarVazio();
-        }
 </script>
 
 {% endblock %}
