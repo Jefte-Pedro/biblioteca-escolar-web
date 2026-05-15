@@ -14,7 +14,6 @@
             <p class="explorar-sub">{{ total_livros }} livro{{ total_livros|pluralize }} no acervo</p>
         </div>
 
-        <!-- Busca + botão filtros -->
         <div class="explorar-controles">
             <div class="explorar-busca-wrap">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -77,6 +76,17 @@
                 </div>
             </div>
 
+            <!-- ── NOVO: FILTRO PRATELEIRA ── -->
+            <div class="filtro-grupo">
+                <span class="filtro-label">Prateleira</span>
+                <div class="filtro-pills" id="filtro-prat">
+                    <button class="pill ativo" data-val="todas">Todas</button>
+                    {% for prat in prateleiras %}
+                    <button class="pill" data-val="{{ prat }}">Prateleira {{ prat }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+
             <div class="filtros-rodape">
                 <span id="contador-gaveta" class="contador-texto">Mostrando todos os livros</span>
                 <button id="btn-limpar" class="btn-limpar-filtros" style="visibility:hidden" onclick="limparFiltros()">
@@ -87,10 +97,8 @@
         </div>
     </div>
 
-    <!-- Contador sempre visível -->
-    <div class="explorar-contador-bar">
-        <span id="contador-fora" class="contador-fora-txt">Mostrando todos os livros</span>
-    </div>
+    <!-- ── PAGINAÇÃO SUPERIOR ─────────────────────────────────── -->
+    <div id="paginacao-top"></div>
 
     <!-- ── GRID ───────────────────────────────────────────────── -->
     <div class="explorar-grid" id="grid-livros">
@@ -98,7 +106,8 @@
         <a class="ecard" href="/biblioteca/livro/{{ livro.id_livro }}/" data-titulo="{{ livro.titulo|lower }}"
             data-autor="{{ livro.autor|lower|default:'' }}" data-cat="{{ livro.categoria|default:'sem-categoria' }}"
             data-disp="{{ livro.disponivel|yesno:'disponivel,indisponivel' }}"
-            data-cadastro="{{ livro.data_cadastro|date:'U'|default:'0' }}">
+            data-cadastro="{{ livro.data_cadastro|date:'U'|default:'0' }}"
+            data-prat="{{ livro.prateleira|default:'' }}">
 
             <div class="ecard-capa">
                 {% if livro.capa_url %}
@@ -124,7 +133,7 @@
 
             <div class="ecard-info">
                 {% if livro.categoria %}
-                <span class="ecard-cat">{{ livro.categoria }}</span>
+                <span class="ecard-cat">{{ livro.categoria }}{% if livro.prateleira %} · Prat. {{ livro.prateleira }}{% endif %}</span>
                 {% endif %}
                 <p class="ecard-titulo">{{ livro.titulo|truncatechars:52 }}</p>
                 <p class="ecard-autor">{{ livro.autor|default:"Autor desconhecido"|truncatechars:30 }}</p>
@@ -142,16 +151,17 @@
         <button onclick="limparFiltros()" class="btn-limpar-vazio">Limpar filtros</button>
     </div>
 
+    <!-- ── PAGINAÇÃO INFERIOR ─────────────────────────────────── -->
+    <div id="paginacao-bot" style="margin-top: 16px;"></div>
+
 </div>
 
 <style>
-    /* ── WRAP ─────────────────────────────────────────────────── */
     .explorar-wrap {
         max-width: 1100px;
         margin: 0 auto;
     }
 
-    /* ── HEADER ───────────────────────────────────────────────── */
     .explorar-header {
         display: flex;
         align-items: center;
@@ -180,7 +190,6 @@
         gap: 10px;
     }
 
-    /* Busca */
     .explorar-busca-wrap {
         position: relative;
         width: 260px;
@@ -218,7 +227,6 @@
         color: var(--faint);
     }
 
-    /* Botão filtros */
     .btn-filtros {
         display: inline-flex;
         align-items: center;
@@ -270,13 +278,10 @@
         font-weight: 700;
     }
 
-    /* ── GAVETA ───────────────────────────────────────────────── */
     .filtros-gaveta {
         display: grid;
         grid-template-rows: 0fr;
-        transition: grid-template-rows 0.32s cubic-bezier(.4, 0, .2, 1),
-            opacity 0.25s,
-            margin-bottom 0.32s;
+        transition: grid-template-rows 0.32s cubic-bezier(.4, 0, .2, 1), opacity 0.25s, margin-bottom 0.32s;
         opacity: 0;
         margin-bottom: 0;
     }
@@ -287,7 +292,6 @@
         margin-bottom: 16px;
     }
 
-    /* o filho direto precisa de overflow:hidden pra o grid-row funcionar */
     .filtros-gaveta>div {
         overflow: hidden;
     }
@@ -386,25 +390,80 @@
         background: var(--hover);
     }
 
-    /* Contador externo */
-    .explorar-contador-bar {
-        margin-bottom: 14px;
-        min-height: 20px;
+    /* ── PAGINAÇÃO ─────────────────────────────────────────────── */
+    .paginacao-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
     }
 
-    .contador-fora-txt {
+    .pag-info {
         font-size: 13px;
         color: var(--muted);
     }
 
-    /* ── GRID ─────────────────────────────────────────────────── */
+    .pag-nav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .pag-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--input-bg);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+        font-family: var(--font);
+    }
+
+    .pag-btn:hover:not(:disabled) {
+        background: var(--hover);
+        color: var(--text);
+    }
+
+    .pag-btn.ativa {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+    }
+
+    .pag-btn:disabled {
+        opacity: 0.35;
+        cursor: default;
+    }
+
+    .pag-seta {
+        font-size: 16px;
+    }
+
+    .pag-reticencias {
+        padding: 0 4px;
+        color: var(--faint);
+        font-size: 13px;
+    }
+
     .explorar-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
         gap: 18px;
     }
 
-    /* ── CARD ─────────────────────────────────────────────────── */
     .ecard {
         display: flex;
         flex-direction: column;
@@ -439,7 +498,6 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        object-position: center;
         display: block;
         transition: transform 0.3s;
     }
@@ -519,10 +577,10 @@
         margin: 0;
     }
 
-    /* ── VAZIO ────────────────────────────────────────────────── */
     .explorar-vazio {
         text-align: center;
         padding: 64px 24px;
+        display: flex;
         flex-direction: column;
         align-items: center;
         gap: 8px;
@@ -564,7 +622,6 @@
         background: var(--hover);
     }
 
-    /* ── RESPONSIVO ───────────────────────────────────────────── */
     @media (max-width: 900px) {
         .explorar-header {
             flex-direction: column;
@@ -583,6 +640,10 @@
         .explorar-grid {
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 12px;
+        }
+
+        .paginacao-bar {
+            gap: 10px;
         }
     }
 
@@ -612,42 +673,52 @@
         .explorar-busca-wrap {
             width: 100%;
         }
+
+        .pag-info {
+            width: 100%;
+            text-align: center;
+        }
+
+        .pag-nav {
+            width: 100%;
+            justify-content: center;
+        }
     }
 </style>
 
 <script>
     const TOTAL = {{ total_livros }};
+    const POR_PAG = 24; /* ← altere aqui para mudar livros por página */
     const cards = Array.from(document.querySelectorAll('.ecard'));
     const grid = document.getElementById('grid-livros');
     const vazio = document.getElementById('estado-vazio');
 
-    const estado = { busca: '', disp: 'todos', cat: 'todas', ordem: 'az' };
+    const estado = { busca: '', disp: 'todos', cat: 'todas', prat: 'todas', ordem: 'az', pag: 1 };
 
-    /* ── Gaveta ─────────────────────────────────────── */
+    /* ── Gaveta ──────────────────────────────────────────── */
     function toggleFiltros() {
         const gaveta = document.getElementById('filtros-gaveta');
         const btn = document.getElementById('btn-filtros');
-        const aberta = gaveta.classList.contains('aberta');
-        gaveta.classList.toggle('aberta', !aberta);
-        btn.classList.toggle('aberto', !aberta);
+        const aberta = gaveta.classList.toggle('aberta');
+        btn.classList.toggle('aberto', aberta);
     }
 
-    /* ── Busca ──────────────────────────────────────── */
+    /* ── Busca ───────────────────────────────────────────── */
     document.getElementById('input-busca').addEventListener('input', function () {
         estado.busca = this.value.toLowerCase().trim();
+        estado.pag = 1;
         aplicarFiltros();
     });
 
-    /* ── Pills ──────────────────────────────────────── */
+    /* ── Pills ───────────────────────────────────────────── */
     function setupPills(grupoId, chave) {
         document.getElementById(grupoId).addEventListener('click', function (e) {
             const pill = e.target.closest('.pill');
             if (!pill) return;
-            document.querySelectorAll('#' + grupoId + ' .pill').forEach(function (p) {
-                p.classList.remove('ativo');
-            });
+            document.querySelectorAll('#' + grupoId + ' .pill').forEach(p => p.classList.remove('ativo'));
             pill.classList.add('ativo');
             estado[chave] = pill.dataset.val;
+            estado.pag = 1;
             aplicarFiltros();
         });
     }
@@ -655,42 +726,100 @@
     setupPills('filtro-disp', 'disp');
     setupPills('filtro-cat', 'cat');
     setupPills('filtro-ordem', 'ordem');
+    setupPills('filtro-prat', 'prat');
 
-    /* ── Filtrar + ordenar ──────────────────────────── */
-    function aplicarFiltros() {
-        var visiveis = cards.filter(function (c) {
-            var titulo = c.dataset.titulo || '';
-            var autor = c.dataset.autor || '';
-            var cat = c.dataset.cat || '';
-            var disp = c.dataset.disp || '';
+    /* ── Paginação ───────────────────────────────────────── */
+    function irParaPagina(n) {
+        estado.pag = n;
+        aplicarFiltros();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-            var buscaOk = !estado.busca || titulo.indexOf(estado.busca) !== -1 || autor.indexOf(estado.busca) !== -1;
-            var dispOk = estado.disp === 'todos' || disp === estado.disp;
-            var catOk = estado.cat === 'todas' || cat === estado.cat;
+    function renderPaginacao(containerId, totalPags) {
+        const container = document.getElementById(containerId);
+        if (totalPags <= 1) { container.innerHTML = ''; return; }
 
-            return buscaOk && dispOk && catOk;
+        const pag = estado.pag;
+        const nums = [];
+        for (let i = 1; i <= totalPags; i++) {
+            if (i === 1 || i === totalPags || Math.abs(i - pag) <= 1) nums.push(i);
+            else if (Math.abs(i - pag) === 2) nums.push('…');
+        }
+
+        /* remove reticências duplicadas */
+        const semDup = nums.filter((v, i) => !(v === '…' && nums[i - 1] === '…'));
+
+        const total = cards.filter(c => !c.classList.contains('oculto')).length;
+        const info = 'Página ' + pag + ' de ' + totalPags + ' · ' + total + ' livro' + (total !== 1 ? 's' : '');
+
+        let html = '<div class="paginacao-bar">'
+            + '<span class="pag-info">' + info + '</span>'
+            + '<nav class="pag-nav" aria-label="Paginação">'
+            + '<button class="pag-btn" onclick="irParaPagina(' + (pag - 1) + ')" aria-label="Página anterior"' + (pag === 1 ? ' disabled' : '') + '>'
+            + '<svg class="pag-seta" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>'
+            + '</button>';
+
+        semDup.forEach(v => {
+            if (v === '…') {
+                html += '<span class="pag-reticencias">…</span>';
+            } else {
+                html += '<button class="pag-btn' + (v === pag ? ' ativa' : '') + '" onclick="irParaPagina(' + v + ')" aria-label="Página ' + v + '">' + v + '</button>';
+            }
         });
 
-        visiveis.sort(function (a, b) {
-            var ta = a.dataset.titulo;
-            var tb = b.dataset.titulo;
-            var ca = parseInt(a.dataset.cadastro) || 0;
-            var cb = parseInt(b.dataset.cadastro) || 0;
+        html += '<button class="pag-btn" onclick="irParaPagina(' + (pag + 1) + ')" aria-label="Próxima página"' + (pag === totalPags ? ' disabled' : '') + '>'
+            + '<svg class="pag-seta" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>'
+            + '</button></nav></div>';
+
+        container.innerHTML = html;
+    }
+
+    /* ── Filtrar + paginar ───────────────────────────────── */
+    function aplicarFiltros() {
+        /* 1. filtra */
+        const visiveis = cards.filter(c => {
+            const titulo = c.dataset.titulo || '';
+            const autor = c.dataset.autor || '';
+            const cat = c.dataset.cat || '';
+            const disp = c.dataset.disp || '';
+            const prat = c.dataset.prat || '';
+
+            const buscaOk = !estado.busca || titulo.includes(estado.busca) || autor.includes(estado.busca);
+            const dispOk = estado.disp === 'todos' || disp === estado.disp;
+            const catOk = estado.cat === 'todas' || cat === estado.cat;
+            const pratOk = estado.prat === 'todas' || prat === estado.prat;
+
+            return buscaOk && dispOk && catOk && pratOk;
+        });
+
+        /* 2. ordena */
+        visiveis.sort((a, b) => {
+            const ta = a.dataset.titulo, tb = b.dataset.titulo;
+            const ca = parseInt(a.dataset.cadastro) || 0, cb = parseInt(b.dataset.cadastro) || 0;
             if (estado.ordem === 'az') return ta.localeCompare(tb, 'pt');
             if (estado.ordem === 'za') return tb.localeCompare(ta, 'pt');
             if (estado.ordem === 'recentes') return cb - ca;
             return 0;
         });
 
-        var ocultosSet = new Set(cards);
-        visiveis.forEach(function (c) { ocultosSet.delete(c); });
-        ocultosSet.forEach(function (c) { c.classList.add('oculto'); });
-        visiveis.forEach(function (c, i) {
-            c.classList.remove('oculto');
-            c.style.order = i;
+        /* 3. corrige página se necessário */
+        const totalPags = Math.max(1, Math.ceil(visiveis.length / POR_PAG));
+        if (estado.pag > totalPags) estado.pag = totalPags;
+
+        /* 4. pagina */
+        const inicio = (estado.pag - 1) * POR_PAG;
+        const pagina = new Set(visiveis.slice(inicio, inicio + POR_PAG));
+
+        cards.forEach(c => {
+            if (pagina.has(c)) {
+                c.classList.remove('oculto');
+                c.style.order = [...pagina].indexOf(c); /* preserva ordem */
+            } else {
+                c.classList.add('oculto');
+            }
         });
 
-        /* estado vazio */
+        /* 5. estado vazio */
         if (visiveis.length === 0) {
             vazio.style.display = 'flex';
             grid.style.display = 'none';
@@ -699,54 +828,47 @@
             grid.style.display = 'grid';
         }
 
-        /* texto contador */
-        var txt = (visiveis.length === TOTAL && !estado.busca)
+        /* 6. contador e badge */
+        const total = visiveis.length;
+        const txt = (total === TOTAL && !estado.busca)
             ? 'Mostrando todos os ' + TOTAL + ' livros'
-            : visiveis.length + ' livro' + (visiveis.length !== 1 ? 's' : '') +
-            ' encontrado' + (visiveis.length !== 1 ? 's' : '');
+            : total + ' livro' + (total !== 1 ? 's' : '') + ' encontrado' + (total !== 1 ? 's' : '');
 
         document.getElementById('contador-gaveta').textContent = txt;
-        document.getElementById('contador-fora').textContent = txt;
 
-        /* badge filtros ativos */
-        var ativos = [
+        const ativos = [
             estado.busca !== '',
             estado.disp !== 'todos',
             estado.cat !== 'todas',
             estado.ordem !== 'az',
+            estado.prat !== 'todas',
         ].filter(Boolean).length;
 
-        var badge = document.getElementById('filtros-badge');
-        if (ativos > 0) {
-            badge.textContent = ativos;
-            badge.style.display = 'inline-flex';
-        } else {
-            badge.style.display = 'none';
-        }
-
+        const badge = document.getElementById('filtros-badge');
+        badge.textContent = ativos;
+        badge.style.display = ativos > 0 ? 'inline-flex' : 'none';
         document.getElementById('btn-limpar').style.visibility = ativos > 0 ? 'visible' : 'hidden';
+
+        /* 7. paginação (acima e abaixo do grid) */
+        renderPaginacao('paginacao-top', totalPags);
+        renderPaginacao('paginacao-bot', totalPags);
     }
 
-    /* ── Limpar ─────────────────────────────────────── */
+    /* ── Limpar ──────────────────────────────────────────── */
     function limparFiltros() {
-        estado.busca = '';
-        estado.disp = 'todos';
-        estado.cat = 'todas';
-        estado.ordem = 'az';
+        estado.busca = ''; estado.disp = 'todos'; estado.cat = 'todas';
+        estado.prat = 'todas'; estado.ordem = 'az'; estado.pag = 1;
 
         document.getElementById('input-busca').value = '';
 
-        [['filtro-disp', 'todos'], ['filtro-cat', 'todas'], ['filtro-ordem', 'az']].forEach(function (par) {
-            var id = par[0];
-            var val = par[1];
-            document.querySelectorAll('#' + id + ' .pill').forEach(function (p) { p.classList.remove('ativo'); });
+        [['filtro-disp', 'todos'], ['filtro-cat', 'todas'], ['filtro-ordem', 'az'], ['filtro-prat', 'todas']].forEach(([id, val]) => {
+            document.querySelectorAll('#' + id + ' .pill').forEach(p => p.classList.remove('ativo'));
             document.querySelector('#' + id + ' .pill[data-val="' + val + '"]').classList.add('ativo');
         });
 
         aplicarFiltros();
     }
 
-    /* inicia */
     aplicarFiltros();
 </script>
 

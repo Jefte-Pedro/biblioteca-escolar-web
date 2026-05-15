@@ -478,9 +478,11 @@ def explorar(request):
     for livro in livros:
         livro.disponivel = livro.esta_disponivel()
     categorias = sorted(set(l.categoria for l in livros if l.categoria))
+    prateleiras = sorted(set(l.prateleira for l in livros if l.prateleira))
     return render(request, 'biblioteca/explorar.html', {
         'livros':       livros,
         'categorias':   categorias,
+        'prateleiras':  prateleiras,
         'total_livros': livros.count(),
     })
 
