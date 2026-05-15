@@ -4113,3 +4113,20 @@ svg {
   background: transparent;
   padding: 14px 20px;
 }
+
+/* ── FIX GRID EMPRÉSTIMOS — DEVE SER A ÚLTIMA REGRA DO ARQUIVO ── */
+.emp-tabela-header {
+  grid-template-columns: 1.7fr 1.7fr 1.1fr 1.5fr 1.3fr 1.2fr;
+}
+
+.emp-linha {
+  grid-template-columns: 1.7fr 1.7fr 1.1fr 1.5fr 1.3fr 1.2fr;
+}
+
+.emp-linha.emp-linha-historico {
+  grid-template-columns: 1.7fr 1.7fr 1.1fr 1.5fr 1.2fr 0.8fr;
+}
+
+.emp-tabela-header.modo-historico {
+  grid-template-columns: 1.7fr 1.7fr 1.1fr 1.5fr 1.2fr 0.8fr;
+}

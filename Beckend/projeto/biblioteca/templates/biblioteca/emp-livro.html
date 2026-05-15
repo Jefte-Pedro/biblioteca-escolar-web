@@ -73,11 +73,11 @@
 
         <!-- TABELA -->
     <div class="container-conteudo-branco" style="margin-top:8px;">
-        <div class="emp-tabela-header">
+        <div class="emp-tabela-header" id="emp-tabela-header">
             <span>LIVRO</span>
             <span>ALUNO</span>
-            <span>EMPRESTADO</span>
-            <span>DATA</span>
+            <span>EMPRESTADO EM</span>
+            <span>DEVOLUÇÃO</span>
             <span>STATUS</span>
             <span>AÇÕES</span>
         </div>
@@ -522,60 +522,38 @@
         </div>
     </div>
 </div>
-<style>
-    #modal-excluir-historico .modal-btn-confirm,
-    #modal-devolver .modal-btn-confirm,
-    #modal-renovar .modal-btn-confirm {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
 
-    #modal-excluir-historico .modal-btn-confirm svg,
-    #modal-devolver .modal-btn-confirm svg,
-    #modal-renovar .modal-btn-confirm svg {
-        flex-shrink: 0;
-    }
-
-    .emp-linha-historico .emp-cell-acoes {
-        justify-content: flex-end;
-    }
-
-    .emp-linha-historico {
-        border-bottom: 1px solid var(--border);
-    }
-
-    /* FIX ALINHAMENTO: força padding igual em header e linhas */
-    .emp-tabela-header {
-        padding: 12px 16px !important;
-    }
-
-    /* FIX GAVETA: sem border quando fechada */
-    .emp-gaveta {
-        border-top: none !important;
-    }
-
-    .emp-gaveta.aberta {
-        border-top: 1px solid var(--border) !important;
-    }
-
-    /* FIX WRAPPER: border-radius nos cantos do header */
-    .container-conteudo-branco .emp-tabela-header:first-child {
-        border-radius: var(--r-xl) var(--r-xl) 0 0;
-    }
- /* Grid padrão (ativos/atrasados) */
-.emp-tabela-header,
-.emp-linha {
-    grid-template-columns: 1.8fr 1.8fr 1.2fr 1.5fr 1.3fr 1fr !important;
-    padding: 12px 16px !important;
-}
-
-.emp-tabela-header.modo-historico,
-.emp-linha.modo-historico:not(.emp-gaveta) {
-    grid-template-columns: 1.8fr 1.8fr 1.2fr 1.5fr 1.3fr 0.6fr !important;
-}
-</style>
 <script>
+    // ═══════════════════════════════════════════════════════════
+    // GRID — vence o CSS global via style inline
+    // ═══════════════════════════════════════════════════════════
+    const GRID_ATIVO = '1.7fr 1.7fr 1.1fr 1.5fr 1.3fr 1.2fr';
+    const GRID_HISTORICO = '1.7fr 1.7fr 1.1fr 1.5fr 1.2fr 0.8fr';
+
+    function aplicarGrid(abaAtiva) {
+            const isHist = abaAtiva === 'historico';
+            const grid = isHist ? GRID_HISTORICO : GRID_ATIVO;
+
+            const header = document.getElementById('emp-tabela-header');
+            if (header) {
+                header.style.cssText += `; grid-template-columns: ${grid} !important`;
+            }
+
+            document.querySelectorAll(
+                '#conteudo-dinamico-emprestimo .emp-linha:not(.emp-linha-historico)'
+            ).forEach(l => {
+                l.style.cssText += `; grid-template-columns: ${GRID_ATIVO} !important`;
+            });
+
+            document.querySelectorAll(
+                '#conteudo-dinamico-emprestimo .emp-linha-historico:not(.emp-gaveta)'
+            ).forEach(l => {
+                l.style.cssText += `; grid-template-columns: ${GRID_HISTORICO} !important`;
+            });
+        }
+
+    aplicarGrid('ativos');
+
     // ═══════════════════════════════════════════════════════════
     // ESTADO DO MODAL
     // ═══════════════════════════════════════════════════════════
@@ -937,6 +915,7 @@
         linha.dataset.nome = (data.usuario || '').toLowerCase();
         linha.dataset.titulo = (data.titulo || '').toLowerCase();
         linha.dataset.turma = (data.turma || '').toLowerCase();
+        linha.style.gridTemplateColumns = GRID_ATIVO;
         linha.innerHTML = `
             <div class="emp-cell-livro">
                 <div class="emp-capa" style="background:linear-gradient(135deg,${cor},#0b1526);">${(data.titulo || '?')[0]}</div>
@@ -985,7 +964,7 @@
     }
 
     // ═══════════════════════════════════════════════════════════
-    // DEVOLVER — modal customizado
+    // DEVOLVER
     // ═══════════════════════════════════════════════════════════
     function devolverEmprestimo(pk) {
         pkDevolver = pk;
@@ -1034,7 +1013,7 @@
     }
 
     // ═══════════════════════════════════════════════════════════
-    // RENOVAR — modal customizado
+    // RENOVAR
     // ═══════════════════════════════════════════════════════════
     function renovarEmprestimo(pk) {
         pkRenovar = pk;
@@ -1093,7 +1072,7 @@
     }
 
     // ═══════════════════════════════════════════════════════════
-    // EXCLUIR HISTÓRICO — modal customizado
+    // EXCLUIR HISTÓRICO
     // ═══════════════════════════════════════════════════════════
     function fecharModalExcluirHistorico() {
         document.getElementById('modal-excluir-historico').style.display = 'none';
@@ -1186,55 +1165,79 @@
     document.getElementById('filtro-turma').addEventListener('change', filtrarLinhas);
 
     function filtrarLinhas() {
-            const abaAtiva = document.querySelector('.emp-aba.ativa')?.dataset.aba || 'ativos';
-            const busca = document.getElementById('emp-busca').value.toLowerCase();
-            const turma = document.getElementById('filtro-turma').value.toLowerCase();
-            let visiveis = 0;
+        const abaAtiva = document.querySelector('.emp-aba.ativa')?.dataset.aba || 'ativos';
+        const busca = document.getElementById('emp-busca').value.toLowerCase();
+        const turma = document.getElementById('filtro-turma').value.toLowerCase();
+        let visiveis = 0;
 
-            // ── TROCA O HEADER CONFORME A ABA ──
-            const header = document.querySelector('.emp-tabela-header');
-            if (abaAtiva === 'historico') {
-                header.innerHTML = `
-            <span>LIVRO</span><span>ALUNO</span><span>EMPRESTADO</span>
-            <span>DEVOLVIDO</span><span>STATUS</span><span>AÇÕES</span>`;
-                header.classList.add('modo-historico');
-            } else {
-                header.innerHTML = `
-            <span>LIVRO</span><span>ALUNO</span><span>EMPRESTADO</span>
-            <span>DATA</span><span>STATUS</span><span>AÇÕES</span>`;
-                header.classList.remove('modo-historico');
-            }
+        aplicarGrid(abaAtiva);
 
-            // ── LINHAS ATIVAS/ATRASADAS ──
-            document.querySelectorAll('.emp-linha.emp-linha-historico').forEach(linha => {
-                const atrasado = linha.dataset.atrasado === '1';
-                let show = true;
-                if (abaAtiva === 'historico') show = false;
-                if (abaAtiva === 'atrasados' && !atrasado) show = false;
-                if (busca && !linha.dataset.nome?.includes(busca) && !linha.dataset.titulo?.includes(busca)) show = false;
-                if (turma && !(linha.dataset.turma || '').toLowerCase().includes(turma)) show = false;
-                linha.classList.remove('modo-historico');
-                linha.style.display = show ? '' : 'none';
-                if (show) visiveis++;
-            });
-
-            // ── LINHAS DO HISTÓRICO ──
-            document.querySelectorAll('.emp-linha-historico').forEach(linha => {
-                let show = abaAtiva === 'historico';
-                if (show && busca && !linha.dataset.nome?.includes(busca) && !linha.dataset.titulo?.includes(busca)) show = false;
-                if (show && turma && !(linha.dataset.turma || '').toLowerCase().includes(turma)) show = false;
-                if (abaAtiva === 'historico') {
-                    linha.classList.add('modo-historico');
-                } else {
-                    linha.classList.remove('modo-historico');
-                }
-                linha.style.display = show ? '' : 'none';
-                if (show) visiveis++;
-            });
-
-            document.getElementById('emp-paginacao-info').textContent = `Mostrando ${visiveis} resultado${visiveis !== 1 ? 's' : ''}`;
-            verificarVazio();
+        const header = document.getElementById('emp-tabela-header');
+        if (abaAtiva === 'historico') {
+            header.innerHTML = `
+                <span>LIVRO</span>
+                <span>ALUNO</span>
+                <span>EMPRESTADO EM</span>
+                <span>DEVOLVIDO EM</span>
+                <span>STATUS</span>
+                <span>AÇÕES</span>`;
+            header.classList.add('modo-historico');
+        } else {
+            header.innerHTML = `
+                <span>LIVRO</span>
+                <span>ALUNO</span>
+                <span>EMPRESTADO EM</span>
+                <span>DEVOLUÇÃO</span>
+                <span>STATUS</span>
+                <span>AÇÕES</span>`;
+            header.classList.remove('modo-historico');
         }
+
+        // Linhas ATIVAS
+        document.querySelectorAll(
+            '#conteudo-dinamico-emprestimo .emp-linha:not(.emp-linha-historico)'
+        ).forEach(linha => {
+            const atrasado = linha.dataset.atrasado === '1';
+            let show = false;
+
+            if (abaAtiva === 'ativos') show = !atrasado;
+            if (abaAtiva === 'atrasados') show = atrasado;
+            if (abaAtiva === 'historico') show = false;
+
+            if (show && busca && !linha.dataset.nome?.includes(busca) && !linha.dataset.titulo?.includes(busca)) show = false;
+            if (show && turma && !(linha.dataset.turma || '').toLowerCase().includes(turma)) show = false;
+
+            linha.classList.remove('modo-historico');
+            linha.style.display = show ? '' : 'none';
+
+            const pk = linha.id.replace('emp-', '');
+            const gaveta = document.getElementById(`gaveta-${pk}`);
+            if (gaveta) gaveta.style.display = show ? '' : 'none';
+
+            if (show) visiveis++;
+        });
+
+        // Linhas HISTÓRICO
+        document.querySelectorAll(
+            '#conteudo-dinamico-emprestimo .emp-linha-historico'
+        ).forEach(linha => {
+            let show = abaAtiva === 'historico';
+
+            if (show && busca && !linha.dataset.nome?.includes(busca) && !linha.dataset.titulo?.includes(busca)) show = false;
+            if (show && turma && !(linha.dataset.turma || '').toLowerCase().includes(turma)) show = false;
+
+            linha.classList.toggle('modo-historico', abaAtiva === 'historico');
+            linha.style.display = show ? '' : 'none';
+
+            if (show) visiveis++;
+        });
+
+        const abaLabel = abaAtiva === 'historico' ? 'devolvido' : 'ativo';
+        document.getElementById('emp-paginacao-info').textContent =
+            `Mostrando ${visiveis} ${abaLabel}${visiveis !== 1 ? 's' : ''}`;
+
+        verificarVazio();
+    }
 
     function verificarVazio() {
         const container = document.getElementById('conteudo-dinamico-emprestimo');
