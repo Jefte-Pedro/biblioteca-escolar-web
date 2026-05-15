@@ -3996,6 +3996,7 @@ svg {
   background: var(--sidebar-bg);
   border-radius: var(--r-xl);
   border: 1px solid var(--border);
+  overflow: hidden;
 }
 
 /* ── FIX: gaveta de observações ──────────────────────────────── */
@@ -4006,7 +4007,7 @@ svg {
   transition: max-height 0.3s ease, padding 0.3s ease;
   padding: 0 16px;
   background: var(--hover);
-  border-top: 1px solid transparent;
+  border-top: none; 
 }
 .emp-gaveta.aberta {
   max-height: 200px;
@@ -4037,21 +4038,20 @@ svg {
 /* ── MELHORIAS VISUAIS EMPRÉSTIMOS ─── */
 .emp-linha {
   border-radius: 0;
-  transition: background 0.15s, transform 0.1s;
+  transition: background 0.15s;
 }
 .emp-linha:hover {
-  transform: none; /* remove se causar salto */
+  transform: none;
 }
 
-/* Cabeçalho mais elegante */
+/* Cabeçalho — padding alinhado com as linhas */
 .emp-tabela-header {
   text-transform: uppercase;
   font-size: 9px;
   letter-spacing: 0.12em;
-  padding: 12px 20px;
+  padding: 12px 16px; /* era 20px, voltou para 16px */
 }
 
-/* Botões de ação mais compactos e elegantes */
 .emp-btn-renovar,
 .emp-btn-devolver,
 .emp-btn-notificar {
@@ -4062,24 +4062,20 @@ svg {
   gap: 5px;
 }
 
-/* Avatar do aluno com borda */
 .emp-av {
   box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
 }
 
-/* Mini-capa do livro com sombra */
 .emp-capa {
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   border-radius: 6px;
 }
 
-/* Status badges mais redondos */
 .emp-status {
   border-radius: 8px;
   padding: 4px 10px;
 }
 
-/* Paginação mais elegante */
 .emp-paginacao {
   background: transparent;
   padding: 14px 20px;

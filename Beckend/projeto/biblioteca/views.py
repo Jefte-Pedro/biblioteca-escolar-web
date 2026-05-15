@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 from rest_framework import viewsets, filters
 from datetime import date
+from django.contrib.admin.views.decorators import staff_member_required
 from collections import defaultdict
 import json
 
@@ -706,6 +707,13 @@ def renovar_emprestimo(request, pk):
     })
 
 @require_POST
+@staff_member_required
+def excluir_livro(request, id_livro):
+    livro = get_object_or_404(Livro, id_livro=id_livro)
+    livro.delete()
+    return JsonResponse({'sucesso': True})
+
+@require_POST
 def excluir_historico(request, pk):
     emprestimo = get_object_or_404(Emprestimo, pk=pk)
     
@@ -795,7 +803,6 @@ def importar_alunos(request):
     return JsonResponse({'criados': criados, 'atualizados': atualizados})
 
 
-from django.contrib.admin.views.decorators import staff_member_required
 
 @require_POST
 @staff_member_required
