@@ -382,16 +382,7 @@ svg {
 .search-inp:focus {
   border-color: var(--accent-lt);
 }
-.notif-dot {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #f59e0b;
-  border: 2px solid var(--sidebar-bg);
-}
+
 .lang-btn {
   display: flex;
   align-items: center;
@@ -1209,11 +1200,53 @@ svg {
   #content {
     padding: 20px 16px 48px;
   }
-}
-#menu-btn {
-  display: none;
-}
 
+  #topbar {
+    padding: 0 10px;
+    gap: 6px;
+    justify-content: space-between; /* força ocupar toda a largura */
+  }
+
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 12px;
+  }
+
+  .lang-btn {
+    height: 42px;
+    padding: 0 10px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+
+  .search-wrap {
+    flex: 1 1 auto;  /* auto em vez de 0 — cresce para preencher tudo */
+    min-width: 0;
+    max-width: none;
+    width: 40%;     /* garante que não sobra nada */
+    transition: flex 0.3s ease;
+  }
+
+  .search-inp {
+    width: 100%;
+    height: 42px;
+    font-size: 14px;
+    border-radius: 12px;
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+
+  .search-wrap:focus-within {
+    flex: 2 1 auto;
+  }
+
+  .search-inp:focus {
+    border-color: var(--accent-lt);
+    box-shadow: 0 0 0 3px rgba(79, 148, 214, 0.2);
+  }
+}
 /* ── MODAL (global) ──────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
