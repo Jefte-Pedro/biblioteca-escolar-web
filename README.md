@@ -58,13 +58,13 @@ web-school-library/
 
 | Integrante | Área |
 |---|---|
-| **Jefté Pedro** | Front-end & Back-end (API) |
+| **Jefté Pedro** | Front-end, Back-end (API) & Documentação |
 | **Alesson Passos** | Banco de Dados |
 | **Luiz Alexandre** | Back-end (API) & Documentação |
 | **João Erick** | Back-end (API) |
 | **Lázaro Antonio** | Back-end (API) & Documentação |
-| **Daniel Santos** | Autenticação & Notificações |
-| **Matheus da Silva** | Autenticação, Notificações & Documentação |
+| **Daniel Santos** | Autenticação  |
+| **Matheus da Silva** |  Notificações & Documentação |
 
 ---
 
