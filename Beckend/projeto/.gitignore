@@ -1,0 +1,46 @@
+# ─── Ambiente virtual ───────────────────────
+venv/
+env/
+.env
+.venv/
+
+# ─── Variáveis de ambiente e segredos ───────
+.env
+.env.*
+*.env
+secrets.py
+
+# ─── Django ─────────────────────────────────
+*.pyc
+__pycache__/
+db.sqlite3
+/staticfiles/
+/mediafiles/
+local_settings.py
+
+# ─── Banco de dados ──────────────────────────
+*.sql
+*.sqlite3
+acervo_escolar
+
+# ─── Scripts sensíveis ───────────────────────
+criar_usuarios.py
+
+# ─── IDEs e editores ─────────────────────────
+.vscode/
+.idea/
+*.suo
+*.user
+
+# ─── Sistema operacional ─────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Logs ────────────────────────────────────
+*.log
+logs/
+
+# ─── Cobertura de testes ─────────────────────
+.coverage
+htmlcov/
