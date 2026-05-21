@@ -21,6 +21,17 @@ class Usuario(AbstractUser):
     ], max_length=20, default='aluno')
     observacoes = models.TextField(blank=True)
 
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='usuario_set',
+        blank=True,
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='usuario_set',
+        blank=True,
+    )
+    
     class Meta:
         db_table = 'biblioteca_usuario'
 

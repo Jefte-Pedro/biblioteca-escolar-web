@@ -474,11 +474,34 @@ def detalhes_livro(request, livro_id):
 
 
 def explorar(request):
-    livros = Livro.objects.all().order_by('titulo')
-    for livro in livros:
-        livro.disponivel = livro.esta_disponivel()
-    categorias = sorted(set(l.categoria for l in livros if l.categoria))
-    prateleiras = sorted(set(l.prateleira for l in livros if l.prateleira))
+    from django.db.models import Exists, OuterRef
+
+    # Subquery: existe algum exemplar disponível para este livro?
+    tem_disponivel = Exemplar.objects.filter(
+        livro=OuterRef('pk'),
+        status='disponivel'
+    )
+
+    livros = (
+        Livro.objects
+        .annotate(disponivel=Exists(tem_disponivel))
+        .order_by('titulo')
+    )
+
+    # Categorias e prateleiras em 2 queries simples (sem iterar livros)
+    categorias = (
+        Livro.objects
+        .exclude(categoria__isnull=True).exclude(categoria='')
+        .values_list('categoria', flat=True)
+        .distinct().order_by('categoria')
+    )
+    prateleiras = (
+        Livro.objects
+        .exclude(prateleira__isnull=True).exclude(prateleira='')
+        .values_list('prateleira', flat=True)
+        .distinct().order_by('prateleira')
+    )
+
     return render(request, 'biblioteca/explorar.html', {
         'livros':       livros,
         'categorias':   categorias,
