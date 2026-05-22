@@ -11,6 +11,7 @@ from collections import defaultdict
 import json
 
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from .models import Livro, Emprestimo, Reserva, Lista, Usuario, Exemplar, LivroLido
 from .serializers import LivroSerializer
@@ -20,6 +21,8 @@ from .serializers import LivroSerializer
 # AUTENTICAÇÃO
 # ──────────────────────────────────────────
 
+
+@ensure_csrf_cookie
 def pagina_login(request):
     if request.user.is_authenticated:
         return redirect('inicio')
