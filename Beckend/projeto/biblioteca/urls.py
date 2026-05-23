@@ -52,8 +52,14 @@ urlpatterns = [
     path('login/primeiro-acesso/', views.primeiro_acesso, name='primeiro_acesso'),
     path('login/entrar/', views.fazer_login, name='fazer_login'),
     path('logout/', views.fazer_logout, name='logout'),
-
+    path('login/enviar-codigo/', views.enviar_codigo, name='enviar_codigo'),
+    path('login/verificar-codigo/', views.verificar_codigo, name='verificar_codigo'),   
+    path('login/verificar/', views.verificar_codigo_page, name='verificar_codigo_page'),
+    
     path('configuracoes/', views.configuracoes, name='configuracoes'),
+    path('configuracoes/salvar-perfil/', views.salvar_perfil, name='salvar_perfil'),
+    path('configuracoes/alterar-senha/', views.alterar_senha, name='alterar_senha'),
+    path('configuracoes/salvar-notif/', views.salvar_notif, name='salvar_notif'),
 
     path('cancelar-reserva/<int:pk>/', views.cancelar_reserva, name='cancelar_reserva'),
 

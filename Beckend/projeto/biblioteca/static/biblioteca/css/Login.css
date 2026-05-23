@@ -926,6 +926,23 @@ svg {
   color: var(--faint);
 }
 
+.canal-escolha {
+  flex: 1;
+  padding: .6rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: .85rem;
+  transition: .2s;
+}
+.canal-escolha.selected-canal {
+  border-color: #4F94D6;
+  background: rgba(79,148,214,.1);
+  color: #4F94D6;
+}
+
 .warning-box {
   border-radius: var(--r-lg);
   padding: 12px 14px;

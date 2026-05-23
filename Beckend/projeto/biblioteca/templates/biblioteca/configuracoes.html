@@ -163,7 +163,7 @@
 
                     <div class="cfg-field">
                         <label>Como prefere ser chamado</label>
-                        <input class="cfg-input" type="text" id="campo-apelido" value="{{ user.first_name }}"
+                        <input class="cfg-input" type="text" id="campo-apelido" value="{{ user.apelido|default:'' }}"   
                             placeholder="Apelido ou primeiro nome" oninput="cfgDirty()">
                     </div>
                 </div>
@@ -448,7 +448,7 @@
 
     function cfgCancelar(aba) {
         if (aba === 'perfil') {
-            document.getElementById('campo-apelido').value = '{{ user.first_name|escapejs }}';
+            document.getElementById('campo-apelido').value = '{{ user.apelido|default:''|escapejs }}';
             document.getElementById('cfg-save-bar-perfil').classList.remove('visible');
             cfgPending = false;
         }
@@ -474,6 +474,34 @@
             })
             .catch(() => cfgToast('Erro de conexão.', true));
     }
+
+    function cfgSalvarPerfil() {
+            const apelido = document.getElementById('campo-apelido').value.trim();
+            fetch('/biblioteca/configuracoes/salvar-perfil/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ apelido })
+            })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.sucesso) {
+                        document.getElementById('cfg-save-bar-perfil').classList.remove('visible');
+                        cfgPending = false;
+                        cfgToast('Perfil atualizado com sucesso.');
+
+                        // ── Atualiza na tela sem recarregar ──
+                        const nomeExibicao = apelido || '{{ user.first_name|escapejs }}';
+
+                        // Sidebar
+                        const sFootName = document.querySelector('.s-foot-name');
+                        if (sFootName) sFootName.textContent = nomeExibicao;
+
+                    } else {
+                        cfgToast(d.erro || 'Erro ao salvar.', true);
+                    }
+                })
+                .catch(() => cfgToast('Erro de conexão.', true));
+        }
 
     // ── Salvar notificações ──
     function cfgSalvarNotif() {

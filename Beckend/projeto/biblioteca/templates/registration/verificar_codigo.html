@@ -1,0 +1,175 @@
+{% extends 'registration/base_auth.html' %}
+{% load static %}
+
+{% block title %}Verificar Código — Biblioteca{% endblock %}
+
+{% block content %}
+<div style="min-height:80vh; display:flex; align-items:center; justify-content:center; padding:2rem;">
+    <div
+        style="background:var(--card); border:1px solid var(--border); border-radius:16px; padding:2.5rem; width:100%; max-width:420px; text-align:center;">
+
+        <!-- Ícone -->
+        <div
+            style="width:56px; height:56px; background:rgba(79,148,214,0.15); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4F94D6" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+        </div>
+
+        <h2 style="font-size:1.4rem; font-weight:700; margin-bottom:.5rem;">Verifique seu contato</h2>
+        <p style="color:var(--text-muted); font-size:.9rem; margin-bottom:2rem;">
+            Enviamos um código de 6 dígitos para <strong id="contato-exibido">seu contato</strong>.<br>
+            O código expira em 10 minutos.
+        </p>
+
+        <!-- Campos do código -->
+        <div style="display:flex; gap:.5rem; justify-content:center; margin-bottom:1.5rem;">
+            {% for i in "123456" %}
+            <input type="text" maxlength="1" class="codigo-digit"
+                style="width:44px; height:52px; text-align:center; font-size:1.4rem; font-weight:700; background:var(--input-bg); border:1.5px solid var(--border); border-radius:10px; color:var(--text); outline:none; transition:.2s;"
+                inputmode="numeric">
+            {% endfor %}
+        </div>
+
+        <!-- Mensagem de erro -->
+        <div id="erro-msg" style="display:none; color:#ef4444; font-size:.85rem; margin-bottom:1rem;"></div>
+
+        <!-- Botão confirmar -->
+        <button id="btn-confirmar" onclick="confirmarCodigo()"
+            style="width:100%; padding:.85rem; background:#4F94D6; color:#fff; border:none; border-radius:10px; font-size:.95rem; font-weight:600; cursor:pointer; margin-bottom:1rem;">
+            Confirmar código
+        </button>
+
+        <!-- Reenviar -->
+        <p style="color:var(--text-muted); font-size:.85rem;">
+            Não recebeu?
+            <button onclick="reenviarCodigo()" id="btn-reenviar"
+                style="background:none; border:none; color:#4F94D6; cursor:pointer; font-size:.85rem; font-weight:600; padding:0;">
+                Reenviar código
+            </button>
+        </p>
+
+    </div>
+</div>
+
+<script>
+    // Dados vindos do primeiro acesso
+    const matricula = "{{ matricula }}";
+    const contato = "{{ contato }}";
+    const tipo = "{{ tipo }}";  // 'email' ou 'telefone'
+
+    // Mostra o contato mascarado
+    function mascarar(valor, tipo) {
+        if (tipo === 'email') {
+            const [user, dominio] = valor.split('@');
+            return user.slice(0, 2) + '***@' + dominio;
+        } else {
+            return valor.slice(0, 2) + '*****' + valor.slice(-2);
+        }
+    }
+    document.getElementById('contato-exibido').textContent = mascarar(contato, tipo);
+
+    // Navega entre os campos automaticamente
+    const digits = document.querySelectorAll('.codigo-digit');
+    digits.forEach((input, idx) => {
+        input.addEventListener('input', () => {
+            input.value = input.value.replace(/\D/g, '');
+            if (input.value && idx < digits.length - 1) {
+                digits[idx + 1].focus();
+            }
+        });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !input.value && idx > 0) {
+                digits[idx - 1].focus();
+            }
+        });
+    });
+
+    function getCodigo() {
+        return Array.from(digits).map(d => d.value).join('');
+    }
+
+    function mostrarErro(msg) {
+        const el = document.getElementById('erro-msg');
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+
+    function esconderErro() {
+        document.getElementById('erro-msg').style.display = 'none';
+    }
+
+    async function confirmarCodigo() {
+            const codigo = getCodigo();
+            if (codigo.length < 6) {
+                mostrarErro('Preencha todos os 6 dígitos.');
+                return;
+            }
+
+            esconderErro();
+            const btn = document.getElementById('btn-confirmar');
+            btn.textContent = 'Verificando...';
+            btn.disabled = true;
+
+            // Verifica o código
+            const resp = await fetch('/biblioteca/login/verificar-codigo/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ matricula, codigo })
+            });
+
+            const data = await resp.json();
+
+            if (data.sucesso) {
+                // Finaliza o cadastro com os dados salvos no sessionStorage
+                const resp2 = await fetch('/biblioteca/login/primeiro-acesso/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify({
+                        matricula,
+                        senha: sessionStorage.getItem('senha_temp'),
+                        email: sessionStorage.getItem('email_temp'),
+                        telefone: sessionStorage.getItem('telefone_temp'),
+                    })
+                });
+
+                const data2 = await resp2.json();
+
+                if (data2.sucesso) {
+                    // Limpa sessionStorage
+                    sessionStorage.removeItem('senha_temp');
+                    sessionStorage.removeItem('email_temp');
+                    sessionStorage.removeItem('telefone_temp');
+                    window.location.href = data2.redirect;
+                } else {
+                    mostrarErro(data2.erro || 'Erro ao finalizar cadastro.');
+                    btn.textContent = 'Confirmar código';
+                    btn.disabled = false;
+                }
+            } else {
+                mostrarErro(data.erro || 'Código incorreto.');
+                btn.textContent = 'Confirmar código';
+                btn.disabled = false;
+            }
+        }
+
+    async function reenviarCodigo() {
+        const btn = document.getElementById('btn-reenviar');
+        btn.textContent = 'Enviando...';
+        btn.disabled = true;
+
+        await fetch('/biblioteca/login/enviar-codigo/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ matricula, contato, tipo })
+        });
+
+        btn.textContent = 'Reenviado!';
+        setTimeout(() => {
+            btn.textContent = 'Reenviar código';
+            btn.disabled = false;
+        }, 5000);
+    }
+</script>
+{% endblock %}

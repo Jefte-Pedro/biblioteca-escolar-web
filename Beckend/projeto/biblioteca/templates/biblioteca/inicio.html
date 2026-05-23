@@ -13,7 +13,7 @@
             <div class="hero-eyebrow">{{ dia_semana }} · {{ data_hoje }}</div>
 
             {% if user.is_authenticated %}
-            <h1 class="hero-h1">Olá, {{ user.first_name }}! 👋</h1>
+            <h1 class="hero-h1">Olá, {{ user.nome_exibicao }}! 👋</h1>
             <p class="hero-sub">
                 {% if prazo_urgente %}
                 Sua próxima leitura está esperando. Você tem

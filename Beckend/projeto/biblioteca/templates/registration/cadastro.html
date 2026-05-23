@@ -297,7 +297,20 @@
                     </div>
                 </div>
             </div>
-
+            <div id="escolha-canal" style="display:none; margin-bottom:1rem;">
+                <p style="font-size:.85rem; color:var(--text-muted); margin-bottom:.5rem;">
+                    Onde prefere receber o código de verificação?
+                </p>
+                <div style="display:flex; gap:.5rem;">
+                    <button type="button" id="btn-canal-zap" onclick="selecionarCanal('telefone')"
+                        class="canal-escolha selected-canal">
+                        📱 WhatsApp
+                    </button>
+                    <button type="button" id="btn-canal-email" onclick="selecionarCanal('email')" class="canal-escolha">
+                        ✉️ E-mail
+                    </button>
+                </div>
+            </div>
             <div class="warning-box">
                 ⚠ Escolha pelo menos 1 canal. Você pode mudar depois nas configurações.
             </div>
@@ -314,20 +327,47 @@
 
 {% block extra_js %}
 <script>
-    // Dados vindos do servidor
     const CAD_MATRICULA = '{{ matricula }}';
+    let canalEscolhido = 'telefone';
 
-    // Inicia no step 1
     CAD.step = 1;
     _cadRenderStepper();
     _cadRenderCols();
 
-    // Finalizar — envia tudo via AJAX para a view primeiro_acesso
+    function selecionarCanal(canal) {
+        canalEscolhido = canal;
+        document.getElementById('btn-canal-zap').classList.toggle('selected-canal', canal === 'telefone');
+        document.getElementById('btn-canal-email').classList.toggle('selected-canal', canal === 'email');
+    }
+
+    function cadToggleChannel(ch) {
+        const emailSel = document.getElementById('ch-check-email').checked;
+        const waSel = document.getElementById('ch-check-wa').checked;
+
+        // Toggle visual do card
+        document.getElementById('ch-card-email').classList.toggle('selected', emailSel);
+        document.getElementById('ch-card-wa').classList.toggle('selected', waSel);
+
+        // Mostra/esconde input dentro do card
+        document.getElementById('ch-input-email').style.display = emailSel ? 'block' : 'none';
+        document.getElementById('ch-input-wa').style.display = waSel ? 'block' : 'none';
+
+        // Mostra escolha de canal só quando os dois estão selecionados
+        const escolha = document.getElementById('escolha-canal');
+        if (emailSel && waSel) {
+            escolha.style.display = 'block';
+            canalEscolhido = 'telefone';
+            selecionarCanal('telefone');
+        } else {
+            escolha.style.display = 'none';
+            canalEscolhido = emailSel ? 'email' : 'telefone';
+        }
+    }
+
     async function finalizarCadastro() {
         const senha = document.getElementById('cad-pwd').value;
         const email = document.getElementById('input-email').value.trim();
         const whatsapp = document.getElementById('input-whatsapp').value.trim();
-
         const emailSelecionado = document.getElementById('ch-check-email').checked;
         const waSelecionado = document.getElementById('ch-check-wa').checked;
 
@@ -335,31 +375,34 @@
             alert('Escolha pelo menos 1 canal de contato.');
             return;
         }
+        if (emailSelecionado && !email) { alert('Preencha o e-mail.'); return; }
+        if (waSelecionado && !whatsapp) { alert('Preencha o número de WhatsApp.'); return; }
+
+        // Usa a escolha do usuário
+        const tipo = canalEscolhido;
+        const contato = tipo === 'telefone' ? whatsapp : email;
 
         const btn = document.getElementById('finalizar-btn');
         btn.disabled = true;
-        btn.textContent = 'Salvando...';
+        btn.textContent = 'Enviando código...';
 
-        const res = await fetch('/biblioteca/login/primeiro-acesso/', {
+        sessionStorage.setItem('senha_temp', senha);
+        sessionStorage.setItem('email_temp', emailSelecionado ? email : '');
+        sessionStorage.setItem('telefone_temp', waSelecionado ? whatsapp : '');
+
+        const res = await fetch('/biblioteca/login/enviar-codigo/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({
-                matricula: CAD_MATRICULA,
-                senha: senha,
-                email: emailSelecionado ? email : '',
-                telefone: waSelecionado ? whatsapp : '',
-            })
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ matricula: CAD_MATRICULA, contato, tipo })
         });
 
         const data = await res.json();
 
         if (data.sucesso) {
-            window.location.href = data.redirect;
+            const params = new URLSearchParams({ matricula: CAD_MATRICULA, contato, tipo });
+            window.location.href = `/biblioteca/login/verificar/?${params.toString()}`;
         } else {
-            alert(data.erro || 'Erro ao finalizar cadastro.');
+            alert(data.erro || 'Erro ao enviar código.');
             btn.disabled = false;
             btn.textContent = 'Finalizar cadastro ✓';
         }
@@ -371,4 +414,4 @@
         if (parts.length === 2) return parts.pop().split(';').shift();
     }
 </script>
-{% endblock %}
+{% endblock %}  

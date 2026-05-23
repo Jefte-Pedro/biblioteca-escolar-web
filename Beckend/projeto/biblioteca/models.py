@@ -9,29 +9,34 @@ from django.contrib.auth.models import AbstractUser
 # ──────────────────────────────────────────
 
 class Usuario(AbstractUser):
+    # ── Campos da Bibliotecária  ──
     matricula = models.IntegerField(unique=True, blank=True, null=True)
-    telefone = models.CharField(max_length=11, blank=True, null=True)
     turma = models.CharField(max_length=5, blank=True, null=True)
     serie = models.CharField(max_length=50, blank=True, null=True)
+
+    # ── Campos do Aluno  ──
+    telefone = models.CharField(max_length=11, blank=True, null=True)
+    # email já vem do AbstractUser
+    apelido = models.CharField(max_length=150, blank=True, null=True, unique=True)
+
+    # ── Controle de acesso ──
     primeiro_acesso = models.BooleanField(default=True)
+    email_verificado = models.BooleanField(default=False)
+    telefone_verificado = models.BooleanField(default=False)
+
+    # ── Tipo de usuario──
     tipo_usuario = models.CharField(choices=[
         ('aluno', 'Aluno'),
         ('exaluno', 'Ex-aluno'),
         ('bibliotecario', 'Bibliotecário'),
     ], max_length=20, default='aluno')
+
     observacoes = models.TextField(blank=True)
 
-    groups = models.ManyToManyField(
-        'auth.Group',
-        related_name='usuario_set',
-        blank=True,
-    )
-    user_permissions = models.ManyToManyField(
-        'auth.Permission',
-        related_name='usuario_set',
-        blank=True,
-    )
     
+    groups = models.ManyToManyField('auth.Group', related_name='usuario_set', blank=True)
+    user_permissions = models.ManyToManyField('auth.Permission', related_name='usuario_set', blank=True)
+
     class Meta:
         db_table = 'biblioteca_usuario'
 
@@ -41,6 +46,16 @@ class Usuario(AbstractUser):
     @property
     def is_bibliotecario(self):
         return self.tipo_usuario == 'bibliotecario'
+
+    @property
+    def nome_exibicao(self):
+        return self.apelido if self.apelido else self.first_name
+
+    def save(self, *args, **kwargs):
+        
+        if self.matricula and not self.username:
+            self.username = str(self.matricula)
+        super().save(*args, **kwargs)
 
 
 # ──────────────────────────────────────────

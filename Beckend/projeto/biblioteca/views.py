@@ -13,6 +13,9 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
 
+import random
+from django.core.cache import cache
+
 from .models import Livro, Emprestimo, Reserva, Lista, Usuario, Exemplar, LivroLido
 from .serializers import LivroSerializer
 
@@ -131,7 +134,49 @@ def recuperar_senha(request):
             metodo = usuario.telefone or usuario.email
     return render(request, 'registration/recuperar_senha.html', {'metodo': metodo})
 
+@require_POST
+def enviar_codigo(request):
+    data = json.loads(request.body)
+    matricula = data.get('matricula', '').strip()
+    contato = data.get('contato', '').strip()
+    tipo = data.get('tipo', '').strip()  # 'email' ou 'telefone'
 
+    try:
+        usuario = Usuario.objects.get(matricula=matricula)
+    except Usuario.DoesNotExist:
+        return JsonResponse({'erro': 'Usuário não encontrado.'}, status=404)
+
+    codigo = str(random.randint(100000, 999999))
+    cache_key = f"codigo_verificacao_{matricula}"
+    cache.set(cache_key, codigo, timeout=600)  # expira em 10 minutos
+
+    from .whatsapp import enviar_whatsapp, enviar_email
+
+    if tipo == 'telefone':
+        enviar_whatsapp(contato, f"Seu código de acesso à Biblioteca é: {codigo}")
+    else:
+        enviar_email(contato, "Código de acesso — Biblioteca", f"Seu código é: {codigo}")
+
+    return JsonResponse({'sucesso': True})
+
+
+@require_POST
+def verificar_codigo(request):
+    data = json.loads(request.body)
+    matricula = data.get('matricula', '').strip()
+    codigo_digitado = data.get('codigo', '').strip()
+
+    cache_key = f"codigo_verificacao_{matricula}"
+    codigo_salvo = cache.get(cache_key)
+
+    if not codigo_salvo:
+        return JsonResponse({'erro': 'Código expirado. Solicite um novo.'}, status=400)
+
+    if codigo_digitado != codigo_salvo:
+        return JsonResponse({'erro': 'Código incorreto.'}, status=400)
+
+    cache.delete(cache_key)
+    return JsonResponse({'sucesso': True})
 # ──────────────────────────────────────────
 # PÁGINAS PRINCIPAIS
 # ──────────────────────────────────────────
@@ -458,7 +503,70 @@ def prazos(request):
 def configuracoes(request):
     return render(request, 'biblioteca/configuracoes.html')
 
+@require_POST
+@login_required
+def salvar_perfil(request):
+    data = json.loads(request.body)
+    apelido = data.get('apelido', '').strip()
 
+    if apelido:
+        # Verifica se já existe outro usuário com esse apelido
+        if Usuario.objects.filter(apelido=apelido).exclude(pk=request.user.pk).exists():
+            return JsonResponse({'erro': 'Esse apelido já está em uso.'}, status=400)
+        request.user.apelido = apelido
+    else:
+        # Permite limpar o apelido
+        request.user.apelido = None
+
+    request.user.save()
+    return JsonResponse({'sucesso': True})
+
+
+@require_POST
+@login_required
+def alterar_senha(request):
+    data = json.loads(request.body)
+    senha_atual = data.get('senha_atual', '').strip()
+    senha_nova = data.get('senha_nova', '').strip()
+
+    if not request.user.check_password(senha_atual):
+        return JsonResponse({'erro': 'Senha atual incorreta.'}, status=400)
+
+    if len(senha_nova) < 8:
+        return JsonResponse({'erro': 'A nova senha deve ter pelo menos 8 caracteres.'}, status=400)
+
+    request.user.set_password(senha_nova)
+    request.user.save()
+
+    # Mantém o usuário logado após trocar a senha
+    from django.contrib.auth import update_session_auth_hash
+    update_session_auth_hash(request, request.user)
+
+    return JsonResponse({'sucesso': True})
+
+
+@require_POST
+@login_required
+def salvar_notif(request):
+    data = json.loads(request.body)
+    # Por enquanto apenas confirma — lógica de notificação real vem depois
+    return JsonResponse({'sucesso': True})
+
+
+def verificar_codigo_page(request):
+    matricula = request.GET.get('matricula', '').strip()
+    contato = request.GET.get('contato', '').strip()
+    tipo = request.GET.get('tipo', '').strip()
+
+    if not matricula or not contato:
+        return redirect('login')
+
+    return render(request, 'registration/verificar_codigo.html', {
+        'matricula': matricula,
+        'contato': contato,
+        'tipo': tipo,
+    })
+    
 def detalhes_livro(request, livro_id):
     livro = get_object_or_404(Livro, id_livro=livro_id)
     disponivel = livro.esta_disponivel()
