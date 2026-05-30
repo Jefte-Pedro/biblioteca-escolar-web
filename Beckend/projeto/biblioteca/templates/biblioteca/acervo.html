@@ -44,7 +44,7 @@
                 d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
         </svg>
         <span data-i18n="aba_lista">Minha Lista</span>
-        <span class="aba-count">{{ listas|length }}</span>
+        <span class="aba-count">{{ listas_count }} </span>
     </a>
     <a href="{% url 'reservados' %}" class="aba {% if aba == 'reservados' %}active{% endif %}">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -52,7 +52,7 @@
             <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
         </svg>
         <span data-i18n="aba_reservados">Reservados</span>
-        <span class="aba-count">{{ reservas_count|default:0 }}</span>
+        <span class="aba-count">{{ reservados_count }}</span>
     </a>
     <a href="{% url 'lidos' %}" class="aba {% if aba == 'lidos' %}active{% endif %}">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -61,7 +61,7 @@
             <polyline points="22 4 12 14.01 9 11.01" />
         </svg>
         <span data-i18n="aba_lidos">Livros Lidos</span>
-        <span class="aba-count">{{ lidos_count|default:0 }}</span>
+        <span class="aba-count">{{ lidos_count }}</span>
     </a>
 </div>
 
@@ -414,7 +414,7 @@
                     }
                 });
                 if (res.ok) {
-                    btn.closest('.bcard').remove();
+                    window.location.reload(); 
                 } else {
                     alert('Erro ao remover.');
                     btn.disabled = false;

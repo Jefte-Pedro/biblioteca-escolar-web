@@ -1,0 +1,166 @@
+{% if page_obj.has_other_pages %}
+<div class="paginacao-bar">
+
+    <span class="pag-info">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }} · {{ total_livros }} livro{{ total_livros|pluralize }}
+    </span>
+
+    <nav class="pag-nav" aria-label="Paginação">
+
+        <!-- Anterior -->
+        {% if page_obj.has_previous %}
+        <a class="pag-btn"
+            href="?page={{ page_obj.previous_page_number }}&cat={{ filtro_cat }}&prat={{ filtro_prat }}&disp={{ filtro_disp }}&ordem={{ filtro_ordem }}"
+            aria-label="Página anterior">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+            </svg>
+        </a>
+        {% else %}
+        <button class="pag-btn" disabled aria-label="Página anterior">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+            </svg>
+        </button>
+        {% endif %}
+
+        <!-- Primeira página -->
+        {% if page_obj.number == 1 %}
+        <button class="pag-btn ativa" aria-current="page">1</button>
+        {% else %}
+        <a class="pag-btn"
+            href="?page=1&cat={{ filtro_cat }}&prat={{ filtro_prat }}&disp={{ filtro_disp }}&ordem={{ filtro_ordem }}">1</a>
+        {% endif %}
+
+        <!-- Reticências esquerda -->
+        {% if page_obj.number > 4 %}
+        <span class="pag-reticencias">…</span>
+        {% endif %}
+
+        <!-- Janela central -->
+        {% for num in pag_janela %}
+        {% if num == page_obj.number %}
+        <button class="pag-btn ativa" aria-current="page">{{ num }}</button>
+        {% else %}
+        <a class="pag-btn"
+            href="?page={{ num }}&cat={{ filtro_cat }}&prat={{ filtro_prat }}&disp={{ filtro_disp }}&ordem={{ filtro_ordem }}">{{ num }}</a>
+        {% endif %}
+        {% endfor %}
+
+        <!-- Reticências direita -->
+        {% if page_obj.number < page_obj.paginator.num_pages|add:"-3" %} <span class="pag-reticencias">…</span>
+            {% endif %}
+
+            <!-- Última página -->
+            {% if page_obj.paginator.num_pages > 1 %}
+            {% if page_obj.number == page_obj.paginator.num_pages %}
+            <button class="pag-btn ativa" aria-current="page">{{ page_obj.paginator.num_pages }}</button>
+            {% else %}
+            <a class="pag-btn"
+                href="?page={{ page_obj.paginator.num_pages }}&cat={{ filtro_cat }}&prat={{ filtro_prat }}&disp={{ filtro_disp }}&ordem={{ filtro_ordem }}">{{ page_obj.paginator.num_pages }}</a>
+            {% endif %}
+            {% endif %}
+
+            <!-- Próxima -->
+            {% if page_obj.has_next %}
+            <a class="pag-btn"
+                href="?page={{ page_obj.next_page_number }}&cat={{ filtro_cat }}&prat={{ filtro_prat }}&disp={{ filtro_disp }}&ordem={{ filtro_ordem }}"
+                aria-label="Próxima página">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                </svg>
+            </a>
+            {% else %}
+            <button class="pag-btn" disabled aria-label="Próxima página">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                </svg>
+            </button>
+            {% endif %}
+
+    </nav>
+</div>
+{% endif %}
+
+<style>
+    .paginacao-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin: 16px 0;
+        flex-wrap: wrap;
+    }
+
+    .pag-info {
+        font-size: 13px;
+        color: var(--muted);
+    }
+
+    .pag-nav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .pag-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--input-bg);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+        font-family: var(--font);
+        text-decoration: none;
+    }
+
+    .pag-btn:hover:not(:disabled) {
+        background: var(--hover);
+        color: var(--text);
+    }
+
+    .pag-btn.ativa {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+        cursor: default;
+    }
+
+    .pag-btn:disabled {
+        opacity: 0.35;
+        cursor: default;
+    }
+
+    .pag-reticencias {
+        padding: 0 4px;
+        color: var(--faint);
+        font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+        .pag-info {
+            width: 100%;
+            text-align: center;
+        }
+
+        .pag-nav {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>

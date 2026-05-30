@@ -1,29 +1,33 @@
-from django.shortcuts import render, redirect, get_object_or_404
+# ──────────────────────────────────────────
+# IMPORTS
+# ──────────────────────────────────────────
+
+import json
+import random
+from collections import defaultdict
+from datetime import date
+
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.utils import timezone
-from rest_framework import viewsets, filters
-from datetime import date
-from django.contrib.admin.views.decorators import staff_member_required
-from collections import defaultdict
-import json
-
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.csrf import ensure_csrf_cookie
-
-import random
 from django.core.cache import cache
+from django.db.models import Exists, OuterRef, Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.views.decorators.http import require_POST
 
-from .models import Livro, Emprestimo, Reserva, Lista, Usuario, Exemplar, LivroLido
+from rest_framework import filters, viewsets
+
+from .models import Emprestimo, Exemplar, Lista, Livro, LivroLido, Reserva, Usuario
 from .serializers import LivroSerializer
 
+from django.core.paginator import Paginator
 
 # ──────────────────────────────────────────
 # AUTENTICAÇÃO
 # ──────────────────────────────────────────
-
 
 @ensure_csrf_cookie
 def pagina_login(request):
@@ -35,14 +39,16 @@ def pagina_login(request):
 def verificar_matricula(request):
     if request.method != 'POST':
         return JsonResponse({'erro': 'Método inválido'}, status=405)
+
     data = json.loads(request.body)
     matricula = data.get('matricula', '').strip()
+
     try:
         usuario = Usuario.objects.get(matricula=matricula)
         return JsonResponse({
-            'existe': True,
+            'existe':         True,
             'primeiro_acesso': usuario.primeiro_acesso,
-            'nome': usuario.get_full_name() or usuario.username,
+            'nome':           usuario.get_full_name() or usuario.username,
         })
     except Usuario.DoesNotExist:
         return JsonResponse({'existe': False})
@@ -51,39 +57,47 @@ def verificar_matricula(request):
 def fazer_login(request):
     if request.method != 'POST':
         return JsonResponse({'erro': 'Método inválido'}, status=405)
+
     data = json.loads(request.body)
     matricula = data.get('matricula', '').strip()
     senha = data.get('senha', '').strip()
+
     try:
         usuario = Usuario.objects.get(matricula=matricula)
     except Usuario.DoesNotExist:
         return JsonResponse({'erro': 'Matrícula não encontrada.'}, status=404)
+
     user = authenticate(request, username=usuario.username, password=senha)
     if user is not None:
         login(request, user)
         destino = '/biblioteca/emprestimos/' if user.is_bibliotecario else '/biblioteca/'
         return JsonResponse({'sucesso': True, 'redirect': destino})
+
     return JsonResponse({'erro': 'Senha incorreta.'}, status=401)
 
 
 def primeiro_acesso(request):
     if request.method != 'POST':
         return JsonResponse({'erro': 'Método inválido'}, status=405)
+
     data = json.loads(request.body)
     matricula = data.get('matricula', '').strip()
     senha = data.get('senha', '').strip()
     email = data.get('email', '').strip()
     telefone = data.get('telefone', '').strip()
+
     try:
         usuario = Usuario.objects.get(matricula=matricula)
     except Usuario.DoesNotExist:
         return JsonResponse({'erro': 'Matrícula não encontrada.'}, status=404)
+
     if not usuario.primeiro_acesso:
         return JsonResponse({'erro': 'Essa conta já foi ativada.'}, status=400)
     if len(senha) < 8:
         return JsonResponse({'erro': 'Senha deve ter pelo menos 8 caracteres.'}, status=400)
     if not email and not telefone:
         return JsonResponse({'erro': 'Informe ao menos um canal de contato.'}, status=400)
+
     usuario.set_password(senha)
     if email:
         usuario.email = email
@@ -91,6 +105,7 @@ def primeiro_acesso(request):
         usuario.telefone = telefone
     usuario.primeiro_acesso = False
     usuario.save()
+
     user = authenticate(request, username=usuario.username, password=senha)
     login(request, user)
     return JsonResponse({'sucesso': True, 'redirect': '/biblioteca/'})
@@ -105,23 +120,27 @@ def cadastro(request):
     matricula = request.GET.get('matricula', '').strip()
     if not matricula:
         return redirect('login')
+
     try:
         usuario = Usuario.objects.get(matricula=matricula)
     except Usuario.DoesNotExist:
         return redirect('login')
+
     if not usuario.primeiro_acesso:
         return redirect('login')
+
     iniciais = ''
     partes = usuario.get_full_name().split()
     if len(partes) >= 2:
         iniciais = partes[0][0].upper() + partes[-1][0].upper()
     elif partes:
         iniciais = partes[0][0].upper()
+
     return render(request, 'registration/cadastro.html', {
         'matricula': matricula,
-        'nome': usuario.get_full_name(),
-        'serie': usuario.serie or '',
-        'iniciais': iniciais,
+        'nome':      usuario.get_full_name(),
+        'serie':     usuario.serie or '',
+        'iniciais':  iniciais,
     })
 
 
@@ -133,6 +152,7 @@ def recuperar_senha(request):
         if usuario:
             metodo = usuario.telefone or usuario.email
     return render(request, 'registration/recuperar_senha.html', {'metodo': metodo})
+
 
 @require_POST
 def enviar_codigo(request):
@@ -150,7 +170,7 @@ def enviar_codigo(request):
     cache_key = f"codigo_verificacao_{matricula}"
     cache.set(cache_key, codigo, timeout=600)  # expira em 10 minutos
 
-    from .whatsapp import enviar_whatsapp, enviar_email
+    from .whatsapp import enviar_email, enviar_whatsapp
 
     if tipo == 'telefone':
         enviar_whatsapp(contato, f"Seu código de acesso à Biblioteca é: {codigo}")
@@ -171,19 +191,34 @@ def verificar_codigo(request):
 
     if not codigo_salvo:
         return JsonResponse({'erro': 'Código expirado. Solicite um novo.'}, status=400)
-
     if codigo_digitado != codigo_salvo:
         return JsonResponse({'erro': 'Código incorreto.'}, status=400)
 
     cache.delete(cache_key)
     return JsonResponse({'sucesso': True})
+
+
+def verificar_codigo_page(request):
+    matricula = request.GET.get('matricula', '').strip()
+    contato = request.GET.get('contato', '').strip()
+    tipo = request.GET.get('tipo', '').strip()
+
+    if not matricula or not contato:
+        return redirect('login')
+
+    return render(request, 'registration/verificar_codigo.html', {
+        'matricula': matricula,
+        'contato':   contato,
+        'tipo':      tipo,
+    })
+
+
 # ──────────────────────────────────────────
 # PÁGINAS PRINCIPAIS
 # ──────────────────────────────────────────
 
 def inicio(request):
-    from datetime import date as d_
-    hoje = d_.today()
+    hoje = date.today()
     usuario = request.user if request.user.is_authenticated else None
 
     CORES = ['#1e5aa8', '#7c3aed', '#059669', '#b45309', '#dc2626', '#0891b2', '#be185d']
@@ -261,199 +296,102 @@ def inicio(request):
     })
 
 
-def lista(request):
-    listas_qs = Lista.objects.filter(usuario=request.user).prefetch_related('livros') \
-        if request.user.is_authenticated else []
-
-    listas = []
-    for l in listas_qs:
-        livros = l.livros.all()[:3]
-        l.livros_preview = [
-            {
-                'titulo':     livro.titulo,
-                'capa_url':   livro.capa_url or '',
-                'cover_from': '#1e5aa8',
-                'cover_to':   '#0b1526',
-            }
-            for livro in livros
-        ]
-        listas.append(l)
-
-    return render(request, 'biblioteca/acervo.html', {'aba': 'lista', 'listas': listas})
-
-
-@login_required
-def detalhe_lista(request, lista_id):
-    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
-    return render(request, 'biblioteca/detalhe_lista.html', {'lista': lista})
-
-
-def acervo(request):
-    q = request.GET.get('q', '')
-    if q:
-        livros = Livro.objects.filter(titulo__icontains=q) | Livro.objects.filter(autor__icontains=q)
-    else:
-        livros = Livro.objects.all()[:50]
-    return render(request, 'biblioteca/acervo_busca.html', {'livros': livros, 'q': q})
-
-
-@require_POST
-def criar_lista(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({'erro': 'Não autenticado'}, status=401)
-    data = json.loads(request.body)
-    nome = data.get('nome', '').strip()
-    if not nome:
-        return JsonResponse({'erro': 'Nome não pode ser vazio.'}, status=400)
-    nova_lista = Lista.objects.create(usuario=request.user, nome=nome)
-    return JsonResponse({'id': nova_lista.id, 'nome': nova_lista.nome, 'qtd_livros': 0})
-
-
-@require_POST
-def excluir_lista(request, lista_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({'erro': 'Não autenticado'}, status=401)
-    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
-    lista.delete()
-    return JsonResponse({'status': 'ok'})
-
-
-@require_POST
-def renomear_lista(request, lista_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({'erro': 'Não autenticado'}, status=401)
-    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
-    data = json.loads(request.body)
-    novo_nome = data.get('nome', '').strip()
-    descricao = data.get('descricao', '').strip()
-    if not novo_nome:
-        return JsonResponse({'erro': 'Nome não pode ser vazio.'}, status=400)
-    lista.nome = novo_nome
-    lista.descricao = descricao if descricao else None
-    lista.save()
-    return JsonResponse({'id': lista.id, 'nome': lista.nome, 'descricao': lista.descricao})
-
-
-@require_POST
-def adicionar_livro_lista(request, lista_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({'erro': 'Não autenticado'}, status=401)
-    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
-    try:
-        data = json.loads(request.body)
-        livro_id = data.get('livro_id')
-        livro = Livro.objects.filter(id_livro=livro_id).first()
-        if not livro:
-            livro = Livro.objects.filter(pk=livro_id).first()
-        if not livro:
-            return JsonResponse({'erro': f'Livro {livro_id} não encontrado.'}, status=404)
-        lista.livros.add(livro)
-        return JsonResponse({'status': 'ok'})
-    except Exception as e:
-        return JsonResponse({'erro': str(e)}, status=500)
-
-
-@require_POST
-def remover_livro_lista(request, lista_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({'erro': 'Não autenticado'}, status=401)
-
-    try:
-        lista = Lista.objects.get(pk=lista_id)
-    except Lista.DoesNotExist:
-        return JsonResponse({'erro': 'Lista não encontrada.'}, status=404)
-
-    if lista.usuario_id != request.user.pk:
-        return JsonResponse({'erro': 'Sem permissão.'}, status=403)
-
-    try:
-        data = json.loads(request.body)
-        livro_id = data.get('livro_id')
-        livro = Livro.objects.filter(id_livro=livro_id).first()
-        if not livro:
-            livro = Livro.objects.filter(pk=livro_id).first()
-        if not livro:
-            return JsonResponse({'erro': f'Livro {livro_id} não encontrado.'}, status=404)
-        lista.livros.remove(livro)
-        return JsonResponse({'status': 'ok'})
-    except Exception as e:
-        return JsonResponse({'erro': str(e)}, status=500)
-
-
-def listas_do_usuario(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({'listas': []})
-    livro_id = request.GET.get('livro_id')
-    listas = Lista.objects.filter(usuario=request.user).prefetch_related('livros')
-    resultado = []
-    for l in listas:
-        tem_livro = False
-        if livro_id:
-            tem_livro = l.livros.filter(id_livro=livro_id).exists()
-        resultado.append({
-            'id':         l.id,
-            'nome':       l.nome,
-            'qtd_livros': l.livros.count(),
-            'tem_livro':  tem_livro,
-        })
-    return JsonResponse({'listas': resultado})
-
-
-# ──────────────────────────────────────────
-# LIVROS LIDOS
-# ──────────────────────────────────────────
-
-@require_POST
-@login_required
-def marcar_livro_lido(request, livro_id):
+def detalhes_livro(request, livro_id):
     livro = get_object_or_404(Livro, id_livro=livro_id)
-    # get_or_create garante que não duplica se o user clicar duas vezes
-    _, criado = LivroLido.objects.get_or_create(usuario=request.user, livro=livro)
-    return JsonResponse({'status': 'ok', 'criado': criado})
+    disponivel = livro.esta_disponivel()
 
+    ja_lido = (
+        request.user.is_authenticated and
+        LivroLido.objects.filter(usuario=request.user, livro=livro).exists()
+    )
 
-@require_POST
-@login_required
-def desmarcar_livro_lido(request, livro_id):
-    livro = get_object_or_404(Livro, id_livro=livro_id)
-    LivroLido.objects.filter(usuario=request.user, livro=livro).delete()
-    return JsonResponse({'status': 'ok'})
-
-
-def lidos(request):
-    livros_lidos = []
-    lidos_count = 0
-
-    if request.user.is_authenticated:
-        qs = LivroLido.objects.filter(
-            usuario=request.user
-        ).select_related('livro')
-
-        lidos_count = qs.count()
-
-        for registro in qs:
-            registro.livro.autor_sobrenome = (
-                registro.livro.autor.split()[-1] if registro.livro.autor else ''
-            )
-            # Cores de fallback para capa gradiente
-            registro.livro.cover_from = '#1e5aa8'
-            registro.livro.cover_to   = '#0b1526'
-            livros_lidos.append(registro)
-
-    return render(request, 'biblioteca/acervo.html', {
-        'aba':          'lidos',
-        'livros_lidos': livros_lidos,
-        'lidos_count':  lidos_count,
+    return render(request, 'biblioteca/detalhes_livro.html', {
+        'livro':     livro,
+        'disponivel': disponivel,
+        'ja_lido':   ja_lido,
     })
 
 
-def reservados(request):
-    return render(request, 'biblioteca/acervo.html', {'aba': 'reservados'})
+def explorar(request):
+    from django.core.paginator import Paginator
 
+    # ── Parâmetros da URL ──────────────────────────────────────
+    page_number  = request.GET.get('page', 1)
+    filtro_cat   = request.GET.get('cat', '')       # ex: ?cat=Romance
+    filtro_prat  = request.GET.get('prat', '')      # ex: ?prat=A
+    filtro_disp  = request.GET.get('disp', '')      # ex: ?disp=disponivel
+    filtro_ordem = request.GET.get('ordem', 'az')   # ex: ?ordem=za
+
+    # ── Subquery de disponibilidade ────────────────────────────
+    tem_disponivel = Exemplar.objects.filter(
+        livro=OuterRef('pk'),
+        status='disponivel'
+    )
+
+    # ── QuerySet base ──────────────────────────────────────────
+    livros = Livro.objects.annotate(disponivel=Exists(tem_disponivel))
+
+    # ── Filtros opcionais ──────────────────────────────────────
+    if filtro_cat:
+        livros = livros.filter(categoria=filtro_cat)
+
+    if filtro_prat:
+        livros = livros.filter(prateleira=filtro_prat)
+
+    if filtro_disp == 'disponivel':
+        livros = livros.filter(disponivel=True)
+    elif filtro_disp == 'indisponivel':
+        livros = livros.filter(disponivel=False)
+
+    # ── Ordenação ──────────────────────────────────────────────
+    ordem_map = {
+        'az':       'titulo',
+        'za':       '-titulo',
+        'recentes': '-data_cadastro',
+    }
+    livros = livros.order_by(ordem_map.get(filtro_ordem, 'titulo'))
+
+    # ── Paginação ──────────────────────────────────────────────
+    paginator = Paginator(livros, 24)
+    page_obj  = paginator.get_page(page_number)
+    
+     # ── Janela de páginas para o template ─────────────────────
+    page_num      = page_obj.number
+    total_pages   = paginator.num_pages
+    vizinhos      = 2  
+
+    inicio = max(page_num - vizinhos, 2)         
+    fim    = min(page_num + vizinhos, total_pages - 1)  
+    pag_janela = list(range(inicio, fim + 1))
+
+    # ── Listas para os filtros (sempre completas, sem filtro) ──
+    categorias = (
+        Livro.objects
+        .exclude(categoria__isnull=True).exclude(categoria='')
+        .values_list('categoria', flat=True)
+        .distinct().order_by('categoria')
+    )
+    prateleiras = (
+        Livro.objects
+        .exclude(prateleira__isnull=True).exclude(prateleira='')
+        .values_list('prateleira', flat=True)
+        .distinct().order_by('prateleira')
+    )
+
+    return render(request, 'biblioteca/explorar.html', {
+        'page_obj':     page_obj,
+        'categorias':   categorias,
+        'prateleiras':  prateleiras,
+        'total_livros': paginator.count,
+        'filtro_cat':   filtro_cat,
+        'filtro_prat':  filtro_prat,
+        'filtro_disp':  filtro_disp,
+        'filtro_ordem': filtro_ordem,
+        'pag_janela':   pag_janela, 
+    })
 
 def prazos(request):
-    from datetime import date as d_
-    hoje = d_.today()
+    hoje = date.today()
 
     CORES = ['#1e5aa8', '#7c3aed', '#059669', '#b45309', '#dc2626', '#0891b2', '#be185d']
 
@@ -503,6 +441,232 @@ def prazos(request):
 def configuracoes(request):
     return render(request, 'biblioteca/configuracoes.html')
 
+
+# ──────────────────────────────────────────
+# ACERVO / ABAS
+# ──────────────────────────────────────────
+
+def acervo(request):
+    q = request.GET.get('q', '')
+    if q:
+        livros = Livro.objects.filter(titulo__icontains=q) | Livro.objects.filter(autor__icontains=q)
+    else:
+        livros = Livro.objects.all()[:50]
+    return render(request, 'biblioteca/acervo_busca.html', {'livros': livros, 'q': q})
+
+def _acervo_counts(user):
+    if not user.is_authenticated:
+        return {'listas_count': 0, 'lidos_count': 0, 'reservas_count': 0}
+    return {
+        'listas_count':  Lista.objects.filter(usuario=user).count(),
+        'lidos_count':   LivroLido.objects.filter(usuario=user).count(),
+        'reservas_count': Reserva.objects.filter(usuario=user, status='pendente').count(),
+    }
+
+
+def lista(request):
+    listas_qs = Lista.objects.filter(usuario=request.user).prefetch_related('livros') \
+        if request.user.is_authenticated else []
+
+    listas = []
+    for l in listas_qs:
+        livros = l.livros.all()[:3]
+        l.livros_preview = [
+            {
+                'titulo':     livro.titulo,
+                'capa_url':   livro.capa_url or '',
+                'cover_from': '#1e5aa8',
+                'cover_to':   '#0b1526',
+            }
+            for livro in livros
+        ]
+        listas.append(l)
+
+    return render(request, 'biblioteca/acervo.html', {'aba': 'lista', 'listas': listas, **_acervo_counts(request.user),})
+
+
+def lidos(request):
+    livros_lidos = []
+    lidos_count = 0
+
+    if request.user.is_authenticated:
+        qs = LivroLido.objects.filter(
+            usuario=request.user
+        ).select_related('livro')
+
+        lidos_count = qs.count()
+
+        for registro in qs:
+            registro.livro.autor_sobrenome = (
+                registro.livro.autor.split()[-1] if registro.livro.autor else ''
+            )
+            registro.livro.cover_from = '#1e5aa8'
+            registro.livro.cover_to   = '#0b1526'
+            livros_lidos.append(registro)
+
+    return render(request, 'biblioteca/acervo.html', {
+        'aba':          'lidos',
+        'livros_lidos': livros_lidos,
+        'lidos_count':  lidos_count,
+        **_acervo_counts(request.user),
+    })
+
+
+def reservados(request):
+    return render(request, 'biblioteca/acervo.html', {'aba': 'reservados', **_acervo_counts(request.user),})
+
+
+# ──────────────────────────────────────────
+# LISTAS
+# ──────────────────────────────────────────
+
+@login_required
+def detalhe_lista(request, lista_id):
+    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
+    return render(request, 'biblioteca/detalhe_lista.html', {'lista': lista})
+
+
+@require_POST
+def criar_lista(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'erro': 'Não autenticado'}, status=401)
+
+    data = json.loads(request.body)
+    nome = data.get('nome', '').strip()
+    if not nome:
+        return JsonResponse({'erro': 'Nome não pode ser vazio.'}, status=400)
+
+    nova_lista = Lista.objects.create(usuario=request.user, nome=nome)
+    return JsonResponse({'id': nova_lista.id, 'nome': nova_lista.nome, 'qtd_livros': 0})
+
+
+@require_POST
+def excluir_lista(request, lista_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'erro': 'Não autenticado'}, status=401)
+
+    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
+    lista.delete()
+    return JsonResponse({'status': 'ok'})
+
+
+@require_POST
+def renomear_lista(request, lista_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'erro': 'Não autenticado'}, status=401)
+
+    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
+    data = json.loads(request.body)
+    novo_nome = data.get('nome', '').strip()
+    descricao = data.get('descricao', '').strip()
+
+    if not novo_nome:
+        return JsonResponse({'erro': 'Nome não pode ser vazio.'}, status=400)
+
+    lista.nome = novo_nome
+    lista.descricao = descricao if descricao else None
+    lista.save()
+    return JsonResponse({'id': lista.id, 'nome': lista.nome, 'descricao': lista.descricao})
+
+
+@require_POST
+def adicionar_livro_lista(request, lista_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'erro': 'Não autenticado'}, status=401)
+
+    lista = get_object_or_404(Lista, id=lista_id, usuario=request.user)
+    try:
+        data = json.loads(request.body)
+        livro_id = data.get('livro_id')
+        livro = Livro.objects.filter(id_livro=livro_id).first()
+        if not livro:
+            livro = Livro.objects.filter(pk=livro_id).first()
+        if not livro:
+            return JsonResponse({'erro': f'Livro {livro_id} não encontrado.'}, status=404)
+        lista.livros.add(livro)
+        return JsonResponse({'status': 'ok'})
+    except Exception as e:
+        return JsonResponse({'erro': str(e)}, status=500)
+
+
+@require_POST
+def remover_livro_lista(request, lista_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'erro': 'Não autenticado'}, status=401)
+
+    try:
+        lista = Lista.objects.get(pk=lista_id)
+    except Lista.DoesNotExist:
+        return JsonResponse({'erro': 'Lista não encontrada.'}, status=404)
+
+    if lista.usuario_id != request.user.pk:
+        return JsonResponse({'erro': 'Sem permissão.'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+        livro_id = data.get('livro_id')
+        livro = Livro.objects.filter(id_livro=livro_id).first()
+        if not livro:
+            livro = Livro.objects.filter(pk=livro_id).first()
+        if not livro:
+            return JsonResponse({'erro': f'Livro {livro_id} não encontrado.'}, status=404)
+        lista.livros.remove(livro)
+        return JsonResponse({'status': 'ok'})
+    except Exception as e:
+        return JsonResponse({'erro': str(e)}, status=500)
+
+
+def listas_do_usuario(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'listas': []})
+
+    livro_id = request.GET.get('livro_id')
+    listas = Lista.objects.filter(usuario=request.user).prefetch_related('livros')
+    resultado = []
+    for l in listas:
+        tem_livro = False
+        if livro_id:
+            tem_livro = l.livros.filter(id_livro=livro_id).exists()
+        resultado.append({
+            'id':         l.id,
+            'nome':       l.nome,
+            'qtd_livros': l.livros.count(),
+            'tem_livro':  tem_livro,
+        })
+    return JsonResponse({'listas': resultado})
+
+
+@require_POST
+def deletar_lista(request, pk):
+    lista = get_object_or_404(Lista, pk=pk)
+    lista.delete()
+    return JsonResponse({'sucesso': 'Lista deletada.'})
+
+
+# ──────────────────────────────────────────
+# LIVROS LIDOS
+# ──────────────────────────────────────────
+
+@require_POST
+@login_required
+def marcar_livro_lido(request, livro_id):
+    livro = get_object_or_404(Livro, id_livro=livro_id)
+    _, criado = LivroLido.objects.get_or_create(usuario=request.user, livro=livro)
+    return JsonResponse({'status': 'ok', 'criado': criado})
+
+
+@require_POST
+@login_required
+def desmarcar_livro_lido(request, livro_id):
+    livro = get_object_or_404(Livro, id_livro=livro_id)
+    LivroLido.objects.filter(usuario=request.user, livro=livro).delete()
+    return JsonResponse({'status': 'ok'})
+
+
+# ──────────────────────────────────────────
+# CONFIGURAÇÕES DO USUÁRIO
+# ──────────────────────────────────────────
+
 @require_POST
 @login_required
 def salvar_perfil(request):
@@ -510,12 +674,10 @@ def salvar_perfil(request):
     apelido = data.get('apelido', '').strip()
 
     if apelido:
-        # Verifica se já existe outro usuário com esse apelido
         if Usuario.objects.filter(apelido=apelido).exclude(pk=request.user.pk).exists():
             return JsonResponse({'erro': 'Esse apelido já está em uso.'}, status=400)
         request.user.apelido = apelido
     else:
-        # Permite limpar o apelido
         request.user.apelido = None
 
     request.user.save()
@@ -531,14 +693,12 @@ def alterar_senha(request):
 
     if not request.user.check_password(senha_atual):
         return JsonResponse({'erro': 'Senha atual incorreta.'}, status=400)
-
     if len(senha_nova) < 8:
         return JsonResponse({'erro': 'A nova senha deve ter pelo menos 8 caracteres.'}, status=400)
 
     request.user.set_password(senha_nova)
     request.user.save()
 
-    # Mantém o usuário logado após trocar a senha
     from django.contrib.auth import update_session_auth_hash
     update_session_auth_hash(request, request.user)
 
@@ -551,74 +711,6 @@ def salvar_notif(request):
     data = json.loads(request.body)
     # Por enquanto apenas confirma — lógica de notificação real vem depois
     return JsonResponse({'sucesso': True})
-
-
-def verificar_codigo_page(request):
-    matricula = request.GET.get('matricula', '').strip()
-    contato = request.GET.get('contato', '').strip()
-    tipo = request.GET.get('tipo', '').strip()
-
-    if not matricula or not contato:
-        return redirect('login')
-
-    return render(request, 'registration/verificar_codigo.html', {
-        'matricula': matricula,
-        'contato': contato,
-        'tipo': tipo,
-    })
-    
-def detalhes_livro(request, livro_id):
-    livro = get_object_or_404(Livro, id_livro=livro_id)
-    disponivel = livro.esta_disponivel()
-
-    # Verifica se o usuário já marcou este livro como lido
-    ja_lido = (
-        request.user.is_authenticated and
-        LivroLido.objects.filter(usuario=request.user, livro=livro).exists()
-    )
-
-    return render(request, 'biblioteca/detalhes_livro.html', {
-        'livro':     livro,
-        'disponivel': disponivel,
-        'ja_lido':   ja_lido,
-    })
-
-
-def explorar(request):
-    from django.db.models import Exists, OuterRef
-
-    # Subquery: existe algum exemplar disponível para este livro?
-    tem_disponivel = Exemplar.objects.filter(
-        livro=OuterRef('pk'),
-        status='disponivel'
-    )
-
-    livros = (
-        Livro.objects
-        .annotate(disponivel=Exists(tem_disponivel))
-        .order_by('titulo')
-    )
-
-    # Categorias e prateleiras em 2 queries simples (sem iterar livros)
-    categorias = (
-        Livro.objects
-        .exclude(categoria__isnull=True).exclude(categoria='')
-        .values_list('categoria', flat=True)
-        .distinct().order_by('categoria')
-    )
-    prateleiras = (
-        Livro.objects
-        .exclude(prateleira__isnull=True).exclude(prateleira='')
-        .values_list('prateleira', flat=True)
-        .distinct().order_by('prateleira')
-    )
-
-    return render(request, 'biblioteca/explorar.html', {
-        'livros':       livros,
-        'categorias':   categorias,
-        'prateleiras':  prateleiras,
-        'total_livros': livros.count(),
-    })
 
 
 # ──────────────────────────────────────────
@@ -672,9 +764,46 @@ def cadastrar_livro(request):
     })
 
 
+@require_POST
+@staff_member_required
+def editar_livro(request, livro_id):
+    livro = get_object_or_404(Livro, id_livro=livro_id)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'erro': 'JSON inválido.'}, status=400)
+
+    campos_texto = [
+        'titulo', 'autor', 'editora', 'isbn', 'codigo_base',
+        'categoria', 'colecao', 'prateleira', 'capa_url', 'sinopse',
+    ]
+    for campo in campos_texto:
+        if campo in data:
+            valor = data[campo].strip()
+            setattr(livro, campo, valor if valor else None)
+
+    if 'quantidade' in data:
+        try:
+            livro.quantidade = max(0, int(data['quantidade']))
+        except (ValueError, TypeError):
+            return JsonResponse({'erro': 'Quantidade inválida.'}, status=400)
+
+    livro.save()
+    return JsonResponse({'sucesso': True})
+
+
+@require_POST
+@staff_member_required
+def excluir_livro(request, id_livro):
+    livro = get_object_or_404(Livro, id_livro=id_livro)
+    livro.delete()
+    return JsonResponse({'sucesso': True})
+
+
 def emprestimos(request):
-    from datetime import date as d_
-    hoje = d_.today()
+    hoje = date.today()
+
+    CORES = ['#1e5aa8', '#7c3aed', '#059669', '#b45309', '#dc2626', '#0891b2']
 
     emprestimos_ativos = Emprestimo.objects.filter(
         data_devolucao_real__isnull=True
@@ -683,8 +812,6 @@ def emprestimos(request):
     vencem_hoje     = emprestimos_ativos.filter(data_devolucao_prevista=hoje).count()
     atrasados       = sum(1 for e in emprestimos_ativos if e.esta_atrasado())
     devolvidos_hoje = Emprestimo.objects.filter(data_devolucao_real=hoje).count()
-
-    CORES = ['#1e5aa8', '#7c3aed', '#059669', '#b45309', '#dc2626', '#0891b2']
 
     def enrich(emp, hoje, CORES):
         delta = (emp.data_devolucao_prevista - hoje).days
@@ -708,14 +835,12 @@ def emprestimos(request):
 
     emprestimos_enriched = [enrich(e, hoje, CORES) for e in emprestimos_ativos]
 
-    # ── HISTÓRICO (devolvidos) ──────────────────────────────────
     historico_qs = Emprestimo.objects.filter(
         data_devolucao_real__isnull=False
     ).select_related('exemplar__livro', 'usuario').order_by('-data_devolucao_real')[:100]
 
     historico_enriched = []
     for emp in historico_qs:
-        # Para devolvidos, delta é baseado na data prevista vs real
         delta = (emp.data_devolucao_prevista - emp.data_devolucao_real).days
         emp.vence_hoje     = False
         emp.dias_restantes = 0
@@ -738,7 +863,7 @@ def emprestimos(request):
 
     return render(request, 'biblioteca/emp-livro.html', {
         'emprestimos':     emprestimos_enriched,
-        'historico':       historico_enriched,          # ← novo
+        'historico':       historico_enriched,
         'vencem_hoje':     vencem_hoje,
         'atrasados':       atrasados,
         'devolvidos_hoje': devolvidos_hoje,
@@ -761,7 +886,6 @@ def criar_emprestimo(request):
     exemplar = Exemplar.objects.filter(codigo_completo=codigo_completo).first()
     if not exemplar:
         return JsonResponse({'erro': 'Exemplar não encontrado.'}, status=404)
-
     if exemplar.status != 'disponivel':
         return JsonResponse({'erro': 'Exemplar não está disponível.'}, status=400)
 
@@ -770,7 +894,6 @@ def criar_emprestimo(request):
         usuario = Usuario.objects.filter(pk=usuario_id).first()
 
     if not usuario:
-        from django.db.models import Q
         partes = nome_aluno.split()
         if partes:
             q = Q(first_name__icontains=partes[0])
@@ -790,9 +913,8 @@ def criar_emprestimo(request):
             'erro': f'{usuario.get_full_name()} já possui 2 empréstimos ativos (limite máximo).'
         }, status=400)
 
-    from datetime import date as d_
-    data_emprestimo = d_.fromisoformat(data_emp)
-    data_devolucao  = d_.fromisoformat(data_dev) if data_dev else data_emprestimo + timezone.timedelta(days=15)
+    data_emprestimo = date.fromisoformat(data_emp)
+    data_devolucao  = date.fromisoformat(data_dev) if data_dev else data_emprestimo + timezone.timedelta(days=15)
 
     emp = Emprestimo.objects.create(
         exemplar=exemplar,
@@ -842,25 +964,15 @@ def renovar_emprestimo(request, pk):
         'status':    'Sucesso'
     })
 
-@require_POST
-@staff_member_required
-def excluir_livro(request, id_livro):
-    livro = get_object_or_404(Livro, id_livro=id_livro)
-    livro.delete()
-    return JsonResponse({'sucesso': True})
 
 @require_POST
 def excluir_historico(request, pk):
     emprestimo = get_object_or_404(Emprestimo, pk=pk)
-    
-    # Só permite excluir registros já devolvidos
     if emprestimo.data_devolucao_real is None:
-        return JsonResponse({
-            'erro': 'Não é possível excluir um empréstimo ainda ativo.'
-        }, status=400)
-    
+        return JsonResponse({'erro': 'Não é possível excluir um empréstimo ainda ativo.'}, status=400)
     emprestimo.delete()
     return JsonResponse({'sucesso': 'Registro excluído do histórico.'})
+
 
 @require_POST
 def cancelar_reserva(request, pk):
@@ -873,6 +985,10 @@ def cancelar_reserva(request, pk):
     reserva.save()
     return JsonResponse({'sucesso': 'Reserva cancelada com sucesso.'})
 
+
+# ──────────────────────────────────────────
+# ALUNOS
+# ──────────────────────────────────────────
 
 def alunos(request):
     CORES = ['#1e5aa8', '#7c3aed', '#059669', '#b45309', '#dc2626', '#0891b2', '#be185d']
@@ -939,34 +1055,6 @@ def importar_alunos(request):
     return JsonResponse({'criados': criados, 'atualizados': atualizados})
 
 
-
-@require_POST
-@staff_member_required
-def editar_livro(request, livro_id):
-    livro = get_object_or_404(Livro, id_livro=livro_id)
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({'erro': 'JSON inválido.'}, status=400)
-
-    campos_texto = ['titulo', 'autor', 'editora', 'isbn', 'codigo_base',
-                    'categoria', 'colecao', 'prateleira', 'capa_url', 'sinopse']
-
-    for campo in campos_texto:
-        if campo in data:
-            valor = data[campo].strip()
-            setattr(livro, campo, valor if valor else None)
-
-    if 'quantidade' in data:
-        try:
-            livro.quantidade = max(0, int(data['quantidade']))
-        except (ValueError, TypeError):
-            return JsonResponse({'erro': 'Quantidade inválida.'}, status=400)
-
-    livro.save()
-    return JsonResponse({'sucesso': True})
-
-
 # ──────────────────────────────────────────
 # BUSCA
 # ──────────────────────────────────────────
@@ -1002,7 +1090,6 @@ def buscar_usuario(request):
     if len(q) < 2:
         return JsonResponse({'usuarios': []})
 
-    from django.db.models import Q
     usuarios = Usuario.objects.filter(
         Q(first_name__icontains=q) | Q(last_name__icontains=q)
     ).exclude(tipo_usuario='bibliotecario')[:8]
@@ -1034,10 +1121,3 @@ class LivroViewset(viewsets.ModelViewSet):
     serializer_class = LivroSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['titulo', 'autor']
-
-
-@require_POST
-def deletar_lista(request, pk):
-    lista = get_object_or_404(Lista, pk=pk)
-    lista.delete()
-    return JsonResponse({'sucesso': 'Lista deletada.'})
