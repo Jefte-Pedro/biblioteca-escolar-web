@@ -400,6 +400,10 @@ svg {
   color: var(--accent-lt);
 }
 
+#menu-btn {
+    display: none;
+}
+
 /* ── BOOK COVER ──────────────────────────────────────────────── */
 .bc {
   position: relative;
