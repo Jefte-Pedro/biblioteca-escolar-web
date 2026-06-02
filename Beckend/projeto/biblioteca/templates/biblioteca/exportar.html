@@ -1,0 +1,344 @@
+{% extends "biblioteca/base.html" %}
+{% load static %}
+
+{% block title %}Exportar Dados – Biblioteca{% endblock %}
+
+{% block content %}
+
+<div class="exp-wrap">
+
+    <div class="exp-header">
+        <div>
+            <h1 class="exp-titulo">Exportar Dados</h1>
+            <p class="exp-sub">Baixe as informações do sistema em planilhas Excel prontas para uso.</p>
+        </div>
+    </div>
+
+    <!-- ── CARDS DE EXPORTAÇÃO ── -->
+    <div class="exp-grid">
+
+        <!-- Acervo de Livros -->
+        <div class="exp-card">
+            <div class="exp-card-icon" style="background:rgba(30,90,168,.12);color:#4f94d6">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                </svg>
+            </div>
+            <div class="exp-card-info">
+                <h3 class="exp-card-titulo">Acervo de Livros</h3>
+                <p class="exp-card-desc">
+                    Todos os livros cadastrados com título, autor, editora, categoria, coleção, quantidade e código
+                    catalográfico.
+                </p>
+                <div class="exp-card-meta">
+                    <span class="exp-badge">{{ total_livros }} livro{{ total_livros|pluralize }}</span>
+                    <span class="exp-badge-fmt">.xlsx</span>
+                </div>
+            </div>
+            <a href="{% url 'exportar_acervo' %}" class="exp-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Baixar
+            </a>
+        </div>
+
+        <!-- Empréstimos -->
+        <div class="exp-card">
+            <div class="exp-card-icon" style="background:rgba(5,150,105,.1);color:#059669">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                </svg>
+            </div>
+            <div class="exp-card-info">
+                <h3 class="exp-card-titulo">Planilha de Empréstimos</h3>
+                <p class="exp-card-desc">
+                    Histórico de retiradas com aluno, turma, título do livro, datas de empréstimo e devolução, e
+                    situação de atraso.
+                </p>
+                <div class="exp-card-meta">
+                    <span class="exp-badge">{{ total_emprestimos }} registro{{ total_emprestimos|pluralize }}</span>
+                    <span class="exp-badge-fmt">.xlsx</span>
+                </div>
+            </div>
+            <div class="exp-emp-opcoes">
+                <a href="{% url 'exportar_emprestimos' %}?ano={{ ano_atual }}" class="exp-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    {{ ano_atual }}
+                </a>
+                <a href="{% url 'exportar_emprestimos' %}?todos=1" class="exp-btn exp-btn-ghost">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Todos os anos
+                </a>
+            </div>
+        </div>
+
+        <!-- Lista de Alunos -->
+        <div class="exp-card">
+            <div class="exp-card-icon" style="background:rgba(124,58,237,.1);color:#7c3aed">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+            </div>
+            <div class="exp-card-info">
+                <h3 class="exp-card-titulo">Lista de Alunos</h3>
+                <p class="exp-card-desc">
+                    Todos os alunos cadastrados organizados por turma, com matrícula e e-mail.
+                </p>
+                <div class="exp-card-meta">
+                    <span class="exp-badge">{{ total_alunos }} aluno{{ total_alunos|pluralize }}</span>
+                    <span class="exp-badge-fmt">.xlsx</span>
+                </div>
+            </div>
+            <a href="{% url 'exportar_alunos' %}" class="exp-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Baixar
+            </a>
+        </div>
+
+    </div>
+
+    <!-- ── AVISO ── -->
+    <div class="exp-aviso">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        Os arquivos gerados refletem os dados atuais do sistema no momento do download. Cada download gera uma versão
+        atualizada.
+    </div>
+
+</div>
+
+<style>
+    .exp-wrap {
+        max-width: 860px;
+        margin: 0 auto;
+    }
+
+    .exp-header {
+        margin-bottom: 32px;
+    }
+
+    .exp-titulo {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 6px;
+    }
+
+    .exp-sub {
+        font-size: 13px;
+        color: var(--muted);
+    }
+
+    /* ── GRID ── */
+    .exp-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    /* ── CARD ── */
+    .exp-card {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 22px 24px;
+        border-radius: var(--r-xl);
+        border: 1px solid var(--border);
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    [data-theme="dark"] .exp-card {
+        background: #162b47;
+    }
+
+    [data-theme="light"] .exp-card {
+        background: #fff;
+    }
+
+    .exp-card:hover {
+        border-color: var(--accent-lt);
+    }
+
+    [data-theme="dark"] .exp-card:hover {
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="light"] .exp-card:hover {
+        box-shadow: 0 8px 24px rgba(30, 90, 168, 0.1);
+    }
+
+    .exp-card-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: var(--r-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .exp-card-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .exp-card-titulo {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 4px;
+    }
+
+    .exp-card-desc {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+
+    .exp-card-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .exp-badge {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 99px;
+        background: var(--badge-bg);
+        color: var(--badge-txt);
+    }
+
+    .exp-badge-fmt {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 99px;
+        background: rgba(34, 197, 94, 0.12);
+        color: #22c55e;
+        letter-spacing: 0.04em;
+    }
+
+    /* ── BOTÕES ── */
+    .exp-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        height: 38px;
+        padding: 0 18px;
+        border-radius: var(--r-md);
+        background: var(--accent);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: opacity 0.2s, transform 0.15s;
+    }
+
+    .exp-btn:hover {
+        opacity: 0.88;
+        transform: translateY(-1px);
+    }
+
+    .exp-btn-ghost {
+        background: var(--input-bg);
+        color: var(--text);
+        border: 1px solid var(--border);
+    }
+
+    .exp-btn-ghost:hover {
+        opacity: 1;
+        background: var(--hover);
+    }
+
+    /* Botões de empréstimo lado a lado */
+    .exp-emp-opcoes {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    /* ── AVISO ── */
+    .exp-aviso {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 14px 18px;
+        border-radius: var(--r-lg);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.6;
+    }
+
+    .exp-aviso svg {
+        flex-shrink: 0;
+        color: var(--accent-lt);
+        margin-top: 1px;
+    }
+
+    /* ── RESPONSIVO ── */
+    @media (max-width: 680px) {
+        .exp-card {
+            flex-wrap: wrap;
+        }
+
+        .exp-card-icon {
+            width: 42px;
+            height: 42px;
+        }
+
+        .exp-emp-opcoes {
+            width: 100%;
+        }
+
+        .exp-emp-opcoes .exp-btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .exp-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+{% endblock %}

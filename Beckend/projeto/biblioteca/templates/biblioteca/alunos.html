@@ -12,6 +12,10 @@
             <p class="descricao-cad-livro" data-i18n="al_descricao"></p>
         </div>
         <div class="al-header-acoes">
+            <button class="al-btn-turmas" id="btn-gerenciar-turmas">
+                <i class="fa-solid fa-chalkboard"></i>
+                <span>Gerenciar Turmas</span>
+            </button>
             <button class="al-btn-add" id="btn-abrir-modal-individual">
                 <i class="fa-solid fa-user-plus"></i>
                 <span data-i18n="al_btn_add"></span>
@@ -45,16 +49,18 @@
     <div class="al-toolbar">
         <div class="al-toolbar-row">
             <div class="al-search-wrap" style="position:relative;">
-                <svg class="al-search-ico" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true">
+                <svg class="al-search-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"
+                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                         stroke-linejoin="round" />
-                    <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" />
                 </svg>
-                <input type="text" id="al-search" class="al-search" placeholder="Busque o Nome do Aluno ou Turma" data-i18n-placeholder="al_busca_placeholder" autocomplete="off">
+                <input type="text" id="al-search" class="al-search" placeholder="Busque o Nome do Aluno ou Turma"
+                    autocomplete="off">
             </div>
             <div class="al-filtros" id="al-filtros">
-                <button class="al-filtro-btn ativo" data-turma="todas" data-i18n="al_filtro_todas"></button>
+                <button class="al-filtro-btn ativo" data-turma="todas">Todas</button>
                 {% for turma in turmas %}
                 <button class="al-filtro-btn" data-turma="{{ turma }}">{{ turma }}</button>
                 {% endfor %}
@@ -74,20 +80,19 @@
                 <table class="al-table">
                     <thead>
                         <tr>
-                            <th data-i18n="al_col_aluno"></th>
-                            <th data-i18n="al_col_matricula"></th>
-                            <th data-i18n="al_col_turma"></th>
+                            <th>Aluno</th>
+                            <th>Matrícula</th>
+                            <th>Turma</th>
+                            <th style="width:60px;text-align:center;">Ação</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for aluno in alunos %}
                         <tr class="al-row" data-nome="{{ aluno.get_full_name|lower }}"
-                            data-matricula="{{ aluno.matricula }}">
+                            data-matricula="{{ aluno.matricula }}" data-id="{{ aluno.pk }}">
                             <td>
                                 <div class="al-aluno-cell">
-                                    <div class="al-avatar" style="background: {{ aluno.cor_avatar }}">
-                                        {{ aluno.iniciais }}
-                                    </div>
+                                    <div class="al-avatar" style="background: {{ aluno.cor_avatar }}">{{ aluno.iniciais }}</div>
                                     <div>
                                         <div class="al-nome">{{ aluno.get_full_name }}</div>
                                         <div class="al-email">{{ aluno.email|default:"—" }}</div>
@@ -96,6 +101,12 @@
                             </td>
                             <td><span class="al-matricula">{{ aluno.matricula }}</span></td>
                             <td><span class="al-tag-turma">{{ aluno.serie|default:"—" }}</span></td>
+                            <td style="text-align:center;">
+                                <button class="al-btn-excluir" data-id="{{ aluno.pk }}"
+                                    data-nome="{{ aluno.get_full_name }}" title="Excluir">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -105,111 +116,146 @@
         {% empty %}
         <div class="al-vazia">
             <i class="fa-solid fa-users-slash al-vazia-ico"></i>
-            <p data-i18n="al_vazia_titulo"></p>
-            <span data-i18n="al_vazia_desc"></span>
+            <p>Nenhum aluno cadastrado</p>
+            <span>Importe uma planilha do SIEP ou cadastre individualmente.</span>
         </div>
         {% endfor %}
     </div>
 
-    <!-- ── MENSAGEM SEM RESULTADO DE BUSCA ── -->
     <div class="al-vazia" id="al-sem-resultado" style="display:none;">
         <i class="fa-solid fa-magnifying-glass al-vazia-ico"></i>
-        <p data-i18n="al_sem_resultado_titulo"></p>
-        <span data-i18n="al_sem_resultado_desc"></span>
+        <p>Nenhum resultado encontrado</p>
+        <span>Tente buscar por outro nome ou matrícula.</span>
     </div>
 
 </section>
 
-<!-- ═══════════════ MODAL ADICIONAR ALUNO INDIVIDUAL ═══════════════ -->
-<div class="al-modal-overlay" id="al-modal-individual-overlay">
+<!-- ═══ MODAL EXCLUIR ═══ -->
+<div class="al-modal-overlay" id="al-modal-excluir-overlay">
     <div class="al-modal al-modal-sm">
         <div class="al-modal-header">
             <div>
-                <h3 class="al-modal-titulo" data-i18n="al_modal_ind_titulo"></h3>
-                <p class="al-modal-sub" data-i18n="al_modal_ind_sub"></p>
+                <h3 class="al-modal-titulo" style="color:#ef4444">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:14px;margin-right:6px;"></i>Excluir
+                    cadastro
+                </h3>
+                <p class="al-modal-sub">Essa ação não pode ser desfeita.</p>
             </div>
-            <button class="al-modal-close" id="btn-fechar-modal-individual" aria-label="Fechar">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+            <button class="al-modal-close" id="btn-fechar-modal-excluir"><i class="fa-solid fa-xmark"></i></button>
         </div>
-
-        <div class="al-form-grid">
-            <div class="al-form-group al-form-full">
-                <label class="al-form-label"><span data-i18n="al_ind_nome_label"></span> <span
-                        class="al-req">*</span></label>
-                <input type="text" class="al-form-input" id="ind-nome" data-i18n-placeholder="al_ind_nome_placeholder"
-                    autocomplete="off">
-            </div>
-            <div class="al-form-group">
-                <label class="al-form-label"><span data-i18n="al_ind_matricula_label"></span> <span
-                        class="al-req">*</span></label>
-                <input type="text" class="al-form-input" id="ind-matricula"
-                    data-i18n-placeholder="al_ind_matricula_placeholder" autocomplete="off">
-            </div>
-            <div class="al-form-group">
-                <label class="al-form-label"><span data-i18n="al_ind_turma_label"></span> <span
-                        class="al-req">*</span></label>
-                <div class="al-turma-input-wrap">
-                    <input type="text" class="al-form-input" id="ind-turma"
-                        data-i18n-placeholder="al_ind_turma_placeholder" autocomplete="off" list="al-turmas-list">
-                    <datalist id="al-turmas-list">
-                        {% for turma in turmas %}
-                        <option value="{{ turma }}">
-                            {% endfor %}
-                    </datalist>
-                </div>
-                <span class="al-form-hint" data-i18n="al_ind_turma_hint"></span>
-            </div>
-        </div>
-
-        <div class="al-resultado" id="al-resultado-individual" style="display:none"></div>
-
+        <p style="font-size:14px;color:var(--text);line-height:1.6;">
+            Tem certeza que deseja excluir o cadastro de <strong id="excluir-nome-aluno"></strong>?
+            O histórico de empréstimos vinculado será preservado.
+        </p>
         <div class="al-modal-footer">
-            <button class="al-btn-cancelar" id="btn-cancelar-individual" data-i18n="al_btn_cancelar"></button>
-            <button class="al-btn-confirmar" id="btn-confirmar-individual">
-                <i class="fa-solid fa-user-plus"></i>
-                <span data-i18n="al_btn_confirmar_ind"></span>
+            <button class="al-btn-cancelar" id="btn-cancelar-excluir">Cancelar</button>
+            <button class="al-btn-confirmar al-btn-danger" id="btn-confirmar-excluir">
+                <i class="fa-solid fa-trash-can"></i><span>Excluir definitivamente</span>
             </button>
         </div>
     </div>
 </div>
 
-<!-- ═══════════════ MODAL IMPORTAR PLANILHA ═══════════════ -->
+<!-- ═══ MODAL GERENCIAR TURMAS ═══ -->
+<div class="al-modal-overlay" id="al-modal-turmas-overlay">
+    <div class="al-modal al-modal-sm">
+        <div class="al-modal-header">
+            <div>
+                <h3 class="al-modal-titulo">
+                    <i class="fa-solid fa-chalkboard"
+                        style="font-size:13px;margin-right:6px;color:var(--accent-lt)"></i>Gerenciar Turmas
+                </h3>
+                <p class="al-modal-sub">Adicione ou remova turmas disponíveis para cadastro.</p>
+            </div>
+            <button class="al-modal-close" id="btn-fechar-modal-turmas"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="turmas-lista-wrap"></div>
+        <div class="al-turma-add-wrap">
+            <input type="text" class="al-form-input" id="nova-turma-input" placeholder="Ex: 4° A" maxlength="20">
+            <button class="al-btn-add-turma" id="btn-add-turma"><i class="fa-solid fa-plus"></i> Adicionar</button>
+        </div>
+        <div class="al-modal-footer">
+            <button class="al-btn-cancelar" id="btn-cancelar-turmas">Fechar</button>
+            <button class="al-btn-confirmar" id="btn-salvar-turmas">
+                <i class="fa-solid fa-floppy-disk"></i><span>Salvar turmas</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL ADICIONAR INDIVIDUAL ═══ -->
+<div class="al-modal-overlay" id="al-modal-individual-overlay">
+    <div class="al-modal al-modal-sm">
+        <div class="al-modal-header">
+            <div>
+                <h3 class="al-modal-titulo">Adicionar usuário</h3>
+                <p class="al-modal-sub">Cadastre um aluno ou funcionário individualmente.</p>
+            </div>
+            <button class="al-modal-close" id="btn-fechar-modal-individual"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="al-form-grid">
+            <div class="al-form-group al-form-full">
+                <label class="al-form-label">Nome completo <span class="al-req">*</span></label>
+                <input type="text" class="al-form-input" id="ind-nome" placeholder="Nome do aluno ou funcionário"
+                    autocomplete="off">
+            </div>
+            <div class="al-form-group">
+                <label class="al-form-label">Matrícula <span class="al-req">*</span></label>
+                <input type="text" class="al-form-input" id="ind-matricula" placeholder="Ex: 4021437"
+                    autocomplete="off">
+            </div>
+            <div class="al-form-group">
+                <label class="al-form-label">Turma / Categoria <span class="al-req">*</span></label>
+                <select class="al-form-input al-form-select" id="ind-turma"></select>
+                <span class="al-form-hint">Selecione a turma ou categoria</span>
+            </div>
+        </div>
+        <div class="al-resultado" id="al-resultado-individual" style="display:none"></div>
+        <div class="al-modal-footer">
+            <button class="al-btn-cancelar" id="btn-cancelar-individual">Cancelar</button>
+            <button class="al-btn-confirmar" id="btn-confirmar-individual">
+                <i class="fa-solid fa-user-plus"></i><span>Cadastrar</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL IMPORTAR PLANILHA ═══ -->
 <div class="al-modal-overlay" id="al-modal-overlay">
     <div class="al-modal">
         <div class="al-modal-header">
             <div>
-                <h3 class="al-modal-titulo" data-i18n="al_modal_imp_titulo"></h3>
-                <p class="al-modal-sub" data-i18n="al_modal_imp_sub"></p>
+                <h3 class="al-modal-titulo">Importar planilha</h3>
+                <p class="al-modal-sub">Importe alunos a partir de uma planilha do SIEP ou arquivo Excel/CSV.</p>
             </div>
-            <button class="al-modal-close" id="btn-fechar-modal" aria-label="Fechar">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+            <button class="al-modal-close" id="btn-fechar-modal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Badge SIEP -->
+        <div class="al-siep-badge">
+            <i class="fa-solid fa-circle-check" style="color:#22c55e"></i>
+            <div>
+                <strong>Formato SIEP detectado automaticamente</strong>
+                <span>Ao importar a planilha gerada pelo SIEP, a turma é lida e normalizada automaticamente (ex: "1ANO -
+                    I - EM1I-A" → "1° A"). Nenhuma configuração necessária.</span>
+            </div>
         </div>
 
         <div class="al-formatos">
-            <div class="al-formato-item">
-                <i class="fa-solid fa-file-excel" style="color:#22c55e"></i>
-                <span>.xlsx</span>
+            <div class="al-formato-item"><i class="fa-solid fa-file-excel" style="color:#22c55e"></i><span>.xlsx</span>
             </div>
-            <div class="al-formato-item">
-                <i class="fa-solid fa-file-excel" style="color:#16a34a"></i>
-                <span>.xls</span>
+            <div class="al-formato-item"><i class="fa-solid fa-file-excel" style="color:#16a34a"></i><span>.xls</span>
             </div>
-            <div class="al-formato-item">
-                <i class="fa-solid fa-file-csv" style="color:#0891b2"></i>
-                <span>.csv</span>
+            <div class="al-formato-item"><i class="fa-solid fa-file-csv" style="color:#0891b2"></i><span>.csv</span>
             </div>
         </div>
 
         <div class="al-dropzone" id="al-dropzone">
             <input type="file" id="al-file-input" accept=".xlsx,.xls,.csv" style="display:none">
             <i class="fa-solid fa-cloud-arrow-up al-drop-ico"></i>
-            <div class="al-drop-txt">
-                <span data-i18n="al_drop_txt"></span> <span class="al-drop-link" id="al-drop-link"
-                    data-i18n="al_drop_link"></span>
-            </div>
-            <div class="al-drop-hint" data-i18n="al_drop_hint"></div>
+            <div class="al-drop-txt">Arraste o arquivo aqui ou <span class="al-drop-link" id="al-drop-link">clique para
+                    selecionar</span></div>
+            <div class="al-drop-hint">Planilha do SIEP ou qualquer .xlsx / .xls / .csv</div>
         </div>
 
         <div class="al-arquivo-preview" id="al-arquivo-preview" style="display:none">
@@ -218,46 +264,48 @@
                 <span class="al-arq-nome" id="al-arq-nome"></span>
                 <span class="al-arq-size" id="al-arq-size"></span>
             </div>
-            <button class="al-arq-remover" id="al-arq-remover" aria-label="Remover arquivo">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+            <button class="al-arq-remover" id="al-arq-remover"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
+        <!-- Preview SIEP (modo automático) -->
+        <div id="al-siep-preview" style="display:none">
+            <div class="al-siep-info" id="al-siep-info"></div>
+            <div class="al-preview-table-wrap" id="al-preview-table-wrap"></div>
+        </div>
+
+        <!-- Mapeamento manual (modo genérico) -->
         <div class="al-mapeamento" id="al-mapeamento" style="display:none">
             <div class="al-map-titulo">
-                <span data-i18n="al_map_titulo"></span>
-                <span class="al-map-hint" data-i18n="al_map_hint"></span>
+                Mapeie as colunas <span class="al-map-hint">— escolha quais colunas correspondem a cada campo</span>
             </div>
             <div class="al-map-grid">
                 <div class="al-map-row">
-                    <label class="al-map-label" data-i18n="al_map_nome"></label>
+                    <label class="al-map-label">Nome</label>
                     <select class="al-map-select" id="map-nome"></select>
                 </div>
                 <div class="al-map-row">
-                    <label class="al-map-label" data-i18n="al_map_matricula"></label>
+                    <label class="al-map-label">Matrícula</label>
                     <select class="al-map-select" id="map-matricula"></select>
                 </div>
                 <div class="al-map-row">
-                    <label class="al-map-label" data-i18n="al_map_turma"></label>
+                    <label class="al-map-label">Turma</label>
                     <select class="al-map-select" id="map-turma"></select>
                 </div>
             </div>
-            <div class="al-preview-table-wrap" id="al-preview-table-wrap"></div>
+            <div class="al-preview-table-wrap" id="al-preview-table-wrap-manual"></div>
         </div>
 
         <div class="al-resultado" id="al-resultado" style="display:none"></div>
 
         <div class="al-modal-footer">
-            <button class="al-btn-cancelar" id="btn-cancelar-modal" data-i18n="al_btn_cancelar"></button>
+            <button class="al-btn-cancelar" id="btn-cancelar-modal">Cancelar</button>
             <button class="al-btn-confirmar" id="btn-confirmar-importar" disabled>
-                <i class="fa-solid fa-file-import"></i>
-                <span data-i18n="al_btn_confirmar_imp"></span>
+                <i class="fa-solid fa-file-import"></i><span>Importar alunos</span>
             </button>
         </div>
     </div>
 </div>
 
-<!-- ═══════════════ ESTILOS ═══════════════ -->
 <style>
     .al-header {
         display: flex;
@@ -276,6 +324,27 @@
         flex-wrap: wrap;
     }
 
+    .al-btn-turmas {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 16px;
+        border-radius: var(--r-md);
+        background: transparent;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: background .2s, color .2s;
+    }
+
+    .al-btn-turmas:hover {
+        background: var(--hover);
+        color: var(--text);
+    }
+
     .al-btn-add {
         display: flex;
         align-items: center;
@@ -284,13 +353,12 @@
         padding: 0 20px;
         border-radius: var(--r-md);
         background: transparent;
-        color: var(--accent-lt, #4f94d6);
+        color: var(--accent-lt);
         font-size: 13px;
         font-weight: 700;
-        border: 1px solid var(--accent-lt, #4f94d6);
+        border: 1px solid var(--accent-lt);
         cursor: pointer;
-        transition: background .2s, color .2s, transform .15s;
-        flex-shrink: 0;
+        transition: background .2s, transform .15s;
     }
 
     .al-btn-add:hover {
@@ -312,7 +380,6 @@
         border: none;
         cursor: pointer;
         transition: opacity .2s, transform .15s;
-        flex-shrink: 0;
     }
 
     .al-btn-importar:hover {
@@ -375,7 +442,6 @@
         color: var(--muted);
     }
 
-    /* ── TOOLBAR ── */
     .al-toolbar {
         margin-bottom: 24px;
     }
@@ -393,25 +459,19 @@
         flex-shrink: 0;
     }
 
-    @media(max-width: 600px) {
+    @media(max-width:600px) {
         .al-search-wrap {
             width: 100%;
             min-width: unset;
         }
-
-        .al-toolbar-row {
-            gap: 8px;
-        }
     }
 
-    /* ── CORREÇÃO: ícone de busca e placeholder ── */
     .al-search-ico {
         position: absolute;
         left: 14px;
         top: 50%;
         transform: translateY(-50%);
-        font-size: 13px;
-        color: var(--faint, #6b7fa3);
+        color: var(--faint);
         pointer-events: none;
         z-index: 3;
     }
@@ -433,7 +493,7 @@
     }
 
     .al-search::placeholder {
-        color: var(--faint, #6b7fa3);
+        color: var(--faint);
         opacity: 1;
     }
 
@@ -594,7 +654,7 @@
         color: var(--muted);
         background: var(--surface);
         padding: 2px 8px;
-        border-radius: var(--r-sm, 4px);
+        border-radius: var(--r-sm);
         border: 1px solid var(--border);
     }
 
@@ -605,6 +665,27 @@
         border-radius: 99px;
         background: rgba(79, 148, 214, .12);
         color: #4f94d6;
+    }
+
+    .al-btn-excluir {
+        width: 30px;
+        height: 30px;
+        border-radius: var(--r-md);
+        border: 1px solid rgba(239, 68, 68, .25);
+        background: rgba(239, 68, 68, .06);
+        color: #ef4444;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        transition: background .15s, transform .1s;
+    }
+
+    .al-btn-excluir:hover {
+        background: rgba(239, 68, 68, .15);
+        border-color: rgba(239, 68, 68, .5);
+        transform: scale(1.08);
     }
 
     .al-vazia {
@@ -765,12 +846,16 @@
         box-sizing: border-box;
     }
 
+    .al-form-select {
+        cursor: pointer;
+    }
+
     .al-form-input:focus {
         border-color: var(--accent-lt);
     }
 
     .al-form-input::placeholder {
-        color: var(--faint, #6b7fa3);
+        color: var(--faint);
         opacity: 1;
     }
 
@@ -780,8 +865,192 @@
         margin-top: -2px;
     }
 
-    .al-turma-input-wrap {
-        position: relative;
+    .al-turmas-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 260px;
+        overflow-y: auto;
+        padding: 2px 0;
+    }
+
+    .al-turma-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        gap: 10px;
+    }
+
+    .al-turma-item-nome {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .al-turma-item-remove {
+        width: 26px;
+        height: 26px;
+        border-radius: var(--r-sm);
+        border: 1px solid rgba(239, 68, 68, .25);
+        background: rgba(239, 68, 68, .06);
+        color: #ef4444;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        flex-shrink: 0;
+        transition: background .15s;
+    }
+
+    .al-turma-item-remove:hover {
+        background: rgba(239, 68, 68, .15);
+    }
+
+    .al-turma-add-wrap {
+        display: flex;
+        gap: 8px;
+    }
+
+    .al-turma-add-wrap .al-form-input {
+        flex: 1;
+    }
+
+    .al-btn-add-turma {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: 38px;
+        padding: 0 16px;
+        border-radius: var(--r-md);
+        background: var(--accent);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: opacity .2s;
+    }
+
+    .al-btn-add-turma:hover {
+        opacity: .88;
+    }
+
+    .al-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .al-btn-cancelar {
+        height: 38px;
+        padding: 0 18px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: color .15s;
+    }
+
+    .al-btn-cancelar:hover {
+        color: var(--text);
+    }
+
+    .al-btn-confirmar {
+        height: 38px;
+        padding: 0 20px;
+        border-radius: var(--r-md);
+        background: var(--accent);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: opacity .2s;
+    }
+
+    .al-btn-confirmar:disabled {
+        opacity: .4;
+        cursor: not-allowed;
+    }
+
+    .al-btn-confirmar:not(:disabled):hover {
+        opacity: .88;
+    }
+
+    .al-btn-danger {
+        background: #ef4444 !important;
+    }
+
+    .al-resultado {
+        border-radius: var(--r-md);
+        padding: 14px 16px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .al-resultado.sucesso {
+        background: rgba(34, 197, 94, .1);
+        border: 1px solid rgba(34, 197, 94, .3);
+        color: #22c55e;
+    }
+
+    .al-resultado.erro {
+        background: rgba(239, 68, 68, .1);
+        border: 1px solid rgba(239, 68, 68, .3);
+        color: #ef4444;
+    }
+
+    /* SIEP badge */
+    .al-siep-badge {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: var(--r-md);
+        background: rgba(34, 197, 94, .07);
+        border: 1px solid rgba(34, 197, 94, .25);
+        font-size: 12px;
+    }
+
+    .al-siep-badge strong {
+        display: block;
+        color: var(--text);
+        margin-bottom: 2px;
+        font-size: 12px;
+    }
+
+    .al-siep-badge span {
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    .al-siep-badge>i {
+        margin-top: 2px;
+        flex-shrink: 0;
+        font-size: 14px;
+    }
+
+    .al-siep-info {
+        padding: 10px 14px;
+        border-radius: var(--r-md);
+        background: rgba(79, 148, 214, .08);
+        border: 1px solid rgba(79, 148, 214, .2);
+        font-size: 12px;
+        color: var(--accent-lt);
+        font-weight: 600;
+        margin-bottom: 10px;
     }
 
     .al-formatos {
@@ -879,7 +1148,7 @@
     .al-arq-remover {
         width: 28px;
         height: 28px;
-        border-radius: var(--r-sm, 4px);
+        border-radius: var(--r-sm);
         border: 1px solid var(--border);
         background: var(--surface);
         color: var(--faint);
@@ -945,7 +1214,7 @@
         overflow-x: auto;
         border-radius: var(--r-md);
         border: 1px solid var(--border);
-        max-height: 160px;
+        max-height: 200px;
         overflow-y: auto;
     }
 
@@ -979,219 +1248,285 @@
         border-bottom: 1px solid var(--border);
         color: var(--muted);
     }
-
-    .al-resultado {
-        border-radius: var(--r-md);
-        padding: 14px 16px;
-        font-size: 13px;
-        font-weight: 600;
-    }
-
-    .al-resultado.sucesso {
-        background: rgba(34, 197, 94, .1);
-        border: 1px solid rgba(34, 197, 94, .3);
-        color: #22c55e;
-    }
-
-    .al-resultado.erro {
-        background: rgba(239, 68, 68, .1);
-        border: 1px solid rgba(239, 68, 68, .3);
-        color: #ef4444;
-    }
-
-    .al-modal-footer {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-    }
-
-    .al-btn-cancelar {
-        height: 38px;
-        padding: 0 18px;
-        border-radius: var(--r-md);
-        border: 1px solid var(--border);
-        background: transparent;
-        color: var(--muted);
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: color .15s;
-    }
-
-    .al-btn-cancelar:hover {
-        color: var(--text);
-    }
-
-    .al-btn-confirmar {
-        height: 38px;
-        padding: 0 20px;
-        border-radius: var(--r-md);
-        background: var(--accent);
-        color: #fff;
-        font-size: 13px;
-        font-weight: 700;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: opacity .2s;
-    }
-
-    .al-btn-confirmar:disabled {
-        opacity: .4;
-        cursor: not-allowed;
-    }
-
-    .al-btn-confirmar:not(:disabled):hover {
-        opacity: .88;
-    }
 </style>
 
-<!-- ═══════════════ SCRIPTS ═══════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     (function () {
 
-        /* ════ MODAL INDIVIDUAL ════ */
-        const overlayInd = document.getElementById('al-modal-individual-overlay');
-        const btnAbrirInd = document.getElementById('btn-abrir-modal-individual');
-        const btnFecharInd = document.getElementById('btn-fechar-modal-individual');
-        const btnCancelarInd = document.getElementById('btn-cancelar-individual');
-        const btnConfirmarInd = document.getElementById('btn-confirmar-individual');
-        const resultadoInd = document.getElementById('al-resultado-individual');
+        /* ══════════════════════════════════════════════
+           TURMAS — localStorage
+        ══════════════════════════════════════════════ */
+        const TURMAS_PADRAO = ['1° A', '1° B', '1° C', '2° A', '2° B', '2° C', '2° D', '3° A', '3° B'];
+        const OPCOES_ESPECIAIS = ['Sem turma', 'Funcionário'];
 
-        function abrirModalInd() { overlayInd.classList.add('aberto'); }
-        function fecharModalInd() {
-            overlayInd.classList.remove('aberto');
-            ['ind-nome', 'ind-matricula', 'ind-turma'].forEach(id => {
-                document.getElementById(id).value = '';
-            });
-            resultadoInd.style.display = 'none';
-            btnConfirmarInd.disabled = false;
+        function carregarTurmas() {
+            try { const s = localStorage.getItem('biblioteca_turmas'); return s ? JSON.parse(s) : [...TURMAS_PADRAO]; }
+            catch { return [...TURMAS_PADRAO]; }
+        }
+        function salvarTurmas(lista) { localStorage.setItem('biblioteca_turmas', JSON.stringify(lista)); }
+        let turmasAtuais = carregarTurmas();
+
+        function preencherSelectTurma() {
+            const sel = document.getElementById('ind-turma');
+            sel.innerHTML = '';
+            const g1 = document.createElement('optgroup'); g1.label = 'Turmas';
+            turmasAtuais.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; g1.appendChild(o); });
+            sel.appendChild(g1);
+            const g2 = document.createElement('optgroup'); g2.label = 'Outros';
+            OPCOES_ESPECIAIS.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; g2.appendChild(o); });
+            sel.appendChild(g2);
+        }
+        preencherSelectTurma();
+
+        /* ══════════════════════════════════════════════
+           PARSER SIEP
+           Detecta o formato da planilha gerada pelo SIEP:
+           - Linha de turma: "1ANO - I - EM1I-A"  → "1° A"
+           - Linha de aluno: col0 = matrícula numérica, col1 = nome
+        ══════════════════════════════════════════════ */
+        function parsearSIEP(rows) {
+            // rows = array de arrays (todas as linhas da planilha)
+            const TURMA_RE = /^(\d)ANO\s*-\s*[IVX]+\s*-\s*EM\d+[A-Z]-([A-Z])/i;
+            let turmaAtual = null;
+            const alunos = [];
+
+            for (const row of rows) {
+                const col0 = row[0] != null ? String(row[0]).trim() : '';
+                const col1 = row[1] != null ? String(row[1]).trim() : '';
+
+                // Linha de turma
+                const m = TURMA_RE.exec(col0);
+                if (m) {
+                    turmaAtual = `${m[1]}° ${m[2].toUpperCase()}`;
+                    continue;
+                }
+
+                // Linha de aluno: col0 é matrícula numérica
+                if (/^\d{5,}$/.test(col0) && col1 && col1 !== 'nan' && col1.toLowerCase() !== 'nome') {
+                    alunos.push({ matricula: col0, nome: col1, turma: turmaAtual || 'Sem turma' });
+                }
+            }
+            return alunos;
         }
 
-        btnAbrirInd.addEventListener('click', abrirModalInd);
-        btnFecharInd.addEventListener('click', fecharModalInd);
-        btnCancelarInd.addEventListener('click', fecharModalInd);
-        overlayInd.addEventListener('click', e => { if (e.target === overlayInd) fecharModalInd(); });
+        function ehFormatoSIEP(rows) {
+            // Critério: alguma linha tem padrão "XANO - ... - EMxX-X"
+            const TURMA_RE = /^(\d)ANO\s*-\s*[IVX]+\s*-\s*EM\d+[A-Z]-([A-Z])/i;
+            return rows.some(r => r[0] != null && TURMA_RE.test(String(r[0]).trim()));
+        }
 
-        btnConfirmarInd.addEventListener('click', async () => {
-            const nome = document.getElementById('ind-nome').value.trim();
-            const matricula = document.getElementById('ind-matricula').value.trim();
-            const turma = document.getElementById('ind-turma').value.trim();
+        /* ══════════════════════════════════════════════
+           MODAL GERENCIAR TURMAS
+        ══════════════════════════════════════════════ */
+        let turmasTemp = [];
 
-            if (!nome || !matricula || !turma) {
-                mostrarResultadoInd('erro', 'Preencha nome, matrícula e turma.');
+        function renderizarListaTurmas() {
+            const wrap = document.getElementById('turmas-lista-wrap');
+            if (!turmasTemp.length) {
+                wrap.innerHTML = '<p style="font-size:12px;color:var(--faint);text-align:center;padding:12px 0;">Nenhuma turma cadastrada.</p>';
                 return;
             }
+            const lista = document.createElement('div');
+            lista.className = 'al-turmas-lista';
+            turmasTemp.forEach((t, i) => {
+                const item = document.createElement('div');
+                item.className = 'al-turma-item';
+                item.innerHTML = `<span class="al-turma-item-nome">${t}</span>
+            <button class="al-turma-item-remove" data-idx="${i}"><i class="fa-solid fa-xmark"></i></button>`;
+                lista.appendChild(item);
+            });
+            wrap.innerHTML = '';
+            wrap.appendChild(lista);
+            wrap.querySelectorAll('.al-turma-item-remove').forEach(btn => {
+                btn.addEventListener('click', () => { turmasTemp.splice(parseInt(btn.dataset.idx), 1); renderizarListaTurmas(); });
+            });
+        }
 
-            btnConfirmarInd.disabled = true;
+        const overlayTurmas = document.getElementById('al-modal-turmas-overlay');
+        document.getElementById('btn-gerenciar-turmas').addEventListener('click', () => {
+            turmasTemp = [...turmasAtuais]; renderizarListaTurmas();
+            document.getElementById('nova-turma-input').value = '';
+            overlayTurmas.classList.add('aberto');
+        });
+        ['btn-fechar-modal-turmas', 'btn-cancelar-turmas'].forEach(id =>
+            document.getElementById(id).addEventListener('click', () => overlayTurmas.classList.remove('aberto')));
+        overlayTurmas.addEventListener('click', e => { if (e.target === overlayTurmas) overlayTurmas.classList.remove('aberto'); });
 
+        document.getElementById('btn-add-turma').addEventListener('click', () => {
+            const val = document.getElementById('nova-turma-input').value.trim();
+            if (!val) return;
+            if (turmasTemp.includes(val)) { document.getElementById('nova-turma-input').style.borderColor = '#ef4444'; setTimeout(() => document.getElementById('nova-turma-input').style.borderColor = '', 1200); return; }
+            turmasTemp.push(val); document.getElementById('nova-turma-input').value = ''; renderizarListaTurmas();
+        });
+        document.getElementById('nova-turma-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-add-turma').click(); });
+        document.getElementById('btn-salvar-turmas').addEventListener('click', () => {
+            turmasAtuais = [...turmasTemp]; salvarTurmas(turmasAtuais); preencherSelectTurma();
+            overlayTurmas.classList.remove('aberto');
+        });
+
+        /* ══════════════════════════════════════════════
+           MODAL EXCLUIR
+        ══════════════════════════════════════════════ */
+        const overlayExcluir = document.getElementById('al-modal-excluir-overlay');
+        let alunoParaExcluir = null;
+
+        document.getElementById('al-conteudo').addEventListener('click', e => {
+            const btn = e.target.closest('.al-btn-excluir'); if (!btn) return;
+            alunoParaExcluir = btn.dataset.id;
+            document.getElementById('excluir-nome-aluno').textContent = btn.dataset.nome;
+            overlayExcluir.classList.add('aberto');
+        });
+        ['btn-fechar-modal-excluir', 'btn-cancelar-excluir'].forEach(id =>
+            document.getElementById(id).addEventListener('click', () => { overlayExcluir.classList.remove('aberto'); alunoParaExcluir = null; }));
+        overlayExcluir.addEventListener('click', e => { if (e.target === overlayExcluir) { overlayExcluir.classList.remove('aberto'); alunoParaExcluir = null; } });
+
+        const btnConfExcluir = document.getElementById('btn-confirmar-excluir');
+        btnConfExcluir.addEventListener('click', async () => {
+            if (!alunoParaExcluir) return;
+            btnConfExcluir.disabled = true;
+            try {
+                const res = await fetch(`/biblioteca/alunos/excluir/${alunoParaExcluir}/`, {
+                    method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' }
+                });
+                if (res.ok) {
+                    const row = document.querySelector(`.al-row[data-id="${alunoParaExcluir}"]`);
+                    if (row) {
+                        const tbody = row.closest('tbody'); row.remove();
+                        if (tbody && tbody.querySelectorAll('.al-row').length === 0) tbody.closest('.al-turma-bloco')?.remove();
+                    }
+                    overlayExcluir.classList.remove('aberto'); alunoParaExcluir = null;
+                } else {
+                    const d = await res.json().catch(() => ({})); alert(d.erro || 'Erro ao excluir.'); btnConfExcluir.disabled = false;
+                }
+            } catch { alert('Erro de conexão.'); btnConfExcluir.disabled = false; }
+        });
+
+        /* ══════════════════════════════════════════════
+           MODAL INDIVIDUAL
+        ══════════════════════════════════════════════ */
+        const overlayInd = document.getElementById('al-modal-individual-overlay');
+        const btnConfInd = document.getElementById('btn-confirmar-individual');
+        const resultadoInd = document.getElementById('al-resultado-individual');
+
+        document.getElementById('btn-abrir-modal-individual').addEventListener('click', () => overlayInd.classList.add('aberto'));
+        ['btn-fechar-modal-individual', 'btn-cancelar-individual'].forEach(id =>
+            document.getElementById(id).addEventListener('click', fecharModalInd));
+        overlayInd.addEventListener('click', e => { if (e.target === overlayInd) fecharModalInd(); });
+
+        function fecharModalInd() {
+            overlayInd.classList.remove('aberto');
+            ['ind-nome', 'ind-matricula'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('ind-turma').selectedIndex = 0;
+            resultadoInd.style.display = 'none'; btnConfInd.disabled = false;
+        }
+
+        btnConfInd.addEventListener('click', async () => {
+            const nome = document.getElementById('ind-nome').value.trim();
+            const matricula = document.getElementById('ind-matricula').value.trim();
+            const turma = document.getElementById('ind-turma').value;
+            if (!nome || !matricula) { mostrarResultadoInd('erro', 'Preencha nome e matrícula.'); return; }
+            btnConfInd.disabled = true;
             try {
                 const resp = await fetch('{% url "importar_alunos" %}', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                    body: JSON.stringify({ alunos: [{ nome, matricula, turma }] }),
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify({ alunos: [{ nome, matricula, turma }] })
                 });
                 const data = await resp.json();
                 if (resp.ok) {
-                    const acao = data.criados > 0 ? 'cadastrado' : 'atualizado';
-                    mostrarResultadoInd('sucesso', `✓ Aluno ${acao} com sucesso!`);
+                    mostrarResultadoInd('sucesso', `✓ Usuário ${data.criados > 0 ? 'cadastrado' : 'atualizado'} com sucesso!`);
                     setTimeout(() => location.reload(), 1500);
-                } else {
-                    mostrarResultadoInd('erro', data.erro || 'Erro ao salvar.');
-                }
-            } catch {
-                mostrarResultadoInd('erro', 'Erro de conexão. Tente novamente.');
-            } finally {
-                btnConfirmarInd.disabled = false;
-            }
+                } else { mostrarResultadoInd('erro', data.erro || 'Erro ao salvar.'); btnConfInd.disabled = false; }
+            } catch { mostrarResultadoInd('erro', 'Erro de conexão.'); btnConfInd.disabled = false; }
         });
-
         function mostrarResultadoInd(tipo, msg) {
-            resultadoInd.className = 'al-resultado ' + tipo;
-            resultadoInd.textContent = msg;
-            resultadoInd.style.display = 'block';
+            resultadoInd.className = 'al-resultado ' + tipo; resultadoInd.textContent = msg; resultadoInd.style.display = 'block';
         }
 
-        /* ════ MODAL IMPORTAR ════ */
+        /* ══════════════════════════════════════════════
+           MODAL IMPORTAR — com detecção automática SIEP
+        ══════════════════════════════════════════════ */
         const overlay = document.getElementById('al-modal-overlay');
-        const btnAbrir = document.getElementById('btn-abrir-modal');
-        const btnFechar = document.getElementById('btn-fechar-modal');
-        const btnCancelar = document.getElementById('btn-cancelar-modal');
+        const btnConf = document.getElementById('btn-confirmar-importar');
+        const resultado = document.getElementById('al-resultado');
+        let dadosSIEP = null;       // alunos parseados no modo SIEP
+        let dadosPlanilha = [];     // linhas brutas para modo genérico
+        let colunasPlanilha = [];
+        let modoSIEP = false;
 
-        function abrirModal() { overlay.classList.add('aberto'); }
-        function fecharModal() { overlay.classList.remove('aberto'); resetarModal(); }
-
-        btnAbrir.addEventListener('click', abrirModal);
-        btnFechar.addEventListener('click', fecharModal);
-        btnCancelar.addEventListener('click', fecharModal);
-        overlay.addEventListener('click', e => { if (e.target === overlay) fecharModal(); });
+        document.getElementById('btn-abrir-modal').addEventListener('click', () => overlay.classList.add('aberto'));
+        ['btn-fechar-modal', 'btn-cancelar-modal'].forEach(id =>
+            document.getElementById(id).addEventListener('click', () => { overlay.classList.remove('aberto'); resetarModal(); }));
+        overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('aberto'); resetarModal(); } });
 
         const dropzone = document.getElementById('al-dropzone');
         const fileInput = document.getElementById('al-file-input');
-        const dropLink = document.getElementById('al-drop-link');
-        const preview = document.getElementById('al-arquivo-preview');
-        const arqNome = document.getElementById('al-arq-nome');
-        const arqSize = document.getElementById('al-arq-size');
-        const btnRemover = document.getElementById('al-arq-remover');
-        const mapeamento = document.getElementById('al-mapeamento');
-        const btnConfirmar = document.getElementById('btn-confirmar-importar');
-        const resultado = document.getElementById('al-resultado');
-
-        let arquivoAtual = null, dadosPlanilha = [], colunasPlanilha = [];
-
-        dropLink.addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
+        document.getElementById('al-drop-link').addEventListener('click', e => { e.stopPropagation(); fileInput.click(); });
         dropzone.addEventListener('click', () => fileInput.click());
         dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
         dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
-        dropzone.addEventListener('drop', e => {
-            e.preventDefault();
-            dropzone.classList.remove('drag-over');
-            const f = e.dataTransfer.files[0];
-            if (f) processarArquivo(f);
-        });
-        fileInput.addEventListener('change', e => {
-            if (e.target.files[0]) processarArquivo(e.target.files[0]);
-        });
-        btnRemover.addEventListener('click', e => { e.stopPropagation(); resetarModal(); });
+        dropzone.addEventListener('drop', e => { e.preventDefault(); dropzone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) processarArquivo(e.dataTransfer.files[0]); });
+        fileInput.addEventListener('change', e => { if (e.target.files[0]) processarArquivo(e.target.files[0]); });
+        document.getElementById('al-arq-remover').addEventListener('click', e => { e.stopPropagation(); resetarModal(); });
 
-        function formatarTamanho(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / 1048576).toFixed(1) + ' MB';
+        function formatarTamanho(b) {
+            if (b < 1024) return b + ' B'; if (b < 1048576) return (b / 1024).toFixed(1) + ' KB'; return (b / 1048576).toFixed(1) + ' MB';
         }
 
         function processarArquivo(file) {
             const ext = file.name.split('.').pop().toLowerCase();
-            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
-                mostrarResultado('erro', 'Formato inválido. Use .xlsx, .xls ou .csv.');
-                return;
-            }
-            arquivoAtual = file;
-            arqNome.textContent = file.name;
-            arqSize.textContent = formatarTamanho(file.size);
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) { mostrarResultado('erro', 'Formato inválido. Use .xlsx, .xls ou .csv.'); return; }
+
+            document.getElementById('al-arq-nome').textContent = file.name;
+            document.getElementById('al-arq-size').textContent = formatarTamanho(file.size);
             dropzone.style.display = 'none';
-            preview.style.display = 'flex';
+            document.getElementById('al-arquivo-preview').style.display = 'flex';
             resultado.style.display = 'none';
 
             const reader = new FileReader();
             reader.onload = e => {
                 try {
-                    const wb = XLSX.read(e.target.result, { type: 'array' });
+                    const wb = XLSX.read(e.target.result, { type: 'array', raw: true });
                     const ws = wb.Sheets[wb.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(ws, { header: 1 });
-                    if (json.length < 2) { mostrarResultado('erro', 'Planilha vazia ou sem dados.'); return; }
+                    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
 
-                    colunasPlanilha = json[0].map(String);
-                    dadosPlanilha = json.slice(1).filter(r => r.some(c => c));
+                    if (rows.length < 2) { mostrarResultado('erro', 'Arquivo vazio ou sem dados.'); return; }
 
-                    preencherSelects(colunasPlanilha);
-                    mostrarPreview();
-                    mapeamento.style.display = 'flex';
-                    btnConfirmar.disabled = false;
-                } catch {
+                    if (ehFormatoSIEP(rows)) {
+                        // ── MODO SIEP ──
+                        modoSIEP = true;
+                        dadosSIEP = parsearSIEP(rows);
+
+                        // Conta turmas únicas
+                        const turmasEncontradas = [...new Set(dadosSIEP.map(a => a.turma))];
+                        document.getElementById('al-siep-info').textContent =
+                            `✓ Formato SIEP detectado — ${dadosSIEP.length} aluno(s) em ${turmasEncontradas.length} turma(s): ${turmasEncontradas.join(', ')}`;
+
+                        // Tabela preview
+                        const wrap = document.getElementById('al-preview-table-wrap');
+                        const amostra = dadosSIEP.slice(0, 6);
+                        wrap.innerHTML = `<table class="al-preview-table">
+                    <thead><tr><th>Matrícula</th><th>Nome</th><th>Turma</th></tr></thead>
+                    <tbody>${amostra.map(a => `<tr><td>${a.matricula}</td><td>${a.nome}</td><td>${a.turma}</td></tr>`).join('')}
+                    ${dadosSIEP.length > 6 ? `<tr><td colspan="3" style="color:var(--faint);font-style:italic;">... e mais ${dadosSIEP.length - 6} alunos</td></tr>` : ''}
+                    </tbody></table>`;
+
+                        document.getElementById('al-siep-preview').style.display = 'block';
+                        document.getElementById('al-mapeamento').style.display = 'none';
+                        btnConf.disabled = dadosSIEP.length === 0;
+
+                    } else {
+                        // ── MODO GENÉRICO ──
+                        modoSIEP = false;
+                        colunasPlanilha = rows[0].map(c => c != null ? String(c) : '');
+                        dadosPlanilha = rows.slice(1).filter(r => r.some(c => c != null));
+                        preencherSelects(colunasPlanilha);
+                        mostrarPreviewManual();
+                        document.getElementById('al-siep-preview').style.display = 'none';
+                        document.getElementById('al-mapeamento').style.display = 'flex';
+                        btnConf.disabled = false;
+                    }
+                } catch (err) {
                     mostrarResultado('erro', 'Erro ao ler o arquivo. Verifique se é um Excel ou CSV válido.');
                 }
             };
@@ -1199,147 +1534,113 @@
         }
 
         function preencherSelects(colunas) {
-            const selects = {
+            const hints = {
                 'map-nome': ['nome', 'aluno', 'name', 'student', 'nm_aluno', 'nome_aluno', 'nome completo'],
                 'map-matricula': ['matricula', 'matrícula', 'nr_matricula', 'codigo', 'cod', 'id', 'registration'],
                 'map-turma': ['turma', 'classe', 'class', 'serie', 'série', 'nm_turma', 'turma_aluno'],
             };
-            for (const [id, hints] of Object.entries(selects)) {
-                const sel = document.getElementById(id);
-                sel.innerHTML = '';
-                colunas.forEach((col, i) => {
-                    const opt = document.createElement('option');
-                    opt.value = i; opt.textContent = col;
-                    sel.appendChild(opt);
-                });
-                const match = colunas.findIndex(c => hints.some(h => c.toString().toLowerCase().includes(h)));
+            for (const [id, hs] of Object.entries(hints)) {
+                const sel = document.getElementById(id); sel.innerHTML = '';
+                colunas.forEach((col, i) => { const o = document.createElement('option'); o.value = i; o.textContent = col || `Coluna ${i + 1}`; sel.appendChild(o); });
+                const match = colunas.findIndex(c => hs.some(h => c.toString().toLowerCase().includes(h)));
                 if (match >= 0) sel.value = match;
-                sel.addEventListener('change', mostrarPreview);
+                sel.addEventListener('change', mostrarPreviewManual);
             }
         }
 
-        function mostrarPreview() {
-            const iNome = parseInt(document.getElementById('map-nome').value);
-            const iMatricula = parseInt(document.getElementById('map-matricula').value);
-            const iTurma = parseInt(document.getElementById('map-turma').value);
-            const wrap = document.getElementById('al-preview-table-wrap');
-            const amostra = dadosPlanilha.slice(0, 5);
-            wrap.innerHTML = `
-            <table class="al-preview-table">
-                <thead><tr><th>Nome</th><th>Matrícula</th><th>Turma</th></tr></thead>
-                <tbody>${amostra.map(r => `<tr>
-                    <td>${r[iNome] ?? '—'}</td>
-                    <td>${r[iMatricula] ?? '—'}</td>
-                    <td>${r[iTurma] ?? '—'}</td>
-                </tr>`).join('')}</tbody>
-            </table>`;
+        function mostrarPreviewManual() {
+            const iN = parseInt(document.getElementById('map-nome').value);
+            const iM = parseInt(document.getElementById('map-matricula').value);
+            const iT = parseInt(document.getElementById('map-turma').value);
+            const wrap = document.getElementById('al-preview-table-wrap-manual');
+            const am = dadosPlanilha.slice(0, 5);
+            wrap.innerHTML = `<table class="al-preview-table">
+        <thead><tr><th>Nome</th><th>Matrícula</th><th>Turma</th></tr></thead>
+        <tbody>${am.map(r => `<tr><td>${r[iN] ?? '—'}</td><td>${r[iM] ?? '—'}</td><td>${r[iT] ?? '—'}</td></tr>`).join('')}</tbody>
+    </table>`;
         }
 
-        btnConfirmar.addEventListener('click', async () => {
-            const iNome = parseInt(document.getElementById('map-nome').value);
-            const iMatricula = parseInt(document.getElementById('map-matricula').value);
-            const iTurma = parseInt(document.getElementById('map-turma').value);
+        btnConf.addEventListener('click', async () => {
+            let alunos;
 
-            const alunos = dadosPlanilha
-                .filter(r => r[iNome] && r[iMatricula])
-                .map(r => ({
-                    nome: String(r[iNome]).trim(),
-                    matricula: String(r[iMatricula]).trim(),
-                    turma: String(r[iTurma] ?? '').trim(),
+            if (modoSIEP) {
+                alunos = dadosSIEP;
+            } else {
+                const iN = parseInt(document.getElementById('map-nome').value);
+                const iM = parseInt(document.getElementById('map-matricula').value);
+                const iT = parseInt(document.getElementById('map-turma').value);
+                alunos = dadosPlanilha.filter(r => r[iN] && r[iM]).map(r => ({
+                    nome: String(r[iN]).trim(),
+                    matricula: String(r[iM]).trim(),
+                    turma: String(r[iT] ?? '').trim(),
                 }));
-
-            if (alunos.length === 0) {
-                mostrarResultado('erro', 'Nenhum aluno válido encontrado com as colunas selecionadas.');
-                return;
             }
 
-            btnConfirmar.disabled = true;
+            if (!alunos || alunos.length === 0) { mostrarResultado('erro', 'Nenhum aluno válido encontrado.'); return; }
+            btnConf.disabled = true;
 
             try {
                 const resp = await fetch('{% url "importar_alunos" %}', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                    body: JSON.stringify({ alunos }),
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify({ alunos })
                 });
                 const data = await resp.json();
                 if (resp.ok) {
-                    mostrarResultado('sucesso', `✓ ${data.criados} aluno(s) cadastrado(s), ${data.atualizados} atualizado(s).`);
+                    mostrarResultado('sucesso', `✓ ${data.criados} cadastrado(s), ${data.atualizados} atualizado(s).`);
                     setTimeout(() => location.reload(), 1800);
-                } else {
-                    mostrarResultado('erro', data.erro || 'Erro ao importar.');
-                }
-            } catch {
-                mostrarResultado('erro', 'Erro de conexão. Tente novamente.');
-            } finally {
-                btnConfirmar.disabled = false;
-            }
+                } else { mostrarResultado('erro', data.erro || 'Erro ao importar.'); btnConf.disabled = false; }
+            } catch { mostrarResultado('erro', 'Erro de conexão.'); btnConf.disabled = false; }
         });
 
         function mostrarResultado(tipo, msg) {
-            resultado.className = 'al-resultado ' + tipo;
-            resultado.textContent = msg;
-            resultado.style.display = 'block';
+            resultado.className = 'al-resultado ' + tipo; resultado.textContent = msg; resultado.style.display = 'block';
         }
 
         function resetarModal() {
-            arquivoAtual = null; dadosPlanilha = []; colunasPlanilha = [];
+            dadosSIEP = null; dadosPlanilha = []; colunasPlanilha = []; modoSIEP = false;
             fileInput.value = '';
             dropzone.style.display = '';
-            preview.style.display = 'none';
-            mapeamento.style.display = 'none';
+            document.getElementById('al-arquivo-preview').style.display = 'none';
+            document.getElementById('al-siep-preview').style.display = 'none';
+            document.getElementById('al-mapeamento').style.display = 'none';
             resultado.style.display = 'none';
-            btnConfirmar.disabled = true;
+            btnConf.disabled = true;
         }
 
-        function getCookie(name) {
-            return document.cookie.split(';')
-                .map(c => c.trim())
-                .find(c => c.startsWith(name + '='))
-                ?.split('=')[1] ?? '';
-        }
-
-        /* ════ BUSCA E FILTROS ════ */
+        /* ══════════════════════════════════════════════
+           BUSCA E FILTROS
+        ══════════════════════════════════════════════ */
         const searchInput = document.getElementById('al-search');
-        const filtros = document.querySelectorAll('.al-filtro-btn');
         const semResultado = document.getElementById('al-sem-resultado');
         let filtroAtivo = 'todas';
 
-        filtros.forEach(btn => {
+        document.querySelectorAll('.al-filtro-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                filtros.forEach(b => b.classList.remove('ativo'));
-                btn.classList.add('ativo');
-                filtroAtivo = btn.dataset.turma;
-                aplicarFiltros();
+                document.querySelectorAll('.al-filtro-btn').forEach(b => b.classList.remove('ativo'));
+                btn.classList.add('ativo'); filtroAtivo = btn.dataset.turma; aplicarFiltros();
             });
         });
-
         searchInput.addEventListener('input', aplicarFiltros);
 
         function aplicarFiltros() {
             const q = searchInput.value.trim().toLowerCase();
-            const blocos = document.querySelectorAll('.al-turma-bloco');
             let algumVisivel = false;
-
-            blocos.forEach(bloco => {
-                const turmaBloco = bloco.dataset.turma;
-                const mostrarBloco = filtroAtivo === 'todas' || filtroAtivo === turmaBloco;
-                if (!mostrarBloco) { bloco.style.display = 'none'; return; }
-
-                const rows = bloco.querySelectorAll('.al-row');
+            document.querySelectorAll('.al-turma-bloco').forEach(bloco => {
+                if (filtroAtivo !== 'todas' && filtroAtivo !== bloco.dataset.turma) { bloco.style.display = 'none'; return; }
                 let algumRow = false;
-                rows.forEach(row => {
-                    const nome = row.dataset.nome ?? '';
-                    const mat = row.dataset.matricula ?? '';
-                    const vis = !q || nome.includes(q) || mat.includes(q);
+                bloco.querySelectorAll('.al-row').forEach(row => {
+                    const vis = !q || row.dataset.nome.includes(q) || row.dataset.matricula.includes(q);
                     row.style.display = vis ? '' : 'none';
                     if (vis) algumRow = true;
                 });
-
                 bloco.style.display = algumRow ? '' : 'none';
                 if (algumRow) algumVisivel = true;
             });
-
             semResultado.style.display = algumVisivel ? 'none' : 'flex';
+        }
+
+        function getCookie(name) {
+            return document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='))?.split('=')[1] ?? '';
         }
 
     })();

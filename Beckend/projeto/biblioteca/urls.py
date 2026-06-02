@@ -65,8 +65,14 @@ urlpatterns = [
 
     path('alunos/', views.alunos, name='alunos'),
     path('alunos/importar/', views.importar_alunos, name='importar_alunos'),
+    path('alunos/excluir/<int:pk>/', views.excluir_aluno, name='excluir_aluno'),
 
     path('emprestimos/excluir-historico/<int:pk>/', views.excluir_historico, name='excluir-historico'),
+    
+    path('exportar/', views.exportar, name='exportar'),
+    path('exportar/acervo/', views.exportar_acervo,      name='exportar_acervo'),
+    path('exportar/emprestimos/', views.exportar_emprestimos,  name='exportar_emprestimos'),
+    path('exportar/alunos/', views.exportar_alunos,      name='exportar_alunos'),
     
     path('api/', include(router.urls)),
 ]   

@@ -2,6 +2,16 @@
 # IMPORTS
 # ──────────────────────────────────────────
 
+import io
+from datetime import date
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.http import HttpResponse
+from django.shortcuts import render
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+from .models import Emprestimo, Livro, Usuario
 import json
 import random
 from collections import defaultdict
@@ -1015,6 +1025,14 @@ def alunos(request):
         'total_turmas':     len(turmas),
     })
 
+@require_POST
+@staff_member_required
+def excluir_aluno(request, pk):
+    usuario = get_object_or_404(Usuario, pk=pk)
+    if usuario.tipo_usuario == 'bibliotecario':
+        return JsonResponse({'erro': 'Não é possível excluir um bibliotecário.'}, status=403)
+    usuario.delete()
+    return JsonResponse({'sucesso': True})
 
 @require_POST
 def importar_alunos(request):
@@ -1112,6 +1130,284 @@ def buscar_usuario(request):
     return JsonResponse({'usuarios': resultado})
 
 
+# ── Estilos compartilhados ─────────────────
+
+def _borda():
+    thin = Side(style='thin', color='BBCCE0')
+    return Border(left=thin, right=thin, top=thin, bottom=thin)
+
+AZUL_ESCURO = '1E3A5F'
+AZUL_HEADER = '1E5AA8'
+BRANCO      = 'FFFFFF'
+CINZA       = 'F0F4F9'
+AMARELO     = 'FFF3CD'
+VERMELHO    = 'C0392B'
+
+
+# ── Página principal de exportação ────────
+
+@staff_member_required
+def exportar(request):
+    total_livros     = Livro.objects.count()
+    total_emprestimos = Emprestimo.objects.count()
+    total_alunos     = Usuario.objects.filter(tipo_usuario='aluno').count()
+    return render(request, 'biblioteca/exportar.html', {
+        'total_livros':      total_livros,
+        'total_emprestimos': total_emprestimos,
+        'total_alunos':      total_alunos,
+    })
+
+
+# ── Exportar Acervo de Livros ──────────────
+
+@staff_member_required
+def exportar_acervo(request):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Acervo'
+    borda = _borda()
+
+    # Linha 1 vazia
+    ws.append([None])
+
+    # Linha 2 — título
+    ws.merge_cells('A2:I2')
+    escola = 'ACERVO DE LIVROS - EREM DR. JAIME MONTEIRO'
+    ws['A2'] = escola
+    ws['A2'].font      = Font(name='Arial', bold=True, size=13, color=BRANCO)
+    ws['A2'].fill      = PatternFill('solid', fgColor=AZUL_ESCURO)
+    ws['A2'].alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[2].height = 30
+
+    # Linha 3 vazia
+    ws.append([None])
+
+    # Linha 4 — cabeçalho
+    headers = ['Nº DE REGISTRO', 'TÍTULO', 'AUTOR(A)', 'EDITORA',
+               'CATEGORIA', 'COLEÇÃO', 'QTD.', 'CATÁLOGO', 'OBSERVAÇÕES']
+    ws.append(headers)
+    for col in range(1, 10):
+        c = ws.cell(row=4, column=col)
+        c.font      = Font(name='Arial', bold=True, size=10, color=BRANCO)
+        c.fill      = PatternFill('solid', fgColor=AZUL_HEADER)
+        c.alignment = Alignment(horizontal='center', vertical='center')
+        c.border    = borda
+    ws.row_dimensions[4].height = 20
+
+    # Dados
+    livros = Livro.objects.all().order_by('id_livro')
+    for i, livro in enumerate(livros):
+        row_num = 5 + i
+        ws.append([
+            i + 1,
+            livro.titulo or '',
+            livro.autor or '',
+            livro.editora or '',
+            livro.categoria or '',
+            livro.colecao or '',
+            livro.quantidade or 0,
+            livro.codigo_base or '',
+            livro.observacoes or '',
+        ])
+        fill = CINZA if i % 2 == 0 else BRANCO
+        for col in range(1, 10):
+            c = ws.cell(row=row_num, column=col)
+            c.font      = Font(name='Arial', size=10)
+            c.fill      = PatternFill('solid', fgColor=fill)
+            c.alignment = Alignment(vertical='center', wrap_text=(col == 2))
+            c.border    = borda
+        ws.row_dimensions[row_num].height = 18
+
+    # Linha de total
+    total_row = 5 + len(livros)
+    ws.cell(row=total_row, column=1, value='TOTAL')
+    ws.cell(row=total_row, column=1).font = Font(name='Arial', bold=True, size=10, color=BRANCO)
+    ws.cell(row=total_row, column=1).fill = PatternFill('solid', fgColor=AZUL_ESCURO)
+    ws.cell(row=total_row, column=7, value=f'=SUM(G5:G{total_row - 1})')
+    ws.cell(row=total_row, column=7).font = Font(name='Arial', bold=True, size=10, color=BRANCO)
+    ws.cell(row=total_row, column=7).fill = PatternFill('solid', fgColor=AZUL_ESCURO)
+
+    # Larguras
+    for i, w in enumerate([14, 48, 30, 24, 18, 22, 7, 22, 18], 1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+
+    # Congelar cabeçalho
+    ws.freeze_panes = 'A5'
+
+    return _resposta_xlsx(wb, f'Acervo_Biblioteca_{date.today().year}.xlsx')
+
+
+# ── Exportar Empréstimos ───────────────────
+
+@staff_member_required
+def exportar_emprestimos(request):
+    ano   = request.GET.get('ano', date.today().year)
+    todos = request.GET.get('todos', '0') == '1'
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Empréstimos'
+    borda = _borda()
+
+    # Linha 1 — título + prazo padrão
+    ws.merge_cells('A1:F1')
+    ws['A1'] = 'Planilha de retirada de livros da biblioteca - EREM DR. JAIME MONTEIRO'
+    ws['A1'].font      = Font(name='Arial', bold=True, size=12, color=BRANCO)
+    ws['A1'].fill      = PatternFill('solid', fgColor=AZUL_ESCURO)
+    ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
+    ws.merge_cells('G1:H1')
+    ws['G1'] = 'DIAS ATÉ A DEVOLUÇÃO:'
+    ws['G1'].font      = Font(name='Arial', bold=True, size=10)
+    ws['G1'].alignment = Alignment(horizontal='right', vertical='center')
+    ws['I1'] = 15
+    ws['I1'].font      = Font(name='Arial', bold=True, size=11, color=VERMELHO)
+    ws['I1'].alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[1].height = 28
+
+    # Linha 2 — cabeçalho
+    headers = ['Em atraso', 'ALUNO', 'TURMA', 'TELEFONE DE CONTATO',
+               'TÍTULO DE LIVRO', 'DATA DO EMPRÉSTIMO', 'DATA DA DEVOLUÇÃO', 'DIAS', 'OBSERVAÇÃO']
+    ws.append(headers)
+    for col in range(1, 10):
+        c = ws.cell(row=2, column=col)
+        c.font      = Font(name='Arial', bold=True, size=10, color=BRANCO)
+        c.fill      = PatternFill('solid', fgColor=AZUL_HEADER)
+        c.alignment = Alignment(horizontal='center', vertical='center')
+        c.border    = borda
+    ws.row_dimensions[2].height = 20
+
+    # Busca empréstimos
+    qs = Emprestimo.objects.select_related(
+        'usuario', 'exemplar__livro'
+    ).order_by('usuario__first_name', 'data_emprestimo')
+
+    if not todos:
+        qs = qs.filter(data_emprestimo__year=ano)
+
+    hoje = date.today()
+    for i, emp in enumerate(qs):
+        row_num = 3 + i
+        atrasado = emp.esta_atrasado()
+        delta = (emp.data_devolucao_prevista - (emp.data_devolucao_real or hoje)).days
+
+        ws.append([
+            'SIM' if atrasado else 'NÃO',
+            emp.usuario.get_full_name() if emp.usuario else '',
+            emp.usuario.serie if emp.usuario else '',
+            emp.usuario.telefone if (emp.usuario and hasattr(emp.usuario, 'telefone')) else '',
+            emp.exemplar.livro.titulo if emp.exemplar and emp.exemplar.livro else '',
+            emp.data_emprestimo.strftime('%d/%m/%Y') if emp.data_emprestimo else '',
+            emp.data_devolucao_prevista.strftime('%d/%m/%Y') if emp.data_devolucao_prevista else '',
+            delta if not emp.data_devolucao_real else 0,
+            emp.observacoes or '',
+        ])
+
+        fill = AMARELO if atrasado else (CINZA if i % 2 == 0 else BRANCO)
+        for col in range(1, 10):
+            c = ws.cell(row=row_num, column=col)
+            cor_fonte = VERMELHO if (atrasado and col == 1) else '000000'
+            c.font      = Font(name='Arial', size=10, bold=(col == 1 and atrasado), color=cor_fonte)
+            c.fill      = PatternFill('solid', fgColor=fill)
+            c.alignment = Alignment(vertical='center')
+            c.border    = borda
+        ws.row_dimensions[row_num].height = 18
+
+    # Larguras
+    for i, w in enumerate([10, 38, 10, 22, 38, 18, 18, 8, 22], 1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+
+    ws.freeze_panes = 'A3'
+
+    sufixo = 'Completo' if todos else str(ano)
+    return _resposta_xlsx(wb, f'Emprestimos_Biblioteca_{sufixo}.xlsx')
+
+
+# ── Exportar Lista de Alunos ───────────────
+
+@staff_member_required
+def exportar_alunos(request):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Alunos'
+    borda = _borda()
+
+    # Linha 1 — título
+    ws.merge_cells('A1:E1')
+    ws['A1'] = f'LISTA DE ALUNOS - EREM DR. JAIME MONTEIRO — {date.today().year}'
+    ws['A1'].font      = Font(name='Arial', bold=True, size=13, color=BRANCO)
+    ws['A1'].fill      = PatternFill('solid', fgColor=AZUL_ESCURO)
+    ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[1].height = 30
+
+    ws.append([None])  # Linha 2 vazia
+
+    # Linha 3 — cabeçalho
+    headers = ['Nº', 'NOME COMPLETO', 'MATRÍCULA', 'TURMA', 'E-MAIL']
+    ws.append(headers)
+    for col in range(1, 6):
+        c = ws.cell(row=3, column=col)
+        c.font      = Font(name='Arial', bold=True, size=10, color=BRANCO)
+        c.fill      = PatternFill('solid', fgColor=AZUL_HEADER)
+        c.alignment = Alignment(horizontal='center', vertical='center')
+        c.border    = borda
+    ws.row_dimensions[3].height = 20
+
+    alunos = Usuario.objects.filter(
+        tipo_usuario='aluno'
+    ).order_by('serie', 'first_name', 'last_name')
+
+    turma_atual = None
+    num = 0
+    row_num = 4
+
+    for aluno in alunos:
+        # Linha separadora de turma
+        if aluno.serie != turma_atual:
+            turma_atual = aluno.serie or 'Sem turma'
+            ws.merge_cells(f'A{row_num}:E{row_num}')
+            ws.cell(row=row_num, column=1, value=f'  {turma_atual}')
+            ws.cell(row=row_num, column=1).font      = Font(name='Arial', bold=True, size=10, color=BRANCO)
+            ws.cell(row=row_num, column=1).fill      = PatternFill('solid', fgColor='2C5282')
+            ws.cell(row=row_num, column=1).alignment = Alignment(vertical='center')
+            ws.row_dimensions[row_num].height = 18
+            row_num += 1
+            num = 0
+
+        num += 1
+        fill = CINZA if num % 2 == 0 else BRANCO
+        dados = [num, aluno.get_full_name(), str(aluno.matricula or ''),
+                 aluno.serie or '', aluno.email or '']
+
+        for col, val in enumerate(dados, 1):
+            c = ws.cell(row=row_num, column=col, value=val)
+            c.font      = Font(name='Arial', size=10)
+            c.fill      = PatternFill('solid', fgColor=fill)
+            c.alignment = Alignment(vertical='center',
+                                    horizontal='center' if col in (1, 3, 4) else 'left')
+            c.border    = borda
+        ws.row_dimensions[row_num].height = 18
+        row_num += 1
+
+    for i, w in enumerate([5, 42, 14, 10, 32], 1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+
+    ws.freeze_panes = 'A4'
+
+    return _resposta_xlsx(wb, f'Alunos_Biblioteca_{date.today().year}.xlsx')
+
+
+# ── Helper: resposta HTTP com xlsx ─────────
+
+def _resposta_xlsx(wb: Workbook, filename: str) -> HttpResponse:
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 # ──────────────────────────────────────────
 # API REST
 # ──────────────────────────────────────────

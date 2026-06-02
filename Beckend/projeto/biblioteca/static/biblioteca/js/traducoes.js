@@ -149,7 +149,7 @@ const traducoes = {
     al_titulo: "Lista de Alunos",
     al_descricao:
       "Acompanhe a lista de alunos por turma ou cadastre novos via importação.",
-    al_btn_add: "Adicionar Aluno",
+    al_btn_add: "Adicionar Aluno/Funcionário",
     al_btn_importar: "Importar Planilha",
     al_total_label: "TOTAL DE ALUNOS",
     al_total_sub: "cadastrados",
