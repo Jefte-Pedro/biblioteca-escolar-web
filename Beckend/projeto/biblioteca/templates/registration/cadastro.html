@@ -365,48 +365,58 @@
     }
 
     async function finalizarCadastro() {
-        const senha = document.getElementById('cad-pwd').value;
-        const email = document.getElementById('input-email').value.trim();
-        const whatsapp = document.getElementById('input-whatsapp').value.trim();
-        const emailSelecionado = document.getElementById('ch-check-email').checked;
-        const waSelecionado = document.getElementById('ch-check-wa').checked;
+            const senha = document.getElementById('cad-pwd').value;
+            const email = document.getElementById('input-email').value.trim();
+            const whatsapp = document.getElementById('input-whatsapp').value.trim();
+            const emailSelecionado = document.getElementById('ch-check-email').checked;
+            const waSelecionado = document.getElementById('ch-check-wa').checked;
 
-        if (!emailSelecionado && !waSelecionado) {
-            alert('Escolha pelo menos 1 canal de contato.');
-            return;
+            if (!emailSelecionado && !waSelecionado) {
+                alert('Escolha pelo menos 1 canal de contato.');
+                return;
+            }
+            if (emailSelecionado && !email) { alert('Preencha o e-mail.'); return; }
+            if (waSelecionado && !whatsapp) { alert('Preencha o número de WhatsApp.'); return; }
+
+            // Determina canal e contato para envio do código
+            let tipo, contato;
+            if (emailSelecionado && waSelecionado) {
+                // Os dois selecionados — usa a escolha do botão
+                tipo = canalEscolhido;
+                contato = tipo === 'telefone' ? whatsapp : email;
+            } else if (emailSelecionado) {
+                tipo = 'email';
+                contato = email;
+            } else {
+                tipo = 'telefone';
+                contato = whatsapp;
+            }
+
+            const btn = document.getElementById('finalizar-btn');
+            btn.disabled = true;
+            btn.textContent = 'Enviando código...';
+
+            sessionStorage.setItem('senha_temp', senha);
+            sessionStorage.setItem('email_temp', emailSelecionado ? email : '');
+            sessionStorage.setItem('telefone_temp', waSelecionado ? whatsapp : '');
+
+            const res = await fetch('/biblioteca/login/enviar-codigo/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ matricula: CAD_MATRICULA, contato, tipo })
+            });
+
+            const data = await res.json();
+
+            if (data.sucesso) {
+                const params = new URLSearchParams({ matricula: CAD_MATRICULA, contato, tipo });
+                window.location.href = `/biblioteca/login/verificar/?${params.toString()}`;
+            } else {
+                alert(data.erro || 'Erro ao enviar código.');
+                btn.disabled = false;
+                btn.textContent = 'Finalizar cadastro ✓';
+            }
         }
-        if (emailSelecionado && !email) { alert('Preencha o e-mail.'); return; }
-        if (waSelecionado && !whatsapp) { alert('Preencha o número de WhatsApp.'); return; }
-
-        // Usa a escolha do usuário
-        const tipo = canalEscolhido;
-        const contato = tipo === 'telefone' ? whatsapp : email;
-
-        const btn = document.getElementById('finalizar-btn');
-        btn.disabled = true;
-        btn.textContent = 'Enviando código...';
-
-        sessionStorage.setItem('senha_temp', senha);
-        sessionStorage.setItem('email_temp', emailSelecionado ? email : '');
-        sessionStorage.setItem('telefone_temp', waSelecionado ? whatsapp : '');
-
-        const res = await fetch('/biblioteca/login/enviar-codigo/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-            body: JSON.stringify({ matricula: CAD_MATRICULA, contato, tipo })
-        });
-
-        const data = await res.json();
-
-        if (data.sucesso) {
-            const params = new URLSearchParams({ matricula: CAD_MATRICULA, contato, tipo });
-            window.location.href = `/biblioteca/login/verificar/?${params.toString()}`;
-        } else {
-            alert(data.erro || 'Erro ao enviar código.');
-            btn.disabled = false;
-            btn.textContent = 'Finalizar cadastro ✓';
-        }
-    }
 
     function getCookie(name) {
         const value = `; ${document.cookie}`;

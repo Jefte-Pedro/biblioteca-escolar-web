@@ -27,6 +27,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_POST
+from .gmail import enviar_email
+from .whatsapp import enviar_whatsapp
 
 from rest_framework import filters, viewsets
 
@@ -180,12 +182,12 @@ def enviar_codigo(request):
     cache_key = f"codigo_verificacao_{matricula}"
     cache.set(cache_key, codigo, timeout=600)  # expira em 10 minutos
 
-    from .whatsapp import enviar_email, enviar_whatsapp
 
     if tipo == 'telefone':
         enviar_whatsapp(contato, f"Seu código de acesso à Biblioteca é: {codigo}")
     else:
-        enviar_email(contato, "Código de acesso — Biblioteca", f"Seu código é: {codigo}")
+        from .gmail import enviar_codigo_verificacao
+        enviar_codigo_verificacao(contato, codigo)
 
     return JsonResponse({'sucesso': True})
 
@@ -1072,6 +1074,28 @@ def importar_alunos(request):
 
     return JsonResponse({'criados': criados, 'atualizados': atualizados})
 
+@require_POST
+@staff_member_required
+def limpar_alunos(request):
+    data = json.loads(request.body)
+    escopo = data.get('escopo', '').strip()
+
+    if escopo == 'todos':
+        removidos, _ = Usuario.objects.filter(tipo_usuario='aluno').delete()
+
+    elif escopo == 'turmas':
+        turmas = data.get('turmas', [])
+        if not turmas:
+            return JsonResponse({'erro': 'Nenhuma turma informada.'}, status=400)
+        removidos, _ = Usuario.objects.filter(
+            tipo_usuario='aluno',
+            serie__in=turmas
+        ).delete()
+
+    else:
+        return JsonResponse({'erro': 'Escopo inválido.'}, status=400)
+
+    return JsonResponse({'removidos': removidos})
 
 # ──────────────────────────────────────────
 # BUSCA

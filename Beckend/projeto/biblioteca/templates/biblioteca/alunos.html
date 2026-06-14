@@ -16,6 +16,11 @@
                 <i class="fa-solid fa-chalkboard"></i>
                 <span>Gerenciar Turmas</span>
             </button>
+            <!-- NOVO: Botão limpar -->
+            <button class="al-btn-limpar" id="btn-abrir-modal-limpar">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>Limpar alunos</span>
+            </button>
             <button class="al-btn-add" id="btn-abrir-modal-individual">
                 <i class="fa-solid fa-user-plus"></i>
                 <span data-i18n="al_btn_add"></span>
@@ -83,6 +88,8 @@
                             <th>Aluno</th>
                             <th>Matrícula</th>
                             <th>Turma</th>
+                            <!-- NOVA COLUNA: Contato -->
+                            <th>Contato</th>
                             <th style="width:60px;text-align:center;">Ação</th>
                         </tr>
                     </thead>
@@ -101,6 +108,28 @@
                             </td>
                             <td><span class="al-matricula">{{ aluno.matricula }}</span></td>
                             <td><span class="al-tag-turma">{{ aluno.serie|default:"—" }}</span></td>
+                            <!-- NOVA COLUNA: dados de contato -->
+                            <td>
+                                <div class="al-contato-cell">
+                                    {% if aluno.email %}
+                                    <a class="al-contato-item" href="mailto:{{ aluno.email }}"
+                                        title="{{ aluno.email }}">
+                                        <i class="fa-solid fa-envelope"></i>
+                                        <span>{{ aluno.email }}</span>
+                                    </a>
+                                    {% endif %}
+                                    {% if aluno.telefone %}
+                                    <a class="al-contato-item al-contato-tel" href="tel:{{ aluno.telefone }}"
+                                        title="{{ aluno.telefone }}">
+                                        <i class="fa-solid fa-phone"></i>
+                                        <span>{{ aluno.telefone }}</span>
+                                    </a>
+                                    {% endif %}
+                                    {% if not aluno.email and not aluno.telefone %}
+                                    <span class="al-contato-vazio">—</span>
+                                    {% endif %}
+                                </div>
+                            </td>
                             <td style="text-align:center;">
                                 <button class="al-btn-excluir" data-id="{{ aluno.pk }}"
                                     data-nome="{{ aluno.get_full_name }}" title="Excluir">
@@ -236,8 +265,7 @@
             <i class="fa-solid fa-circle-check" style="color:#22c55e"></i>
             <div>
                 <strong>Formato SIEP detectado automaticamente</strong>
-                <span>Ao importar a planilha gerada pelo SIEP, a turma é lida e normalizada automaticamente (ex: "1ANO -
-                    I - EM1I-A" → "1° A"). Nenhuma configuração necessária.</span>
+                <span>Ao importar a planilha gerada pelo SIEP, a turma é lida e normalizada automaticamente (ex: "1ANO - I - EM1I-A" → "1° A"). Nenhuma configuração necessária.</span>
             </div>
         </div>
 
@@ -253,8 +281,7 @@
         <div class="al-dropzone" id="al-dropzone">
             <input type="file" id="al-file-input" accept=".xlsx,.xls,.csv" style="display:none">
             <i class="fa-solid fa-cloud-arrow-up al-drop-ico"></i>
-            <div class="al-drop-txt">Arraste o arquivo aqui ou <span class="al-drop-link" id="al-drop-link">clique para
-                    selecionar</span></div>
+            <div class="al-drop-txt">Arraste o arquivo aqui ou <span class="al-drop-link" id="al-drop-link">clique para selecionar</span></div>
             <div class="al-drop-hint">Planilha do SIEP ou qualquer .xlsx / .xls / .csv</div>
         </div>
 
@@ -306,7 +333,276 @@
     </div>
 </div>
 
+<!-- ═══ NOVO: MODAL LIMPAR ALUNOS ═══ -->
+<div class="al-modal-overlay" id="al-modal-limpar-overlay">
+    <div class="al-modal al-modal-sm">
+        <div class="al-modal-header">
+            <div>
+                <h3 class="al-modal-titulo" style="color:#ef4444">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:14px;margin-right:6px;"></i>Limpar
+                    alunos
+                </h3>
+                <p class="al-modal-sub">Selecione quais turmas deseja remover. Essa ação não pode ser desfeita.</p>
+            </div>
+            <button class="al-modal-close" id="btn-fechar-modal-limpar"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Seleção de escopo -->
+        <div class="al-limpar-escopo">
+            <button class="al-limpar-escopo-btn ativo" id="limpar-escopo-turmas" data-escopo="turmas">
+                <i class="fa-solid fa-chalkboard"></i> Por turma
+            </button>
+            <button class="al-limpar-escopo-btn" id="limpar-escopo-todos" data-escopo="todos">
+                <i class="fa-solid fa-users-slash"></i> Todos os alunos
+            </button>
+        </div>
+
+        <!-- Painel: por turma -->
+        <div id="limpar-painel-turmas">
+            <p class="al-limpar-instrucao">Marque as turmas que deseja excluir:</p>
+            <div class="al-limpar-turmas-lista" id="limpar-turmas-checkboxes">
+                {% for turma in turmas %}
+                <label class="al-limpar-check-item">
+                    <input type="checkbox" class="al-limpar-cb" value="{{ turma }}">
+                    <span class="al-limpar-check-label">{{ turma }}</span>
+                    <span class="al-limpar-check-count" data-turma="{{ turma }}">
+                        {% for t, alunos in alunos_por_turma.items %}{% if t == turma %}{{ alunos|length }} aluno{% if alunos|length != 1 %}s{% endif %}{% endif %}{% endfor %}
+                    </span>
+                </label>
+                {% endfor %}
+            </div>
+            <div class="al-limpar-acoes-sel">
+                <button class="al-limpar-sel-link" id="limpar-sel-todos">Selecionar todas</button>
+                <span style="color:var(--border)">·</span>
+                <button class="al-limpar-sel-link" id="limpar-des-todos">Desmarcar todas</button>
+            </div>
+        </div>
+
+        <!-- Painel: todos -->
+        <div id="limpar-painel-todos" style="display:none">
+            <div class="al-limpar-aviso">
+                <i class="fa-solid fa-circle-exclamation" style="color:#ef4444;font-size:18px;flex-shrink:0;"></i>
+                <p>Isso removerá <strong>todos os {{ total_alunos }} alunos</strong> cadastrados no sistema. O histórico
+                    de empréstimos será preservado.</p>
+            </div>
+            <label class="al-limpar-confirm-check">
+                <input type="checkbox" id="limpar-todos-confirm-cb">
+                <span>Entendo que essa ação é irreversível</span>
+            </label>
+        </div>
+
+        <div class="al-resultado" id="al-resultado-limpar" style="display:none"></div>
+
+        <div class="al-modal-footer">
+            <button class="al-btn-cancelar" id="btn-cancelar-limpar">Cancelar</button>
+            <button class="al-btn-confirmar al-btn-danger" id="btn-confirmar-limpar" disabled>
+                <i class="fa-solid fa-trash-can"></i><span id="limpar-btn-label">Excluir selecionadas</span>
+            </button>
+        </div>
+    </div>
+</div>
+
 <style>
+    /* ══ BOTÃO LIMPAR ══ */
+    .al-btn-limpar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 16px;
+        border-radius: var(--r-md);
+        background: transparent;
+        color: #ef4444;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid rgba(239, 68, 68, .35);
+        cursor: pointer;
+        transition: background .2s, transform .15s;
+    }
+
+    .al-btn-limpar:hover {
+        background: rgba(239, 68, 68, .08);
+        transform: translateY(-1px);
+    }
+
+    /* ══ COLUNA CONTATO ══ */
+    .al-contato-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .al-contato-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: var(--accent-lt);
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+        max-width: 200px;
+    }
+
+    .al-contato-item i {
+        font-size: 10px;
+        flex-shrink: 0;
+        opacity: .7;
+    }
+
+    .al-contato-item span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .al-contato-item:hover {
+        text-decoration: underline;
+    }
+
+    .al-contato-tel {
+        color: #22c55e;
+    }
+
+    .al-contato-vazio {
+        font-size: 12px;
+        color: var(--faint);
+    }
+
+    /* ══ MODAL LIMPAR ══ */
+    .al-limpar-escopo {
+        display: flex;
+        gap: 8px;
+    }
+
+    .al-limpar-escopo-btn {
+        flex: 1;
+        height: 38px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        transition: all .15s;
+    }
+
+    .al-limpar-escopo-btn.ativo {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, .08);
+        color: #ef4444;
+    }
+
+    .al-limpar-instrucao {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 10px;
+    }
+
+    .al-limpar-turmas-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 240px;
+        overflow-y: auto;
+        padding-right: 4px;
+    }
+
+    .al-limpar-check-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        cursor: pointer;
+        transition: border-color .15s, background .15s;
+    }
+
+    .al-limpar-check-item:has(.al-limpar-cb:checked) {
+        border-color: rgba(239, 68, 68, .4);
+        background: rgba(239, 68, 68, .05);
+    }
+
+    .al-limpar-cb {
+        accent-color: #ef4444;
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .al-limpar-check-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        flex: 1;
+    }
+
+    .al-limpar-check-count {
+        font-size: 11px;
+        color: var(--faint);
+        white-space: nowrap;
+    }
+
+    .al-limpar-acoes-sel {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .al-limpar-sel-link {
+        background: none;
+        border: none;
+        font-size: 11px;
+        color: var(--accent-lt);
+        cursor: pointer;
+        padding: 0;
+        font-weight: 600;
+    }
+
+    .al-limpar-sel-link:hover {
+        text-decoration: underline;
+    }
+
+    .al-limpar-aviso {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: var(--r-md);
+        background: rgba(239, 68, 68, .07);
+        border: 1px solid rgba(239, 68, 68, .25);
+        font-size: 13px;
+        color: var(--text);
+        line-height: 1.6;
+        margin-bottom: 14px;
+    }
+
+    .al-limpar-confirm-check {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: var(--muted);
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .al-limpar-confirm-check input {
+        accent-color: #ef4444;
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+    }
+
+    /* ══ ESTILOS ORIGINAIS ABAIXO ══ */
     .al-header {
         display: flex;
         align-items: center;
@@ -1012,7 +1308,6 @@
         color: #ef4444;
     }
 
-    /* SIEP badge */
     .al-siep-badge {
         display: flex;
         align-items: flex-start;
@@ -1281,28 +1576,16 @@
 
         /* ══════════════════════════════════════════════
            PARSER SIEP
-           Detecta o formato da planilha gerada pelo SIEP:
-           - Linha de turma: "1ANO - I - EM1I-A"  → "1° A"
-           - Linha de aluno: col0 = matrícula numérica, col1 = nome
         ══════════════════════════════════════════════ */
         function parsearSIEP(rows) {
-            // rows = array de arrays (todas as linhas da planilha)
             const TURMA_RE = /^(\d)ANO\s*-\s*[IVX]+\s*-\s*EM\d+[A-Z]-([A-Z])/i;
             let turmaAtual = null;
             const alunos = [];
-
             for (const row of rows) {
                 const col0 = row[0] != null ? String(row[0]).trim() : '';
                 const col1 = row[1] != null ? String(row[1]).trim() : '';
-
-                // Linha de turma
                 const m = TURMA_RE.exec(col0);
-                if (m) {
-                    turmaAtual = `${m[1]}° ${m[2].toUpperCase()}`;
-                    continue;
-                }
-
-                // Linha de aluno: col0 é matrícula numérica
+                if (m) { turmaAtual = `${m[1]}° ${m[2].toUpperCase()}`; continue; }
                 if (/^\d{5,}$/.test(col0) && col1 && col1 !== 'nan' && col1.toLowerCase() !== 'nome') {
                     alunos.push({ matricula: col0, nome: col1, turma: turmaAtual || 'Sem turma' });
                 }
@@ -1311,7 +1594,6 @@
         }
 
         function ehFormatoSIEP(rows) {
-            // Critério: alguma linha tem padrão "XANO - ... - EMxX-X"
             const TURMA_RE = /^(\d)ANO\s*-\s*[IVX]+\s*-\s*EM\d+[A-Z]-([A-Z])/i;
             return rows.some(r => r[0] != null && TURMA_RE.test(String(r[0]).trim()));
         }
@@ -1366,7 +1648,7 @@
         });
 
         /* ══════════════════════════════════════════════
-           MODAL EXCLUIR
+           MODAL EXCLUIR (individual)
         ══════════════════════════════════════════════ */
         const overlayExcluir = document.getElementById('al-modal-excluir-overlay');
         let alunoParaExcluir = null;
@@ -1444,13 +1726,115 @@
         }
 
         /* ══════════════════════════════════════════════
+           NOVO: MODAL LIMPAR ALUNOS
+        ══════════════════════════════════════════════ */
+        const overlayLimpar = document.getElementById('al-modal-limpar-overlay');
+        const btnConfLimpar = document.getElementById('btn-confirmar-limpar');
+        const resultadoLimpar = document.getElementById('al-resultado-limpar');
+        const btnLimparLabel = document.getElementById('limpar-btn-label');
+        let escopoAtivo = 'turmas'; // 'turmas' | 'todos'
+
+        document.getElementById('btn-abrir-modal-limpar').addEventListener('click', () => {
+            // resetar estado
+            escopoAtivo = 'turmas';
+            atualizarEscopo('turmas');
+            document.querySelectorAll('.al-limpar-cb').forEach(cb => cb.checked = false);
+            document.getElementById('limpar-todos-confirm-cb').checked = false;
+            resultadoLimpar.style.display = 'none';
+            btnConfLimpar.disabled = true;
+            overlayLimpar.classList.add('aberto');
+        });
+
+        ['btn-fechar-modal-limpar', 'btn-cancelar-limpar'].forEach(id =>
+            document.getElementById(id).addEventListener('click', () => overlayLimpar.classList.remove('aberto')));
+        overlayLimpar.addEventListener('click', e => { if (e.target === overlayLimpar) overlayLimpar.classList.remove('aberto'); });
+
+        // Troca de escopo: Por turma / Todos
+        document.querySelectorAll('.al-limpar-escopo-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                escopoAtivo = btn.dataset.escopo;
+                atualizarEscopo(escopoAtivo);
+                verificarBotaoLimpar();
+            });
+        });
+
+        function atualizarEscopo(escopo) {
+            document.querySelectorAll('.al-limpar-escopo-btn').forEach(b => b.classList.toggle('ativo', b.dataset.escopo === escopo));
+            document.getElementById('limpar-painel-turmas').style.display = escopo === 'turmas' ? '' : 'none';
+            document.getElementById('limpar-painel-todos').style.display = escopo === 'todos' ? '' : 'none';
+            btnLimparLabel.textContent = escopo === 'turmas' ? 'Excluir selecionadas' : 'Excluir todos os alunos';
+        }
+
+        // Selecionar / Desmarcar todas as turmas
+        document.getElementById('limpar-sel-todos').addEventListener('click', () => {
+            document.querySelectorAll('.al-limpar-cb').forEach(cb => cb.checked = true);
+            verificarBotaoLimpar();
+        });
+        document.getElementById('limpar-des-todos').addEventListener('click', () => {
+            document.querySelectorAll('.al-limpar-cb').forEach(cb => cb.checked = false);
+            verificarBotaoLimpar();
+        });
+
+        // Atualiza botão ao marcar checkboxes
+        document.getElementById('limpar-turmas-checkboxes').addEventListener('change', verificarBotaoLimpar);
+        document.getElementById('limpar-todos-confirm-cb').addEventListener('change', verificarBotaoLimpar);
+
+        function verificarBotaoLimpar() {
+            if (escopoAtivo === 'turmas') {
+                const algumMarcado = [...document.querySelectorAll('.al-limpar-cb')].some(cb => cb.checked);
+                btnConfLimpar.disabled = !algumMarcado;
+            } else {
+                btnConfLimpar.disabled = !document.getElementById('limpar-todos-confirm-cb').checked;
+            }
+        }
+
+        btnConfLimpar.addEventListener('click', async () => {
+            btnConfLimpar.disabled = true;
+            resultadoLimpar.style.display = 'none';
+
+            let payload;
+            if (escopoAtivo === 'turmas') {
+                const turmasSelecionadas = [...document.querySelectorAll('.al-limpar-cb:checked')].map(cb => cb.value);
+                if (!turmasSelecionadas.length) return;
+                payload = { escopo: 'turmas', turmas: turmasSelecionadas };
+            } else {
+                payload = { escopo: 'todos' };
+            }
+
+            try {
+                const resp = await fetch('{% url "limpar_alunos" %}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify(payload)
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    mostrarResultadoLimpar('sucesso', `✓ ${data.removidos} aluno(s) removido(s) com sucesso.`);
+                    setTimeout(() => location.reload(), 1600);
+                } else {
+                    mostrarResultadoLimpar('erro', data.erro || 'Erro ao remover.');
+                    btnConfLimpar.disabled = false;
+                }
+            } catch {
+                mostrarResultadoLimpar('erro', 'Erro de conexão.');
+                btnConfLimpar.disabled = false;
+            }
+        });
+
+        function mostrarResultadoLimpar(tipo, msg) {
+            resultadoLimpar.className = 'al-resultado ' + tipo;
+            resultadoLimpar.textContent = msg;
+            resultadoLimpar.style.display = 'block';
+        }
+
+        /* ══════════════════════════════════════════════
            MODAL IMPORTAR — com detecção automática SIEP
         ══════════════════════════════════════════════ */
         const overlay = document.getElementById('al-modal-overlay');
         const btnConf = document.getElementById('btn-confirmar-importar');
         const resultado = document.getElementById('al-resultado');
-        let dadosSIEP = null;       // alunos parseados no modo SIEP
-        let dadosPlanilha = [];     // linhas brutas para modo genérico
+        let dadosSIEP = null;
+        let dadosPlanilha = [];
         let colunasPlanilha = [];
         let modoSIEP = false;
 
@@ -1476,7 +1860,6 @@
         function processarArquivo(file) {
             const ext = file.name.split('.').pop().toLowerCase();
             if (!['xlsx', 'xls', 'csv'].includes(ext)) { mostrarResultado('erro', 'Formato inválido. Use .xlsx, .xls ou .csv.'); return; }
-
             document.getElementById('al-arq-nome').textContent = file.name;
             document.getElementById('al-arq-size').textContent = formatarTamanho(file.size);
             dropzone.style.display = 'none';
@@ -1489,20 +1872,14 @@
                     const wb = XLSX.read(e.target.result, { type: 'array', raw: true });
                     const ws = wb.Sheets[wb.SheetNames[0]];
                     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
-
                     if (rows.length < 2) { mostrarResultado('erro', 'Arquivo vazio ou sem dados.'); return; }
 
                     if (ehFormatoSIEP(rows)) {
-                        // ── MODO SIEP ──
                         modoSIEP = true;
                         dadosSIEP = parsearSIEP(rows);
-
-                        // Conta turmas únicas
                         const turmasEncontradas = [...new Set(dadosSIEP.map(a => a.turma))];
                         document.getElementById('al-siep-info').textContent =
                             `✓ Formato SIEP detectado — ${dadosSIEP.length} aluno(s) em ${turmasEncontradas.length} turma(s): ${turmasEncontradas.join(', ')}`;
-
-                        // Tabela preview
                         const wrap = document.getElementById('al-preview-table-wrap');
                         const amostra = dadosSIEP.slice(0, 6);
                         wrap.innerHTML = `<table class="al-preview-table">
@@ -1510,13 +1887,10 @@
                     <tbody>${amostra.map(a => `<tr><td>${a.matricula}</td><td>${a.nome}</td><td>${a.turma}</td></tr>`).join('')}
                     ${dadosSIEP.length > 6 ? `<tr><td colspan="3" style="color:var(--faint);font-style:italic;">... e mais ${dadosSIEP.length - 6} alunos</td></tr>` : ''}
                     </tbody></table>`;
-
                         document.getElementById('al-siep-preview').style.display = 'block';
                         document.getElementById('al-mapeamento').style.display = 'none';
                         btnConf.disabled = dadosSIEP.length === 0;
-
                     } else {
-                        // ── MODO GENÉRICO ──
                         modoSIEP = false;
                         colunasPlanilha = rows[0].map(c => c != null ? String(c) : '');
                         dadosPlanilha = rows.slice(1).filter(r => r.some(c => c != null));
@@ -1526,9 +1900,7 @@
                         document.getElementById('al-mapeamento').style.display = 'flex';
                         btnConf.disabled = false;
                     }
-                } catch (err) {
-                    mostrarResultado('erro', 'Erro ao ler o arquivo. Verifique se é um Excel ou CSV válido.');
-                }
+                } catch { mostrarResultado('erro', 'Erro ao ler o arquivo. Verifique se é um Excel ou CSV válido.'); }
             };
             reader.readAsArrayBuffer(file);
         }
@@ -1562,7 +1934,6 @@
 
         btnConf.addEventListener('click', async () => {
             let alunos;
-
             if (modoSIEP) {
                 alunos = dadosSIEP;
             } else {
@@ -1570,15 +1941,11 @@
                 const iM = parseInt(document.getElementById('map-matricula').value);
                 const iT = parseInt(document.getElementById('map-turma').value);
                 alunos = dadosPlanilha.filter(r => r[iN] && r[iM]).map(r => ({
-                    nome: String(r[iN]).trim(),
-                    matricula: String(r[iM]).trim(),
-                    turma: String(r[iT] ?? '').trim(),
+                    nome: String(r[iN]).trim(), matricula: String(r[iM]).trim(), turma: String(r[iT] ?? '').trim(),
                 }));
             }
-
             if (!alunos || alunos.length === 0) { mostrarResultado('erro', 'Nenhum aluno válido encontrado.'); return; }
             btnConf.disabled = true;
-
             try {
                 const resp = await fetch('{% url "importar_alunos" %}', {
                     method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },

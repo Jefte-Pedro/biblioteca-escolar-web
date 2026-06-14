@@ -7,7 +7,8 @@ notificacoes_enviadas = set()
 
 def verificar_prazos():
     from .models import Emprestimo
-    from .whatsapp import enviar_whatsapp, enviar_email
+    from .whatsapp import enviar_whatsapp
+    from .gmail import enviar_aviso_atraso, enviar_aviso_prazo
 
     print("Verificando prazos...")
     hoje = date.today()
@@ -25,43 +26,41 @@ def verificar_prazos():
         nome = usuario.first_name
         titulo = e.exemplar.livro.titulo if e.exemplar and e.exemplar.livro else "livro"
 
-        tipo = None
-        mensagem = None
-
         if dias == 2:
             tipo = "prazo"
-            mensagem = (
-                f"Olá {nome}!\n\n"
-                f"Seu empréstimo do livro *{titulo}* vence em 2 dias.\n"
-                f"Por favor, realize a devolução dentro do prazo."
-            )
         elif dias < 0:
             tipo = "atraso"
-            mensagem = (
-                f"Olá {nome}!\n\n"
-                f"Seu empréstimo do livro *{titulo}* está atrasado.\n"
-                f"Por favor, regularize a devolução."
-            )
-
-        if not tipo:
+        else:
             continue
 
         chave = (e.pk, tipo, str(e.data_devolucao_prevista))
         if chave in notificacoes_enviadas:
             continue
 
-        enviado = False
-
+        # WhatsApp
         if usuario.telefone:
-            enviar_whatsapp(usuario.telefone, mensagem)
+            if tipo == "prazo":
+                msg_zap = (
+                    f"Olá {nome}!\n\n"
+                    f"Seu empréstimo do livro *{titulo}* vence em 2 dias.\n"
+                    f"Por favor, realize a devolução dentro do prazo."
+                )
+            else:
+                msg_zap = (
+                    f"Olá {nome}!\n\n"
+                    f"Seu empréstimo do livro *{titulo}* está atrasado.\n"
+                    f"Por favor, regularize a devolução."
+                )
+            enviar_whatsapp(usuario.telefone, msg_zap)
 
+        # E-mail
         if usuario.email:
-            enviar_email(usuario.email, "Aviso de empréstimo — Biblioteca", mensagem)
+            if tipo == "prazo":
+                enviar_aviso_prazo(usuario.email, nome, titulo, dias_restantes=2)
+            else:
+                enviar_aviso_atraso(usuario.email, nome, titulo, dias_atraso=abs(dias))
 
         notificacoes_enviadas.add(chave)
-
-        if enviado:
-            notificacoes_enviadas.add(chave)
 
 
 def iniciar_scheduler():

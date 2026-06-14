@@ -66,6 +66,7 @@ urlpatterns = [
     path('alunos/', views.alunos, name='alunos'),
     path('alunos/importar/', views.importar_alunos, name='importar_alunos'),
     path('alunos/excluir/<int:pk>/', views.excluir_aluno, name='excluir_aluno'),
+    path('alunos/limpar/', views.limpar_alunos, name='limpar_alunos'),
 
     path('emprestimos/excluir-historico/<int:pk>/', views.excluir_historico, name='excluir-historico'),
     

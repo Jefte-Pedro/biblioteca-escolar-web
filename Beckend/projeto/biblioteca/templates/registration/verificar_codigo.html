@@ -24,7 +24,7 @@
         </p>
 
         <!-- Campos do código -->
-        <div style="display:flex; gap:.5rem; justify-content:center; margin-bottom:1.5rem;">
+        <div style="display:flex; gap:.5rem; justify-content:center; margin-bottom:1.5rem;" id="digits-container">
             {% for i in "123456" %}
             <input type="text" maxlength="1" class="codigo-digit"
                 style="width:44px; height:52px; text-align:center; font-size:1.4rem; font-weight:700; background:var(--input-bg); border:1.5px solid var(--border); border-radius:10px; color:var(--text); outline:none; transition:.2s;"
@@ -72,17 +72,35 @@
 
     // Navega entre os campos automaticamente
     const digits = document.querySelectorAll('.codigo-digit');
+
     digits.forEach((input, idx) => {
+        // Digitação normal
         input.addEventListener('input', () => {
-            input.value = input.value.replace(/\D/g, '');
+            input.value = input.value.replace(/\D/g, '').slice(0, 1);
             if (input.value && idx < digits.length - 1) {
                 digits[idx + 1].focus();
             }
         });
+
+        // Backspace
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Backspace' && !input.value && idx > 0) {
                 digits[idx - 1].focus();
             }
+        });
+
+        // Colar código
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const colado = (e.clipboardData || window.clipboardData)
+                .getData('text')
+                .replace(/\D/g, '')
+                .slice(0, 6);
+            colado.split('').forEach((char, i) => {
+                if (digits[i]) digits[i].value = char;
+            });
+            const proximo = digits[Math.min(colado.length, 5)];
+            if (proximo) proximo.focus();
         });
     });
 
@@ -100,59 +118,65 @@
         document.getElementById('erro-msg').style.display = 'none';
     }
 
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
     async function confirmarCodigo() {
-            const codigo = getCodigo();
-            if (codigo.length < 6) {
-                mostrarErro('Preencha todos os 6 dígitos.');
-                return;
-            }
+        const codigo = getCodigo();
+        if (codigo.length < 6) {
+            mostrarErro('Preencha todos os 6 dígitos.');
+            return;
+        }
 
-            esconderErro();
-            const btn = document.getElementById('btn-confirmar');
-            btn.textContent = 'Verificando...';
-            btn.disabled = true;
+        esconderErro();
+        const btn = document.getElementById('btn-confirmar');
+        btn.textContent = 'Verificando...';
+        btn.disabled = true;
 
-            // Verifica o código
-            const resp = await fetch('/biblioteca/login/verificar-codigo/', {
+        // Verifica o código
+        const resp = await fetch('/biblioteca/login/verificar-codigo/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ matricula, codigo })
+        });
+
+        const data = await resp.json();
+
+        if (data.sucesso) {
+            // Finaliza o cadastro com os dados salvos no sessionStorage
+            const resp2 = await fetch('/biblioteca/login/primeiro-acesso/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify({ matricula, codigo })
+                body: JSON.stringify({
+                    matricula,
+                    senha: sessionStorage.getItem('senha_temp'),
+                    email: sessionStorage.getItem('email_temp'),
+                    telefone: sessionStorage.getItem('telefone_temp'),
+                })
             });
 
-            const data = await resp.json();
+            const data2 = await resp2.json();
 
-            if (data.sucesso) {
-                // Finaliza o cadastro com os dados salvos no sessionStorage
-                const resp2 = await fetch('/biblioteca/login/primeiro-acesso/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                    body: JSON.stringify({
-                        matricula,
-                        senha: sessionStorage.getItem('senha_temp'),
-                        email: sessionStorage.getItem('email_temp'),
-                        telefone: sessionStorage.getItem('telefone_temp'),
-                    })
-                });
-
-                const data2 = await resp2.json();
-
-                if (data2.sucesso) {
-                    // Limpa sessionStorage
-                    sessionStorage.removeItem('senha_temp');
-                    sessionStorage.removeItem('email_temp');
-                    sessionStorage.removeItem('telefone_temp');
-                    window.location.href = data2.redirect;
-                } else {
-                    mostrarErro(data2.erro || 'Erro ao finalizar cadastro.');
-                    btn.textContent = 'Confirmar código';
-                    btn.disabled = false;
-                }
+            if (data2.sucesso) {
+                // Limpa sessionStorage
+                sessionStorage.removeItem('senha_temp');
+                sessionStorage.removeItem('email_temp');
+                sessionStorage.removeItem('telefone_temp');
+                window.location.href = data2.redirect;
             } else {
-                mostrarErro(data.erro || 'Código incorreto.');
+                mostrarErro(data2.erro || 'Erro ao finalizar cadastro.');
                 btn.textContent = 'Confirmar código';
                 btn.disabled = false;
             }
+        } else {
+            mostrarErro(data.erro || 'Código incorreto.');
+            btn.textContent = 'Confirmar código';
+            btn.disabled = false;
         }
+    }
 
     async function reenviarCodigo() {
         const btn = document.getElementById('btn-reenviar');
