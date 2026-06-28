@@ -91,3 +91,10 @@ EMAIL_USE_SSL       = True
 EMAIL_HOST_USER     = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL  = os.getenv('EMAIL_FROM', os.getenv('EMAIL_HOST_USER'))
+
+# ──────────────────────────────────────────
+# AUTENTICAÇÃO
+# ──────────────────────────────────────────
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'inicio'
+LOGOUT_REDIRECT_URL = 'login'

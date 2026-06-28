@@ -67,6 +67,12 @@ urlpatterns = [
     path('alunos/importar/', views.importar_alunos, name='importar_alunos'),
     path('alunos/excluir/<int:pk>/', views.excluir_aluno, name='excluir_aluno'),
     path('alunos/limpar/', views.limpar_alunos, name='limpar_alunos'),
+    path('turmas/', views.listar_turmas,  name='listar_turmas'),
+    path('turmas/salvar/',  views.salvar_turmas,  name='salvar_turmas'),  
+    path('cargos/', views.listar_cargos,  name='listar_cargos'),
+    path('cargos/salvar/',  views.salvar_cargo,   name='salvar_cargo'),
+    path('cargos/excluir/<int:pk>/', views.excluir_cargo,  name='excluir_cargo'),
+    path('alunos/atribuir-cargo/<int:pk>/', views.atribuir_cargo, name='atribuir_cargo'),
 
     path('emprestimos/excluir-historico/<int:pk>/', views.excluir_historico, name='excluir-historico'),
     

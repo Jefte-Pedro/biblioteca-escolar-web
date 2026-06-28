@@ -29,13 +29,11 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 from .gmail import enviar_email
 from .whatsapp import enviar_whatsapp
-
 from rest_framework import filters, viewsets
-
 from .models import Emprestimo, Exemplar, Lista, Livro, LivroLido, Reserva, Usuario
 from .serializers import LivroSerializer
-
 from django.core.paginator import Paginator
+from .models import Emprestimo, Exemplar, Lista, Livro, LivroLido, Reserva, Usuario, Turma, Cargo, ABAS_DISPONIVEIS
 
 # ──────────────────────────────────────────
 # AUTENTICAÇÃO
@@ -401,7 +399,7 @@ def explorar(request):
         'filtro_ordem': filtro_ordem,
         'pag_janela':   pag_janela, 
     })
-
+@login_required
 def prazos(request):
     hoje = date.today()
 
@@ -475,7 +473,7 @@ def _acervo_counts(user):
         'reservas_count': Reserva.objects.filter(usuario=user, status='pendente').count(),
     }
 
-
+@login_required
 def lista(request):
     listas_qs = Lista.objects.filter(usuario=request.user).prefetch_related('livros') \
         if request.user.is_authenticated else []
@@ -496,7 +494,7 @@ def lista(request):
 
     return render(request, 'biblioteca/acervo.html', {'aba': 'lista', 'listas': listas, **_acervo_counts(request.user),})
 
-
+@login_required
 def lidos(request):
     livros_lidos = []
     lidos_count = 0
@@ -523,7 +521,7 @@ def lidos(request):
         **_acervo_counts(request.user),
     })
 
-
+@login_required
 def reservados(request):
     return render(request, 'biblioteca/acervo.html', {'aba': 'reservados', **_acervo_counts(request.user),})
 
@@ -1441,3 +1439,114 @@ class LivroViewset(viewsets.ModelViewSet):
     serializer_class = LivroSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['titulo', 'autor']
+    
+# ──────────────────────────────────────────
+# TURMAS (banco de dados)
+# ──────────────────────────────────────────
+
+def listar_turmas(request):
+    """Retorna todas as turmas cadastradas no banco."""
+    turmas = Turma.objects.values_list('nome', flat=True)
+    return JsonResponse({'turmas': list(turmas)})
+
+
+@require_POST
+@staff_member_required
+def salvar_turmas(request):
+    """
+    Recebe lista de turmas e substitui tudo no banco.
+    Payload: { "turmas": ["1° A", "2° B", ...] }
+    """
+    data  = json.loads(request.body)
+    nomes = [t.strip() for t in data.get('turmas', []) if t.strip()]
+
+    # Remove todas e recria na ordem recebida
+    Turma.objects.all().delete()
+    for i, nome in enumerate(nomes):
+        Turma.objects.create(nome=nome, ordem=i)
+
+    return JsonResponse({'sucesso': True, 'total': len(nomes)})
+
+
+# ──────────────────────────────────────────
+# CARGOS
+# ──────────────────────────────────────────
+
+def listar_cargos(request):
+    """Retorna todos os cargos com suas abas."""
+    cargos = list(Cargo.objects.values('id', 'nome', 'abas'))
+    return JsonResponse({'cargos': cargos})
+
+
+@require_POST
+@staff_member_required
+def salvar_cargo(request):
+    """
+    Cria ou atualiza um cargo.
+    Payload: { "id": 1 (opcional), "nome": "Monitor", "abas": ["emprestimos"] }
+    """
+    data  = json.loads(request.body)
+    cargo_id = data.get('id')
+    nome  = data.get('nome', '').strip()
+    abas  = data.get('abas', [])
+
+    if not nome:
+        return JsonResponse({'erro': 'Nome do cargo é obrigatório.'}, status=400)
+
+    # Valida abas recebidas
+    slugs_validos = [slug for slug, _ in ABAS_DISPONIVEIS]
+    abas_validas  = [a for a in abas if a in slugs_validos]
+
+    if cargo_id:
+        cargo = get_object_or_404(Cargo, pk=cargo_id)
+        # Verifica duplicidade de nome em outro cargo
+        if Cargo.objects.filter(nome=nome).exclude(pk=cargo_id).exists():
+            return JsonResponse({'erro': 'Já existe um cargo com esse nome.'}, status=400)
+        cargo.nome = nome
+        cargo.abas = abas_validas
+        cargo.save()
+        criado = False
+    else:
+        if Cargo.objects.filter(nome=nome).exists():
+            return JsonResponse({'erro': 'Já existe um cargo com esse nome.'}, status=400)
+        cargo  = Cargo.objects.create(nome=nome, abas=abas_validas)
+        criado = True
+
+    return JsonResponse({
+        'sucesso': True,
+        'criado':  criado,
+        'cargo':   {'id': cargo.pk, 'nome': cargo.nome, 'abas': cargo.abas},
+    })
+
+
+@require_POST
+@staff_member_required
+def excluir_cargo(request, pk):
+    """Remove um cargo. Usuários com esse cargo ficam sem cargo (SET_NULL)."""
+    cargo = get_object_or_404(Cargo, pk=pk)
+    cargo.delete()
+    return JsonResponse({'sucesso': True})
+
+
+@require_POST
+@staff_member_required
+def atribuir_cargo(request, pk):
+    """
+    Atribui ou remove um cargo de um usuário.
+    Payload: { "cargo_id": 1 }  — use null para remover o cargo.
+    """
+    usuario  = get_object_or_404(Usuario, pk=pk)
+    data     = json.loads(request.body)
+    cargo_id = data.get('cargo_id')
+
+    if cargo_id:
+        cargo = get_object_or_404(Cargo, pk=cargo_id)
+        usuario.cargo = cargo
+    else:
+        usuario.cargo = None
+
+    usuario.save()
+    return JsonResponse({
+        'sucesso':    True,
+        'cargo_nome': usuario.cargo.nome if usuario.cargo else None,
+    })    

@@ -16,7 +16,10 @@
                 <i class="fa-solid fa-chalkboard"></i>
                 <span>Gerenciar Turmas</span>
             </button>
-            <!-- NOVO: Botão limpar -->
+            <button class="al-btn-cargos" id="btn-gerenciar-cargos">
+                <i class="fa-solid fa-user-shield"></i>
+                <span>Gerenciar Cargos</span>
+            </button>
             <button class="al-btn-limpar" id="btn-abrir-modal-limpar">
                 <i class="fa-solid fa-trash-can"></i>
                 <span>Limpar alunos</span>
@@ -56,13 +59,10 @@
             <div class="al-search-wrap" style="position:relative;">
                 <svg class="al-search-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"
                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5"
-                        stroke-linecap="round" />
+                    <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                 </svg>
-                <input type="text" id="al-search" class="al-search" placeholder="Busque o Nome do Aluno ou Turma"
-                    autocomplete="off">
+                <input type="text" id="al-search" class="al-search" placeholder="Busque o Nome do Aluno ou Turma" autocomplete="off">
             </div>
             <div class="al-filtros" id="al-filtros">
                 <button class="al-filtro-btn ativo" data-turma="todas">Todas</button>
@@ -88,9 +88,8 @@
                             <th>Aluno</th>
                             <th>Matrícula</th>
                             <th>Turma</th>
-                            <!-- NOVA COLUNA: Contato -->
                             <th>Contato</th>
-                            <th style="width:60px;text-align:center;">Ação</th>
+                            <th style="width:50px;text-align:center;">Ação</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -102,13 +101,18 @@
                                     <div class="al-avatar" style="background: {{ aluno.cor_avatar }}">{{ aluno.iniciais }}</div>
                                     <div>
                                         <div class="al-nome">{{ aluno.get_full_name }}</div>
-                                        <div class="al-email">{{ aluno.email|default:"—" }}</div>
+                                        <div class="al-email">
+                                            {% if aluno.cargo %}
+                                            <span class="al-cargo-badge">{{ aluno.cargo.nome }}</span>
+                                            {% else %}
+                                            {{ aluno.email|default:"—" }}
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                             <td><span class="al-matricula">{{ aluno.matricula }}</span></td>
                             <td><span class="al-tag-turma">{{ aluno.serie|default:"—" }}</span></td>
-                            <!-- NOVA COLUNA: dados de contato -->
                             <td>
                                 <div class="al-contato-cell">
                                     {% if aluno.email %}
@@ -119,8 +123,7 @@
                                     </a>
                                     {% endif %}
                                     {% if aluno.telefone %}
-                                    <a class="al-contato-item al-contato-tel" href="tel:{{ aluno.telefone }}"
-                                        title="{{ aluno.telefone }}">
+                                    <a class="al-contato-item al-contato-tel" href="tel:{{ aluno.telefone }}" title="{{ aluno.telefone }}">
                                         <i class="fa-solid fa-phone"></i>
                                         <span>{{ aluno.telefone }}</span>
                                     </a>
@@ -130,11 +133,24 @@
                                     {% endif %}
                                 </div>
                             </td>
-                            <td style="text-align:center;">
-                                <button class="al-btn-excluir" data-id="{{ aluno.pk }}"
-                                    data-nome="{{ aluno.get_full_name }}" title="Excluir">
-                                    <i class="fa-solid fa-trash-can"></i>
+                            <td style="text-align:center;position:relative;">
+                                <!-- 3 pontinhos -->
+                                <button class="al-btn-menu" data-id="{{ aluno.pk }}"
+                                    data-nome="{{ aluno.get_full_name }}"
+                                    data-cargo-id="{{ aluno.cargo.pk|default:'' }}" title="Ações">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
                                 </button>
+                                <div class="al-dropdown" id="dropdown-{{ aluno.pk }}">
+                                    <button class="al-dropdown-item al-dropdown-cargo" data-id="{{ aluno.pk }}"
+                                        data-nome="{{ aluno.get_full_name }}"
+                                        data-cargo-id="{{ aluno.cargo.pk|default:'' }}">
+                                        <i class="fa-solid fa-user-shield"></i> Atribuir cargo
+                                    </button>
+                                    <div class="al-dropdown-divider"></div>
+                                    <button class="al-dropdown-item al-dropdown-excluir" data-id="{{ aluno.pk }}" data-nome="{{ aluno.get_full_name }}">
+                                        <i class="fa-solid fa-trash-can"></i> Excluir aluno
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -212,6 +228,101 @@
     </div>
 </div>
 
+<!-- ═══ MODAL GERENCIAR CARGOS ═══ -->
+<div class="al-modal-overlay" id="al-modal-cargos-overlay">
+    <div class="al-modal al-modal-md">
+        <div class="al-modal-header">
+            <div>
+                <h3 class="al-modal-titulo">
+                    <i class="fa-solid fa-user-shield"
+                        style="font-size:13px;margin-right:6px;color:var(--accent-lt)"></i>Gerenciar Cargos
+                </h3>
+                <p class="al-modal-sub">Crie cargos e defina quais telas cada um pode acessar além das padrão.</p>
+            </div>
+            <button class="al-modal-close" id="btn-fechar-modal-cargos"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Lista de cargos existentes -->
+        <div id="cargos-lista-wrap"></div>
+
+        <!-- Formulário de criar/editar cargo -->
+        <div class="al-cargo-form" id="al-cargo-form">
+            <div class="al-cargo-form-titulo" id="al-cargo-form-titulo">Novo cargo</div>
+            <input type="hidden" id="cargo-edit-id">
+            <div class="al-form-group" style="margin-bottom:12px;">
+                <label class="al-form-label">Nome do cargo <span class="al-req">*</span></label>
+                <input type="text" class="al-form-input" id="cargo-nome-input" placeholder="Ex: Monitor" maxlength="50">
+            </div>
+            <div class="al-form-group">
+                <label class="al-form-label">Telas que esse cargo pode acessar</label>
+                <div class="al-cargo-abas-grid" id="al-cargo-abas-grid">
+                    <label class="al-cargo-aba-item">
+                        <input type="checkbox" class="al-cargo-aba-cb" value="cadastrar_livro">
+                        <i class="fa-solid fa-book"></i> Cadastro de Livros
+                    </label>
+                    <label class="al-cargo-aba-item">
+                        <input type="checkbox" class="al-cargo-aba-cb" value="emprestimos">
+                        <i class="fa-solid fa-book-open"></i> Empréstimos
+                    </label>
+                    <label class="al-cargo-aba-item">
+                        <input type="checkbox" class="al-cargo-aba-cb" value="alunos">
+                        <i class="fa-solid fa-users"></i> Alunos & Funcionários
+                    </label>
+                    <label class="al-cargo-aba-item">
+                        <input type="checkbox" class="al-cargo-aba-cb" value="exportar">
+                        <i class="fa-solid fa-file-arrow-down"></i> Exportar Dados
+                    </label>
+                </div>
+            </div>
+            <div class="al-resultado" id="al-resultado-cargo" style="display:none"></div>
+            <div style="display:flex;gap:8px;margin-top:4px;">
+                <button class="al-btn-cancelar" id="btn-cancelar-cargo-form" style="display:none;">Cancelar
+                    edição</button>
+                <button class="al-btn-confirmar" id="btn-salvar-cargo" style="flex:1;">
+                    <i class="fa-solid fa-floppy-disk"></i><span>Salvar cargo</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="al-modal-footer">
+            <button class="al-btn-cancelar" id="btn-fechar-cargos-footer">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL ATRIBUIR CARGO ═══ -->
+<div class="al-modal-overlay" id="al-modal-atribuir-overlay">
+    <div class="al-modal al-modal-sm">
+        <div class="al-modal-header">
+            <div>
+                <h3 class="al-modal-titulo">
+                    <i class="fa-solid fa-user-shield"
+                        style="font-size:13px;margin-right:6px;color:var(--accent-lt)"></i>Atribuir cargo
+                </h3>
+                <p class="al-modal-sub">Escolha o cargo para <strong id="atribuir-nome-aluno"></strong>.</p>
+            </div>
+            <button class="al-modal-close" id="btn-fechar-modal-atribuir"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="al-atribuir-lista" id="al-atribuir-lista">
+            <!-- preenchido por JS -->
+        </div>
+
+        <div class="al-resultado" id="al-resultado-atribuir" style="display:none"></div>
+
+        <div class="al-modal-footer">
+            <button class="al-btn-cancelar" id="btn-cancelar-atribuir">Cancelar</button>
+            <button class="al-btn-confirmar al-btn-danger" id="btn-remover-cargo"
+                style="background:transparent;border:1px solid rgba(239,68,68,.35);">
+                <i class="fa-solid fa-xmark"></i><span>Remover cargo</span>
+            </button>
+            <button class="al-btn-confirmar" id="btn-confirmar-atribuir">
+                <i class="fa-solid fa-check"></i><span>Confirmar</span>
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- ═══ MODAL ADICIONAR INDIVIDUAL ═══ -->
 <div class="al-modal-overlay" id="al-modal-individual-overlay">
     <div class="al-modal al-modal-sm">
@@ -259,16 +370,14 @@
             </div>
             <button class="al-modal-close" id="btn-fechar-modal"><i class="fa-solid fa-xmark"></i></button>
         </div>
-
-        <!-- Badge SIEP -->
         <div class="al-siep-badge">
             <i class="fa-solid fa-circle-check" style="color:#22c55e"></i>
             <div>
                 <strong>Formato SIEP detectado automaticamente</strong>
-                <span>Ao importar a planilha gerada pelo SIEP, a turma é lida e normalizada automaticamente (ex: "1ANO - I - EM1I-A" → "1° A"). Nenhuma configuração necessária.</span>
+                <span>Ao importar a planilha gerada pelo SIEP, a turma é lida e normalizada automaticamente (ex: "1ANO -
+                    I - EM1I-A" → "1° A"). Nenhuma configuração necessária.</span>
             </div>
         </div>
-
         <div class="al-formatos">
             <div class="al-formato-item"><i class="fa-solid fa-file-excel" style="color:#22c55e"></i><span>.xlsx</span>
             </div>
@@ -277,14 +386,13 @@
             <div class="al-formato-item"><i class="fa-solid fa-file-csv" style="color:#0891b2"></i><span>.csv</span>
             </div>
         </div>
-
         <div class="al-dropzone" id="al-dropzone">
             <input type="file" id="al-file-input" accept=".xlsx,.xls,.csv" style="display:none">
             <i class="fa-solid fa-cloud-arrow-up al-drop-ico"></i>
-            <div class="al-drop-txt">Arraste o arquivo aqui ou <span class="al-drop-link" id="al-drop-link">clique para selecionar</span></div>
+            <div class="al-drop-txt">Arraste o arquivo aqui ou <span class="al-drop-link" id="al-drop-link">clique para
+                    selecionar</span></div>
             <div class="al-drop-hint">Planilha do SIEP ou qualquer .xlsx / .xls / .csv</div>
         </div>
-
         <div class="al-arquivo-preview" id="al-arquivo-preview" style="display:none">
             <i class="fa-solid fa-file-excel al-arq-ico"></i>
             <div class="al-arq-info">
@@ -293,37 +401,24 @@
             </div>
             <button class="al-arq-remover" id="al-arq-remover"><i class="fa-solid fa-xmark"></i></button>
         </div>
-
-        <!-- Preview SIEP (modo automático) -->
         <div id="al-siep-preview" style="display:none">
             <div class="al-siep-info" id="al-siep-info"></div>
             <div class="al-preview-table-wrap" id="al-preview-table-wrap"></div>
         </div>
-
-        <!-- Mapeamento manual (modo genérico) -->
         <div class="al-mapeamento" id="al-mapeamento" style="display:none">
-            <div class="al-map-titulo">
-                Mapeie as colunas <span class="al-map-hint">— escolha quais colunas correspondem a cada campo</span>
-            </div>
+            <div class="al-map-titulo">Mapeie as colunas <span class="al-map-hint">— escolha quais colunas correspondem
+                    a cada campo</span></div>
             <div class="al-map-grid">
-                <div class="al-map-row">
-                    <label class="al-map-label">Nome</label>
-                    <select class="al-map-select" id="map-nome"></select>
-                </div>
-                <div class="al-map-row">
-                    <label class="al-map-label">Matrícula</label>
-                    <select class="al-map-select" id="map-matricula"></select>
-                </div>
-                <div class="al-map-row">
-                    <label class="al-map-label">Turma</label>
-                    <select class="al-map-select" id="map-turma"></select>
-                </div>
+                <div class="al-map-row"><label class="al-map-label">Nome</label><select class="al-map-select"
+                        id="map-nome"></select></div>
+                <div class="al-map-row"><label class="al-map-label">Matrícula</label><select class="al-map-select"
+                        id="map-matricula"></select></div>
+                <div class="al-map-row"><label class="al-map-label">Turma</label><select class="al-map-select"
+                        id="map-turma"></select></div>
             </div>
             <div class="al-preview-table-wrap" id="al-preview-table-wrap-manual"></div>
         </div>
-
         <div class="al-resultado" id="al-resultado" style="display:none"></div>
-
         <div class="al-modal-footer">
             <button class="al-btn-cancelar" id="btn-cancelar-modal">Cancelar</button>
             <button class="al-btn-confirmar" id="btn-confirmar-importar" disabled>
@@ -333,7 +428,7 @@
     </div>
 </div>
 
-<!-- ═══ NOVO: MODAL LIMPAR ALUNOS ═══ -->
+<!-- ═══ MODAL LIMPAR ALUNOS ═══ -->
 <div class="al-modal-overlay" id="al-modal-limpar-overlay">
     <div class="al-modal al-modal-sm">
         <div class="al-modal-header">
@@ -346,8 +441,6 @@
             </div>
             <button class="al-modal-close" id="btn-fechar-modal-limpar"><i class="fa-solid fa-xmark"></i></button>
         </div>
-
-        <!-- Seleção de escopo -->
         <div class="al-limpar-escopo">
             <button class="al-limpar-escopo-btn ativo" id="limpar-escopo-turmas" data-escopo="turmas">
                 <i class="fa-solid fa-chalkboard"></i> Por turma
@@ -356,8 +449,6 @@
                 <i class="fa-solid fa-users-slash"></i> Todos os alunos
             </button>
         </div>
-
-        <!-- Painel: por turma -->
         <div id="limpar-painel-turmas">
             <p class="al-limpar-instrucao">Marque as turmas que deseja excluir:</p>
             <div class="al-limpar-turmas-lista" id="limpar-turmas-checkboxes">
@@ -377,8 +468,6 @@
                 <button class="al-limpar-sel-link" id="limpar-des-todos">Desmarcar todas</button>
             </div>
         </div>
-
-        <!-- Painel: todos -->
         <div id="limpar-painel-todos" style="display:none">
             <div class="al-limpar-aviso">
                 <i class="fa-solid fa-circle-exclamation" style="color:#ef4444;font-size:18px;flex-shrink:0;"></i>
@@ -390,9 +479,7 @@
                 <span>Entendo que essa ação é irreversível</span>
             </label>
         </div>
-
         <div class="al-resultado" id="al-resultado-limpar" style="display:none"></div>
-
         <div class="al-modal-footer">
             <button class="al-btn-cancelar" id="btn-cancelar-limpar">Cancelar</button>
             <button class="al-btn-confirmar al-btn-danger" id="btn-confirmar-limpar" disabled>
@@ -402,8 +489,55 @@
     </div>
 </div>
 
+<!-- ═══ MODAL EXCLUIR CARGO ═══ -->
+<div class="al-modal-overlay" id="al-modal-excluir-cargo-overlay">
+    <div class="al-modal al-modal-sm">
+        <div class="al-modal-header">
+            <div>
+                <h3 class="al-modal-titulo" style="color:#ef4444">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:14px;margin-right:6px;"></i>Excluir
+                    cargo
+                </h3>
+                <p class="al-modal-sub">Usuários com esse cargo ficarão sem cargo.</p>
+            </div>
+            <button class="al-modal-close" id="btn-fechar-modal-excluir-cargo"><i
+                    class="fa-solid fa-xmark"></i></button>
+        </div>
+        <p style="font-size:14px;color:var(--text);line-height:1.6;">
+            Tem certeza que deseja excluir o cargo <strong id="excluir-nome-cargo"></strong>?
+        </p>
+        <div class="al-modal-footer">
+            <button class="al-btn-cancelar" id="btn-cancelar-excluir-cargo">Cancelar</button>
+            <button class="al-btn-confirmar al-btn-danger" id="btn-confirmar-excluir-cargo">
+                <i class="fa-solid fa-trash-can"></i><span>Excluir cargo</span>
+            </button>
+        </div>
+    </div>
+</div>
+
 <style>
-    /* ══ BOTÃO LIMPAR ══ */
+    /* ══ BOTÕES HEADER ══ */
+    .al-btn-cargos {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 16px;
+        border-radius: var(--r-md);
+        background: transparent;
+        color: #7c3aed;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid rgba(124, 58, 237, .35);
+        cursor: pointer;
+        transition: background .2s, transform .15s;
+    }
+
+    .al-btn-cargos:hover {
+        background: rgba(124, 58, 237, .08);
+        transform: translateY(-1px);
+    }
+
     .al-btn-limpar {
         display: flex;
         align-items: center;
@@ -423,6 +557,300 @@
     .al-btn-limpar:hover {
         background: rgba(239, 68, 68, .08);
         transform: translateY(-1px);
+    }
+
+    /* ══ 3 PONTINHOS / DROPDOWN ══ */
+    .al-btn-menu {
+        width: 30px;
+        height: 30px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--muted);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        transition: background .15s, color .15s;
+    }
+
+    .al-btn-menu:hover {
+        background: var(--hover);
+        color: var(--text);
+    }
+
+    .al-dropdown {
+        display: none;
+        position: fixed;
+        min-width: 180px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        z-index: 2000;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+    }
+
+    [data-theme="dark"] .al-dropdown {
+        background: #0f1f35;
+    }
+
+    [data-theme="light"] .al-dropdown {
+        background: #fff;
+    }
+
+    .al-dropdown.aberto {
+        display: block;
+    }
+
+    .al-dropdown-item {
+        width: 100%;
+        padding: 10px 14px;
+        background: none;
+        border: none;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: background .12s;
+    }
+
+    .al-dropdown-item:hover {
+        background: var(--hover);
+    }
+
+    .al-dropdown-item i {
+        width: 14px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+    }
+
+    .al-dropdown-excluir {
+        color: #ef4444 !important;
+    }
+
+    .al-dropdown-excluir i {
+        color: #ef4444 !important;
+    }
+
+    .al-dropdown-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 2px 0;
+    }
+
+    /* ══ CARGO BADGE NA LISTA ══ */
+    .al-cargo-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 99px;
+        background: rgba(124, 58, 237, .12);
+        color: #7c3aed;
+        letter-spacing: .04em;
+    }
+
+    /* ══ MODAL CARGOS ══ */
+    .al-modal-md {
+        max-width: 520px;
+    }
+
+    .al-cargo-form {
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .al-cargo-form-titulo {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .al-cargo-abas-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .al-cargo-aba-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 12px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+        transition: all .15s;
+    }
+
+    .al-cargo-aba-item:has(input:checked) {
+        border-color: rgba(124, 58, 237, .4);
+        background: rgba(124, 58, 237, .07);
+        color: #7c3aed;
+    }
+
+    .al-cargo-aba-item input {
+        accent-color: #7c3aed;
+        width: 14px;
+        height: 14px;
+        cursor: pointer;
+    }
+
+    .al-cargo-aba-item i {
+        font-size: 11px;
+    }
+
+    .al-cargos-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 2px 0;
+    }
+
+    .al-cargo-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+    }
+
+    .al-cargo-item-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .al-cargo-item-nome {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .al-cargo-item-abas {
+        font-size: 11px;
+        color: var(--faint);
+        margin-top: 2px;
+    }
+
+    .al-cargo-item-acoes {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    .al-cargo-btn-edit,
+    .al-cargo-btn-del {
+        width: 28px;
+        height: 28px;
+        border-radius: var(--r-sm);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        transition: background .15s;
+    }
+
+    .al-cargo-btn-edit {
+        color: var(--accent-lt);
+    }
+
+    .al-cargo-btn-edit:hover {
+        background: rgba(79, 148, 214, .12);
+    }
+
+    .al-cargo-btn-del {
+        color: #ef4444;
+        border-color: rgba(239, 68, 68, .25);
+        background: rgba(239, 68, 68, .06);
+    }
+
+    .al-cargo-btn-del:hover {
+        background: rgba(239, 68, 68, .15);
+    }
+
+    /* ══ MODAL ATRIBUIR CARGO ══ */
+    .al-atribuir-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 260px;
+        overflow-y: auto;
+    }
+
+    .al-atribuir-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: var(--r-md);
+        border: 2px solid var(--border);
+        background: var(--surface);
+        cursor: pointer;
+        transition: all .15s;
+    }
+
+    .al-atribuir-item.selecionado {
+        border-color: #7c3aed;
+        background: rgba(124, 58, 237, .07);
+    }
+
+    .al-atribuir-item-ico {
+        width: 32px;
+        height: 32px;
+        border-radius: 99px;
+        background: rgba(124, 58, 237, .15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #7c3aed;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+
+    .al-atribuir-item-info {
+        flex: 1;
+    }
+
+    .al-atribuir-item-nome {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .al-atribuir-item-abas {
+        font-size: 11px;
+        color: var(--faint);
+        margin-top: 2px;
+    }
+
+    .al-atribuir-vazio {
+        text-align: center;
+        padding: 24px;
+        font-size: 13px;
+        color: var(--faint);
     }
 
     /* ══ COLUNA CONTATO ══ */
@@ -602,7 +1030,7 @@
         cursor: pointer;
     }
 
-    /* ══ ESTILOS ORIGINAIS ABAIXO ══ */
+    /* ══ ESTILOS BASE ══ */
     .al-header {
         display: flex;
         align-items: center;
@@ -961,27 +1389,6 @@
         border-radius: 99px;
         background: rgba(79, 148, 214, .12);
         color: #4f94d6;
-    }
-
-    .al-btn-excluir {
-        width: 30px;
-        height: 30px;
-        border-radius: var(--r-md);
-        border: 1px solid rgba(239, 68, 68, .25);
-        background: rgba(239, 68, 68, .06);
-        color: #ef4444;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        transition: background .15s, transform .1s;
-    }
-
-    .al-btn-excluir:hover {
-        background: rgba(239, 68, 68, .15);
-        border-color: rgba(239, 68, 68, .5);
-        transform: scale(1.08);
     }
 
     .al-vazia {
@@ -1549,30 +1956,60 @@
 <script>
     (function () {
 
-        /* ══════════════════════════════════════════════
-           TURMAS — localStorage
-        ══════════════════════════════════════════════ */
-        const TURMAS_PADRAO = ['1° A', '1° B', '1° C', '2° A', '2° B', '2° C', '2° D', '3° A', '3° B'];
         const OPCOES_ESPECIAIS = ['Sem turma', 'Funcionário'];
+        let turmasAtuais = [];
+        let cargosAtuais = [];
 
-        function carregarTurmas() {
-            try { const s = localStorage.getItem('biblioteca_turmas'); return s ? JSON.parse(s) : [...TURMAS_PADRAO]; }
-            catch { return [...TURMAS_PADRAO]; }
+        /* ══════════════════════════════════════════════
+           TURMAS — carrega do banco
+        ══════════════════════════════════════════════ */
+        async function carregarTurmasDoBanco() {
+            try {
+                const res = await fetch('{% url "listar_turmas" %}');
+                const data = await res.json();
+                turmasAtuais = data.turmas || [];
+            } catch {
+                turmasAtuais = [];
+            }
+            preencherSelectTurma();
         }
-        function salvarTurmas(lista) { localStorage.setItem('biblioteca_turmas', JSON.stringify(lista)); }
-        let turmasAtuais = carregarTurmas();
 
         function preencherSelectTurma() {
             const sel = document.getElementById('ind-turma');
             sel.innerHTML = '';
             const g1 = document.createElement('optgroup'); g1.label = 'Turmas';
-            turmasAtuais.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; g1.appendChild(o); });
+            turmasAtuais.forEach(t => {
+                const o = document.createElement('option'); o.value = t; o.textContent = t; g1.appendChild(o);
+            });
             sel.appendChild(g1);
             const g2 = document.createElement('optgroup'); g2.label = 'Outros';
-            OPCOES_ESPECIAIS.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; g2.appendChild(o); });
+            OPCOES_ESPECIAIS.forEach(t => {
+                const o = document.createElement('option'); o.value = t; o.textContent = t; g2.appendChild(o);
+            });
             sel.appendChild(g2);
         }
-        preencherSelectTurma();
+
+        carregarTurmasDoBanco();
+
+        /* ══════════════════════════════════════════════
+           CARGOS — carrega do banco
+        ══════════════════════════════════════════════ */
+        const ABAS_LABELS = {
+            cadastrar_livro: 'Cadastro de Livros',
+            emprestimos: 'Empréstimos',
+            alunos: 'Alunos & Funcionários',
+            exportar: 'Exportar Dados',
+        };
+
+        async function carregarCargos() {
+            try {
+                const res = await fetch('{% url "listar_cargos" %}');
+                const data = await res.json();
+                cargosAtuais = data.cargos || [];
+            } catch {
+                cargosAtuais = [];
+            }
+        }
 
         /* ══════════════════════════════════════════════
            PARSER SIEP
@@ -1592,14 +2029,13 @@
             }
             return alunos;
         }
-
         function ehFormatoSIEP(rows) {
             const TURMA_RE = /^(\d)ANO\s*-\s*[IVX]+\s*-\s*EM\d+[A-Z]-([A-Z])/i;
             return rows.some(r => r[0] != null && TURMA_RE.test(String(r[0]).trim()));
         }
 
         /* ══════════════════════════════════════════════
-           MODAL GERENCIAR TURMAS
+           MODAL GERENCIAR TURMAS — agora salva no banco
         ══════════════════════════════════════════════ */
         let turmasTemp = [];
 
@@ -1615,7 +2051,7 @@
                 const item = document.createElement('div');
                 item.className = 'al-turma-item';
                 item.innerHTML = `<span class="al-turma-item-nome">${t}</span>
-            <button class="al-turma-item-remove" data-idx="${i}"><i class="fa-solid fa-xmark"></i></button>`;
+                <button class="al-turma-item-remove" data-idx="${i}"><i class="fa-solid fa-xmark"></i></button>`;
                 lista.appendChild(item);
             });
             wrap.innerHTML = '';
@@ -1627,7 +2063,8 @@
 
         const overlayTurmas = document.getElementById('al-modal-turmas-overlay');
         document.getElementById('btn-gerenciar-turmas').addEventListener('click', () => {
-            turmasTemp = [...turmasAtuais]; renderizarListaTurmas();
+            turmasTemp = [...turmasAtuais];
+            renderizarListaTurmas();
             document.getElementById('nova-turma-input').value = '';
             overlayTurmas.classList.add('aberto');
         });
@@ -1638,14 +2075,293 @@
         document.getElementById('btn-add-turma').addEventListener('click', () => {
             const val = document.getElementById('nova-turma-input').value.trim();
             if (!val) return;
-            if (turmasTemp.includes(val)) { document.getElementById('nova-turma-input').style.borderColor = '#ef4444'; setTimeout(() => document.getElementById('nova-turma-input').style.borderColor = '', 1200); return; }
-            turmasTemp.push(val); document.getElementById('nova-turma-input').value = ''; renderizarListaTurmas();
+            if (turmasTemp.includes(val)) {
+                document.getElementById('nova-turma-input').style.borderColor = '#ef4444';
+                setTimeout(() => document.getElementById('nova-turma-input').style.borderColor = '', 1200);
+                return;
+            }
+            turmasTemp.push(val);
+            document.getElementById('nova-turma-input').value = '';
+            renderizarListaTurmas();
         });
-        document.getElementById('nova-turma-input').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-add-turma').click(); });
-        document.getElementById('btn-salvar-turmas').addEventListener('click', () => {
-            turmasAtuais = [...turmasTemp]; salvarTurmas(turmasAtuais); preencherSelectTurma();
-            overlayTurmas.classList.remove('aberto');
+        document.getElementById('nova-turma-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter') document.getElementById('btn-add-turma').click();
         });
+
+        document.getElementById('btn-salvar-turmas').addEventListener('click', async () => {
+            const btn = document.getElementById('btn-salvar-turmas');
+            btn.disabled = true;
+            try {
+                const resp = await fetch('{% url "salvar_turmas" %}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify({ turmas: turmasTemp }),
+                });
+                if (resp.ok) {
+                    turmasAtuais = [...turmasTemp];
+                    preencherSelectTurma();
+                    overlayTurmas.classList.remove('aberto');
+                } else {
+                    alert('Erro ao salvar turmas.');
+                }
+            } catch { alert('Erro de conexão.'); }
+            btn.disabled = false;
+        });
+
+        /* ══════════════════════════════════════════════
+           MODAL GERENCIAR CARGOS
+        ══════════════════════════════════════════════ */
+        const overlayCargos = document.getElementById('al-modal-cargos-overlay');
+        let cargoEditando = null;
+
+        document.getElementById('btn-gerenciar-cargos').addEventListener('click', async () => {
+            await carregarCargos();
+            renderizarListaCargos();
+            resetarFormCargo();
+            overlayCargos.classList.add('aberto');
+        });
+        ['btn-fechar-modal-cargos', 'btn-fechar-cargos-footer'].forEach(id =>
+            document.getElementById(id).addEventListener('click', () => overlayCargos.classList.remove('aberto')));
+        overlayCargos.addEventListener('click', e => { if (e.target === overlayCargos) overlayCargos.classList.remove('aberto'); });
+
+        function renderizarListaCargos() {
+            const wrap = document.getElementById('cargos-lista-wrap');
+            if (!cargosAtuais.length) {
+                wrap.innerHTML = '<p style="font-size:12px;color:var(--faint);text-align:center;padding:10px 0;">Nenhum cargo criado ainda.</p>';
+                return;
+            }
+            const lista = document.createElement('div');
+            lista.className = 'al-cargos-lista';
+            cargosAtuais.forEach(c => {
+                const abasLabels = (c.abas || []).map(a => ABAS_LABELS[a] || a).join(', ') || 'Sem telas extras';
+                const item = document.createElement('div');
+                item.className = 'al-cargo-item';
+                item.innerHTML = `
+                <div class="al-cargo-item-info">
+                    <div class="al-cargo-item-nome">${c.nome}</div>
+                    <div class="al-cargo-item-abas">${abasLabels}</div>
+                </div>
+                <div class="al-cargo-item-acoes">
+                    <button class="al-cargo-btn-edit" data-id="${c.id}" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                    <button class="al-cargo-btn-del" data-id="${c.id}" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
+                </div>`;
+                lista.appendChild(item);
+            });
+            wrap.innerHTML = '';
+            wrap.appendChild(lista);
+
+            wrap.querySelectorAll('.al-cargo-btn-edit').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const cargo = cargosAtuais.find(c => c.id == btn.dataset.id);
+                    if (!cargo) return;
+                    cargoEditando = cargo.id;
+                    document.getElementById('cargo-edit-id').value = cargo.id;
+                    document.getElementById('cargo-nome-input').value = cargo.nome;
+                    document.querySelectorAll('.al-cargo-aba-cb').forEach(cb => {
+                        cb.checked = (cargo.abas || []).includes(cb.value);
+                    });
+                    document.getElementById('al-cargo-form-titulo').textContent = `Editar cargo: ${cargo.nome}`;
+                    document.getElementById('btn-cancelar-cargo-form').style.display = '';
+                    document.getElementById('cargo-nome-input').focus();
+                });
+            });
+
+            wrap.querySelectorAll('.al-cargo-btn-del').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const cargo = cargosAtuais.find(c => c.id == btn.dataset.id);
+                    cargoParaExcluir = btn.dataset.id;
+                    document.getElementById('excluir-nome-cargo').textContent = cargo ? cargo.nome : '';
+                    document.getElementById('al-modal-excluir-cargo-overlay').classList.add('aberto');
+                });
+            });
+        }
+
+        function resetarFormCargo() {
+            cargoEditando = null;
+            document.getElementById('cargo-edit-id').value = '';
+            document.getElementById('cargo-nome-input').value = '';
+            document.querySelectorAll('.al-cargo-aba-cb').forEach(cb => cb.checked = false);
+            document.getElementById('al-cargo-form-titulo').textContent = 'Novo cargo';
+            document.getElementById('btn-cancelar-cargo-form').style.display = 'none';
+            document.getElementById('al-resultado-cargo').style.display = 'none';
+        }
+
+        document.getElementById('btn-cancelar-cargo-form').addEventListener('click', resetarFormCargo);
+
+        document.getElementById('btn-salvar-cargo').addEventListener('click', async () => {
+            const nome = document.getElementById('cargo-nome-input').value.trim();
+            const abas = [...document.querySelectorAll('.al-cargo-aba-cb:checked')].map(cb => cb.value);
+            const id = document.getElementById('cargo-edit-id').value;
+            const resEl = document.getElementById('al-resultado-cargo');
+
+            if (!nome) { mostrarRes(resEl, 'erro', 'Informe o nome do cargo.'); return; }
+
+            const payload = { nome, abas };
+            if (id) payload.id = parseInt(id);
+
+            const resp = await fetch('{% url "salvar_cargo" %}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify(payload),
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                mostrarRes(resEl, 'sucesso', `✓ Cargo "${nome}" salvo com sucesso!`);
+                await carregarCargos();
+                renderizarListaCargos();
+                resetarFormCargo();
+            } else {
+                mostrarRes(resEl, 'erro', data.erro || 'Erro ao salvar.');
+            }
+        });
+
+        /* ══════════════════════════════════════════════
+           3 PONTINHOS — dropdown por aluno
+        ══════════════════════════════════════════════ */
+        function posicionarDropdown(btnMenu, dropdown) {
+            const rect = btnMenu.getBoundingClientRect();
+            const dropW = dropdown.offsetWidth || 180;
+            const dropH = dropdown.offsetHeight || dropdown.scrollHeight || 90;
+
+            let left = rect.right - dropW;
+            if (left < 8) left = 8;
+            if (left + dropW > window.innerWidth - 8) left = window.innerWidth - dropW - 8;
+
+            const espacoAbaixo = window.innerHeight - rect.bottom;
+            let top = (espacoAbaixo < dropH + 12) ? (rect.top - dropH - 4) : (rect.bottom + 4);
+
+            dropdown.style.left = `${left}px`;
+            dropdown.style.top = `${top}px`;
+        }
+
+        document.addEventListener('click', e => {
+            // Fecha todos os dropdowns ao clicar fora
+            if (!e.target.closest('.al-btn-menu') && !e.target.closest('.al-dropdown')) {
+                document.querySelectorAll('.al-dropdown.aberto').forEach(d => d.classList.remove('aberto'));
+            }
+
+            // Abre/fecha o dropdown do botão clicado
+            const btnMenu = e.target.closest('.al-btn-menu');
+            if (btnMenu) {
+                const id = btnMenu.dataset.id;
+                const dropdown = document.getElementById(`dropdown-${id}`);
+                const jaAberto = dropdown.classList.contains('aberto');
+                document.querySelectorAll('.al-dropdown.aberto').forEach(d => d.classList.remove('aberto'));
+                if (!jaAberto) {
+                    dropdown.classList.add('aberto');
+                    posicionarDropdown(btnMenu, dropdown);
+                }
+            }
+
+            // Clicou em "Excluir aluno"
+            const btnExcluir = e.target.closest('.al-dropdown-excluir');
+            if (btnExcluir) {
+                document.querySelectorAll('.al-dropdown.aberto').forEach(d => d.classList.remove('aberto'));
+                alunoParaExcluir = btnExcluir.dataset.id;
+                document.getElementById('excluir-nome-aluno').textContent = btnExcluir.dataset.nome;
+                document.getElementById('al-modal-excluir-overlay').classList.add('aberto');
+            }
+
+            // Clicou em "Atribuir cargo"
+            const btnCargo = e.target.closest('.al-dropdown-cargo');
+            if (btnCargo) {
+                document.querySelectorAll('.al-dropdown.aberto').forEach(d => d.classList.remove('aberto'));
+                abrirModalAtribuir(btnCargo.dataset.id, btnCargo.dataset.nome, btnCargo.dataset.cargoId);
+            }
+        });
+
+        window.addEventListener('scroll', () => {
+            document.querySelectorAll('.al-dropdown.aberto').forEach(d => d.classList.remove('aberto'));
+        }, true);
+        window.addEventListener('resize', () => {
+            document.querySelectorAll('.al-dropdown.aberto').forEach(d => d.classList.remove('aberto'));
+        });
+
+        /* ══════════════════════════════════════════════
+           MODAL ATRIBUIR CARGO
+        ══════════════════════════════════════════════ */
+        const overlayAtribuir = document.getElementById('al-modal-atribuir-overlay');
+        let alunoAtribuirId = null;
+        let cargoSelecionadoId = null;
+
+        async function abrirModalAtribuir(alunoId, alunoNome, cargoAtualId) {
+            alunoAtribuirId = alunoId;
+            cargoSelecionadoId = cargoAtualId || null;
+
+            document.getElementById('atribuir-nome-aluno').textContent = alunoNome;
+            document.getElementById('al-resultado-atribuir').style.display = 'none';
+            document.getElementById('btn-confirmar-atribuir').disabled = false;
+
+            await carregarCargos();
+            renderizarListaAtribuir(cargoAtualId);
+            overlayAtribuir.classList.add('aberto');
+        }
+
+        function renderizarListaAtribuir(cargoAtualId) {
+            const wrap = document.getElementById('al-atribuir-lista');
+            if (!cargosAtuais.length) {
+                wrap.innerHTML = '<div class="al-atribuir-vazio">Nenhum cargo criado ainda.<br>Crie cargos em "Gerenciar Cargos".</div>';
+                return;
+            }
+            wrap.innerHTML = '';
+            cargosAtuais.forEach(c => {
+                const abasLabels = (c.abas || []).map(a => ABAS_LABELS[a] || a).join(', ') || 'Apenas acesso padrão';
+                const item = document.createElement('div');
+                item.className = 'al-atribuir-item' + (String(c.id) === String(cargoAtualId) ? ' selecionado' : '');
+                item.dataset.id = c.id;
+                item.innerHTML = `
+                <div class="al-atribuir-item-ico"><i class="fa-solid fa-user-shield"></i></div>
+                <div class="al-atribuir-item-info">
+                    <div class="al-atribuir-item-nome">${c.nome}</div>
+                    <div class="al-atribuir-item-abas">${abasLabels}</div>
+                </div>`;
+                item.addEventListener('click', () => {
+                    wrap.querySelectorAll('.al-atribuir-item').forEach(i => i.classList.remove('selecionado'));
+                    item.classList.add('selecionado');
+                    cargoSelecionadoId = c.id;
+                });
+                wrap.appendChild(item);
+            });
+        }
+
+        ['btn-fechar-modal-atribuir', 'btn-cancelar-atribuir'].forEach(id =>
+            document.getElementById(id).addEventListener('click', () => overlayAtribuir.classList.remove('aberto')));
+        overlayAtribuir.addEventListener('click', e => { if (e.target === overlayAtribuir) overlayAtribuir.classList.remove('aberto'); });
+
+        document.getElementById('btn-remover-cargo').addEventListener('click', async () => {
+            await confirmarAtribuicao(null);
+        });
+
+        document.getElementById('btn-confirmar-atribuir').addEventListener('click', async () => {
+            await confirmarAtribuicao(cargoSelecionadoId);
+        });
+
+        async function confirmarAtribuicao(cargoId) {
+            const resEl = document.getElementById('al-resultado-atribuir');
+            document.getElementById('btn-confirmar-atribuir').disabled = true;
+
+            try {
+                const url = `{% url "atribuir_cargo" 0 %}`.replace('/0/', `/${alunoAtribuirId}/`);
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify({ cargo_id: cargoId }),
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    mostrarRes(resEl, 'sucesso', cargoId
+                        ? `✓ Cargo "${data.cargo_nome}" atribuído com sucesso!`
+                        : '✓ Cargo removido com sucesso!');
+                    setTimeout(() => location.reload(), 1400);
+                } else {
+                    mostrarRes(resEl, 'erro', data.erro || 'Erro ao atribuir.');
+                    document.getElementById('btn-confirmar-atribuir').disabled = false;
+                }
+            } catch {
+                mostrarRes(resEl, 'erro', 'Erro de conexão.');
+                document.getElementById('btn-confirmar-atribuir').disabled = false;
+            }
+        }
 
         /* ══════════════════════════════════════════════
            MODAL EXCLUIR (individual)
@@ -1653,15 +2369,11 @@
         const overlayExcluir = document.getElementById('al-modal-excluir-overlay');
         let alunoParaExcluir = null;
 
-        document.getElementById('al-conteudo').addEventListener('click', e => {
-            const btn = e.target.closest('.al-btn-excluir'); if (!btn) return;
-            alunoParaExcluir = btn.dataset.id;
-            document.getElementById('excluir-nome-aluno').textContent = btn.dataset.nome;
-            overlayExcluir.classList.add('aberto');
-        });
         ['btn-fechar-modal-excluir', 'btn-cancelar-excluir'].forEach(id =>
             document.getElementById(id).addEventListener('click', () => { overlayExcluir.classList.remove('aberto'); alunoParaExcluir = null; }));
-        overlayExcluir.addEventListener('click', e => { if (e.target === overlayExcluir) { overlayExcluir.classList.remove('aberto'); alunoParaExcluir = null; } });
+        overlayExcluir.addEventListener('click', e => {
+            if (e.target === overlayExcluir) { overlayExcluir.classList.remove('aberto'); alunoParaExcluir = null; }
+        });
 
         const btnConfExcluir = document.getElementById('btn-confirmar-excluir');
         btnConfExcluir.addEventListener('click', async () => {
@@ -1679,9 +2391,34 @@
                     }
                     overlayExcluir.classList.remove('aberto'); alunoParaExcluir = null;
                 } else {
-                    const d = await res.json().catch(() => ({})); alert(d.erro || 'Erro ao excluir.'); btnConfExcluir.disabled = false;
+                    const d = await res.json().catch(() => ({})); alert(d.erro || 'Erro ao excluir.');
+                    btnConfExcluir.disabled = false;
                 }
             } catch { alert('Erro de conexão.'); btnConfExcluir.disabled = false; }
+        });
+
+        /* ══════════════════════════════════════════════
+           MODAL EXCLUIR CARGO
+        ══════════════════════════════════════════════ */
+        const overlayExcluirCargo = document.getElementById('al-modal-excluir-cargo-overlay');
+        let cargoParaExcluir = null;
+
+        ['btn-fechar-modal-excluir-cargo', 'btn-cancelar-excluir-cargo'].forEach(id =>
+            document.getElementById(id).addEventListener('click', () => { overlayExcluirCargo.classList.remove('aberto'); cargoParaExcluir = null; }));
+        overlayExcluirCargo.addEventListener('click', e => {
+            if (e.target === overlayExcluirCargo) { overlayExcluirCargo.classList.remove('aberto'); cargoParaExcluir = null; }
+        });
+
+        document.getElementById('btn-confirmar-excluir-cargo').addEventListener('click', async () => {
+            if (!cargoParaExcluir) return;
+            await fetch(`{% url "excluir_cargo" 0 %}`.replace('/0/', `/${cargoParaExcluir}/`), {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            });
+            overlayExcluirCargo.classList.remove('aberto');
+            cargoParaExcluir = null;
+            await carregarCargos();
+            renderizarListaCargos();
         });
 
         /* ══════════════════════════════════════════════
@@ -1707,7 +2444,7 @@
             const nome = document.getElementById('ind-nome').value.trim();
             const matricula = document.getElementById('ind-matricula').value.trim();
             const turma = document.getElementById('ind-turma').value;
-            if (!nome || !matricula) { mostrarResultadoInd('erro', 'Preencha nome e matrícula.'); return; }
+            if (!nome || !matricula) { mostrarRes(resultadoInd, 'erro', 'Preencha nome e matrícula.'); return; }
             btnConfInd.disabled = true;
             try {
                 const resp = await fetch('{% url "importar_alunos" %}', {
@@ -1716,26 +2453,22 @@
                 });
                 const data = await resp.json();
                 if (resp.ok) {
-                    mostrarResultadoInd('sucesso', `✓ Usuário ${data.criados > 0 ? 'cadastrado' : 'atualizado'} com sucesso!`);
+                    mostrarRes(resultadoInd, 'sucesso', `✓ Usuário ${data.criados > 0 ? 'cadastrado' : 'atualizado'} com sucesso!`);
                     setTimeout(() => location.reload(), 1500);
-                } else { mostrarResultadoInd('erro', data.erro || 'Erro ao salvar.'); btnConfInd.disabled = false; }
-            } catch { mostrarResultadoInd('erro', 'Erro de conexão.'); btnConfInd.disabled = false; }
+                } else { mostrarRes(resultadoInd, 'erro', data.erro || 'Erro ao salvar.'); btnConfInd.disabled = false; }
+            } catch { mostrarRes(resultadoInd, 'erro', 'Erro de conexão.'); btnConfInd.disabled = false; }
         });
-        function mostrarResultadoInd(tipo, msg) {
-            resultadoInd.className = 'al-resultado ' + tipo; resultadoInd.textContent = msg; resultadoInd.style.display = 'block';
-        }
 
         /* ══════════════════════════════════════════════
-           NOVO: MODAL LIMPAR ALUNOS
+           MODAL LIMPAR
         ══════════════════════════════════════════════ */
         const overlayLimpar = document.getElementById('al-modal-limpar-overlay');
         const btnConfLimpar = document.getElementById('btn-confirmar-limpar');
         const resultadoLimpar = document.getElementById('al-resultado-limpar');
         const btnLimparLabel = document.getElementById('limpar-btn-label');
-        let escopoAtivo = 'turmas'; // 'turmas' | 'todos'
+        let escopoAtivo = 'turmas';
 
         document.getElementById('btn-abrir-modal-limpar').addEventListener('click', () => {
-            // resetar estado
             escopoAtivo = 'turmas';
             atualizarEscopo('turmas');
             document.querySelectorAll('.al-limpar-cb').forEach(cb => cb.checked = false);
@@ -1744,99 +2477,52 @@
             btnConfLimpar.disabled = true;
             overlayLimpar.classList.add('aberto');
         });
-
         ['btn-fechar-modal-limpar', 'btn-cancelar-limpar'].forEach(id =>
             document.getElementById(id).addEventListener('click', () => overlayLimpar.classList.remove('aberto')));
         overlayLimpar.addEventListener('click', e => { if (e.target === overlayLimpar) overlayLimpar.classList.remove('aberto'); });
 
-        // Troca de escopo: Por turma / Todos
         document.querySelectorAll('.al-limpar-escopo-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                escopoAtivo = btn.dataset.escopo;
-                atualizarEscopo(escopoAtivo);
-                verificarBotaoLimpar();
-            });
+            btn.addEventListener('click', () => { escopoAtivo = btn.dataset.escopo; atualizarEscopo(escopoAtivo); verificarBotaoLimpar(); });
         });
-
         function atualizarEscopo(escopo) {
             document.querySelectorAll('.al-limpar-escopo-btn').forEach(b => b.classList.toggle('ativo', b.dataset.escopo === escopo));
             document.getElementById('limpar-painel-turmas').style.display = escopo === 'turmas' ? '' : 'none';
             document.getElementById('limpar-painel-todos').style.display = escopo === 'todos' ? '' : 'none';
             btnLimparLabel.textContent = escopo === 'turmas' ? 'Excluir selecionadas' : 'Excluir todos os alunos';
         }
-
-        // Selecionar / Desmarcar todas as turmas
-        document.getElementById('limpar-sel-todos').addEventListener('click', () => {
-            document.querySelectorAll('.al-limpar-cb').forEach(cb => cb.checked = true);
-            verificarBotaoLimpar();
-        });
-        document.getElementById('limpar-des-todos').addEventListener('click', () => {
-            document.querySelectorAll('.al-limpar-cb').forEach(cb => cb.checked = false);
-            verificarBotaoLimpar();
-        });
-
-        // Atualiza botão ao marcar checkboxes
+        document.getElementById('limpar-sel-todos').addEventListener('click', () => { document.querySelectorAll('.al-limpar-cb').forEach(cb => cb.checked = true); verificarBotaoLimpar(); });
+        document.getElementById('limpar-des-todos').addEventListener('click', () => { document.querySelectorAll('.al-limpar-cb').forEach(cb => cb.checked = false); verificarBotaoLimpar(); });
         document.getElementById('limpar-turmas-checkboxes').addEventListener('change', verificarBotaoLimpar);
         document.getElementById('limpar-todos-confirm-cb').addEventListener('change', verificarBotaoLimpar);
-
         function verificarBotaoLimpar() {
-            if (escopoAtivo === 'turmas') {
-                const algumMarcado = [...document.querySelectorAll('.al-limpar-cb')].some(cb => cb.checked);
-                btnConfLimpar.disabled = !algumMarcado;
-            } else {
-                btnConfLimpar.disabled = !document.getElementById('limpar-todos-confirm-cb').checked;
-            }
+            btnConfLimpar.disabled = escopoAtivo === 'turmas'
+                ? ![...document.querySelectorAll('.al-limpar-cb')].some(cb => cb.checked)
+                : !document.getElementById('limpar-todos-confirm-cb').checked;
         }
-
         btnConfLimpar.addEventListener('click', async () => {
             btnConfLimpar.disabled = true;
             resultadoLimpar.style.display = 'none';
-
-            let payload;
-            if (escopoAtivo === 'turmas') {
-                const turmasSelecionadas = [...document.querySelectorAll('.al-limpar-cb:checked')].map(cb => cb.value);
-                if (!turmasSelecionadas.length) return;
-                payload = { escopo: 'turmas', turmas: turmasSelecionadas };
-            } else {
-                payload = { escopo: 'todos' };
-            }
-
+            const payload = escopoAtivo === 'turmas'
+                ? { escopo: 'turmas', turmas: [...document.querySelectorAll('.al-limpar-cb:checked')].map(cb => cb.value) }
+                : { escopo: 'todos' };
             try {
                 const resp = await fetch('{% url "limpar_alunos" %}', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
                     body: JSON.stringify(payload)
                 });
                 const data = await resp.json();
-                if (resp.ok) {
-                    mostrarResultadoLimpar('sucesso', `✓ ${data.removidos} aluno(s) removido(s) com sucesso.`);
-                    setTimeout(() => location.reload(), 1600);
-                } else {
-                    mostrarResultadoLimpar('erro', data.erro || 'Erro ao remover.');
-                    btnConfLimpar.disabled = false;
-                }
-            } catch {
-                mostrarResultadoLimpar('erro', 'Erro de conexão.');
-                btnConfLimpar.disabled = false;
-            }
+                if (resp.ok) { mostrarRes(resultadoLimpar, 'sucesso', `✓ ${data.removidos} aluno(s) removido(s).`); setTimeout(() => location.reload(), 1600); }
+                else { mostrarRes(resultadoLimpar, 'erro', data.erro || 'Erro.'); btnConfLimpar.disabled = false; }
+            } catch { mostrarRes(resultadoLimpar, 'erro', 'Erro de conexão.'); btnConfLimpar.disabled = false; }
         });
 
-        function mostrarResultadoLimpar(tipo, msg) {
-            resultadoLimpar.className = 'al-resultado ' + tipo;
-            resultadoLimpar.textContent = msg;
-            resultadoLimpar.style.display = 'block';
-        }
-
         /* ══════════════════════════════════════════════
-           MODAL IMPORTAR — com detecção automática SIEP
+           MODAL IMPORTAR PLANILHA
         ══════════════════════════════════════════════ */
         const overlay = document.getElementById('al-modal-overlay');
         const btnConf = document.getElementById('btn-confirmar-importar');
         const resultado = document.getElementById('al-resultado');
-        let dadosSIEP = null;
-        let dadosPlanilha = [];
-        let colunasPlanilha = [];
-        let modoSIEP = false;
+        let dadosSIEP = null, dadosPlanilha = [], colunasPlanilha = [], modoSIEP = false;
 
         document.getElementById('btn-abrir-modal').addEventListener('click', () => overlay.classList.add('aberto'));
         ['btn-fechar-modal', 'btn-cancelar-modal'].forEach(id =>
@@ -1853,64 +2539,47 @@
         fileInput.addEventListener('change', e => { if (e.target.files[0]) processarArquivo(e.target.files[0]); });
         document.getElementById('al-arq-remover').addEventListener('click', e => { e.stopPropagation(); resetarModal(); });
 
-        function formatarTamanho(b) {
-            if (b < 1024) return b + ' B'; if (b < 1048576) return (b / 1024).toFixed(1) + ' KB'; return (b / 1048576).toFixed(1) + ' MB';
-        }
+        function formatarTamanho(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b / 1024).toFixed(1) + ' KB'; return (b / 1048576).toFixed(1) + ' MB'; }
 
         function processarArquivo(file) {
             const ext = file.name.split('.').pop().toLowerCase();
-            if (!['xlsx', 'xls', 'csv'].includes(ext)) { mostrarResultado('erro', 'Formato inválido. Use .xlsx, .xls ou .csv.'); return; }
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) { mostrarRes(resultado, 'erro', 'Formato inválido.'); return; }
             document.getElementById('al-arq-nome').textContent = file.name;
             document.getElementById('al-arq-size').textContent = formatarTamanho(file.size);
             dropzone.style.display = 'none';
             document.getElementById('al-arquivo-preview').style.display = 'flex';
             resultado.style.display = 'none';
-
             const reader = new FileReader();
             reader.onload = e => {
                 try {
                     const wb = XLSX.read(e.target.result, { type: 'array', raw: true });
                     const ws = wb.Sheets[wb.SheetNames[0]];
                     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
-                    if (rows.length < 2) { mostrarResultado('erro', 'Arquivo vazio ou sem dados.'); return; }
-
+                    if (rows.length < 2) { mostrarRes(resultado, 'erro', 'Arquivo vazio.'); return; }
                     if (ehFormatoSIEP(rows)) {
-                        modoSIEP = true;
-                        dadosSIEP = parsearSIEP(rows);
+                        modoSIEP = true; dadosSIEP = parsearSIEP(rows);
                         const turmasEncontradas = [...new Set(dadosSIEP.map(a => a.turma))];
-                        document.getElementById('al-siep-info').textContent =
-                            `✓ Formato SIEP detectado — ${dadosSIEP.length} aluno(s) em ${turmasEncontradas.length} turma(s): ${turmasEncontradas.join(', ')}`;
+                        document.getElementById('al-siep-info').textContent = `✓ Formato SIEP — ${dadosSIEP.length} aluno(s) em ${turmasEncontradas.length} turma(s): ${turmasEncontradas.join(', ')}`;
                         const wrap = document.getElementById('al-preview-table-wrap');
-                        const amostra = dadosSIEP.slice(0, 6);
-                        wrap.innerHTML = `<table class="al-preview-table">
-                    <thead><tr><th>Matrícula</th><th>Nome</th><th>Turma</th></tr></thead>
-                    <tbody>${amostra.map(a => `<tr><td>${a.matricula}</td><td>${a.nome}</td><td>${a.turma}</td></tr>`).join('')}
-                    ${dadosSIEP.length > 6 ? `<tr><td colspan="3" style="color:var(--faint);font-style:italic;">... e mais ${dadosSIEP.length - 6} alunos</td></tr>` : ''}
-                    </tbody></table>`;
+                        const am = dadosSIEP.slice(0, 6);
+                        wrap.innerHTML = `<table class="al-preview-table"><thead><tr><th>Matrícula</th><th>Nome</th><th>Turma</th></tr></thead><tbody>${am.map(a => `<tr><td>${a.matricula}</td><td>${a.nome}</td><td>${a.turma}</td></tr>`).join('')}${dadosSIEP.length > 6 ? `<tr><td colspan="3" style="color:var(--faint);font-style:italic;">... e mais ${dadosSIEP.length - 6} alunos</td></tr>` : ''}</tbody></table>`;
                         document.getElementById('al-siep-preview').style.display = 'block';
                         document.getElementById('al-mapeamento').style.display = 'none';
                         btnConf.disabled = dadosSIEP.length === 0;
                     } else {
-                        modoSIEP = false;
-                        colunasPlanilha = rows[0].map(c => c != null ? String(c) : '');
-                        dadosPlanilha = rows.slice(1).filter(r => r.some(c => c != null));
-                        preencherSelects(colunasPlanilha);
-                        mostrarPreviewManual();
+                        modoSIEP = false; colunasPlanilha = rows[0].map(c => c != null ? String(c) : ''); dadosPlanilha = rows.slice(1).filter(r => r.some(c => c != null));
+                        preencherSelects(colunasPlanilha); mostrarPreviewManual();
                         document.getElementById('al-siep-preview').style.display = 'none';
                         document.getElementById('al-mapeamento').style.display = 'flex';
                         btnConf.disabled = false;
                     }
-                } catch { mostrarResultado('erro', 'Erro ao ler o arquivo. Verifique se é um Excel ou CSV válido.'); }
+                } catch { mostrarRes(resultado, 'erro', 'Erro ao ler o arquivo.'); }
             };
             reader.readAsArrayBuffer(file);
         }
 
         function preencherSelects(colunas) {
-            const hints = {
-                'map-nome': ['nome', 'aluno', 'name', 'student', 'nm_aluno', 'nome_aluno', 'nome completo'],
-                'map-matricula': ['matricula', 'matrícula', 'nr_matricula', 'codigo', 'cod', 'id', 'registration'],
-                'map-turma': ['turma', 'classe', 'class', 'serie', 'série', 'nm_turma', 'turma_aluno'],
-            };
+            const hints = { 'map-nome': ['nome', 'aluno', 'name'], 'map-matricula': ['matricula', 'matrícula', 'cod', 'id'], 'map-turma': ['turma', 'classe', 'serie', 'série'] };
             for (const [id, hs] of Object.entries(hints)) {
                 const sel = document.getElementById(id); sel.innerHTML = '';
                 colunas.forEach((col, i) => { const o = document.createElement('option'); o.value = i; o.textContent = col || `Coluna ${i + 1}`; sel.appendChild(o); });
@@ -1919,59 +2588,31 @@
                 sel.addEventListener('change', mostrarPreviewManual);
             }
         }
-
         function mostrarPreviewManual() {
-            const iN = parseInt(document.getElementById('map-nome').value);
-            const iM = parseInt(document.getElementById('map-matricula').value);
-            const iT = parseInt(document.getElementById('map-turma').value);
-            const wrap = document.getElementById('al-preview-table-wrap-manual');
-            const am = dadosPlanilha.slice(0, 5);
-            wrap.innerHTML = `<table class="al-preview-table">
-        <thead><tr><th>Nome</th><th>Matrícula</th><th>Turma</th></tr></thead>
-        <tbody>${am.map(r => `<tr><td>${r[iN] ?? '—'}</td><td>${r[iM] ?? '—'}</td><td>${r[iT] ?? '—'}</td></tr>`).join('')}</tbody>
-    </table>`;
+            const iN = parseInt(document.getElementById('map-nome').value), iM = parseInt(document.getElementById('map-matricula').value), iT = parseInt(document.getElementById('map-turma').value);
+            document.getElementById('al-preview-table-wrap-manual').innerHTML = `<table class="al-preview-table"><thead><tr><th>Nome</th><th>Matrícula</th><th>Turma</th></tr></thead><tbody>${dadosPlanilha.slice(0, 5).map(r => `<tr><td>${r[iN] ?? '—'}</td><td>${r[iM] ?? '—'}</td><td>${r[iT] ?? '—'}</td></tr>`).join('')}</tbody></table>`;
         }
 
         btnConf.addEventListener('click', async () => {
-            let alunos;
-            if (modoSIEP) {
-                alunos = dadosSIEP;
-            } else {
-                const iN = parseInt(document.getElementById('map-nome').value);
-                const iM = parseInt(document.getElementById('map-matricula').value);
-                const iT = parseInt(document.getElementById('map-turma').value);
-                alunos = dadosPlanilha.filter(r => r[iN] && r[iM]).map(r => ({
-                    nome: String(r[iN]).trim(), matricula: String(r[iM]).trim(), turma: String(r[iT] ?? '').trim(),
-                }));
-            }
-            if (!alunos || alunos.length === 0) { mostrarResultado('erro', 'Nenhum aluno válido encontrado.'); return; }
+            const alunos = modoSIEP ? dadosSIEP : (() => {
+                const iN = parseInt(document.getElementById('map-nome').value), iM = parseInt(document.getElementById('map-matricula').value), iT = parseInt(document.getElementById('map-turma').value);
+                return dadosPlanilha.filter(r => r[iN] && r[iM]).map(r => ({ nome: String(r[iN]).trim(), matricula: String(r[iM]).trim(), turma: String(r[iT] ?? '').trim() }));
+            })();
+            if (!alunos?.length) { mostrarRes(resultado, 'erro', 'Nenhum aluno válido.'); return; }
             btnConf.disabled = true;
             try {
-                const resp = await fetch('{% url "importar_alunos" %}', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                    body: JSON.stringify({ alunos })
-                });
+                const resp = await fetch('{% url "importar_alunos" %}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }, body: JSON.stringify({ alunos }) });
                 const data = await resp.json();
-                if (resp.ok) {
-                    mostrarResultado('sucesso', `✓ ${data.criados} cadastrado(s), ${data.atualizados} atualizado(s).`);
-                    setTimeout(() => location.reload(), 1800);
-                } else { mostrarResultado('erro', data.erro || 'Erro ao importar.'); btnConf.disabled = false; }
-            } catch { mostrarResultado('erro', 'Erro de conexão.'); btnConf.disabled = false; }
+                if (resp.ok) { mostrarRes(resultado, 'sucesso', `✓ ${data.criados} cadastrado(s), ${data.atualizados} atualizado(s).`); setTimeout(() => location.reload(), 1800); }
+                else { mostrarRes(resultado, 'erro', data.erro || 'Erro.'); btnConf.disabled = false; }
+            } catch { mostrarRes(resultado, 'erro', 'Erro de conexão.'); btnConf.disabled = false; }
         });
-
-        function mostrarResultado(tipo, msg) {
-            resultado.className = 'al-resultado ' + tipo; resultado.textContent = msg; resultado.style.display = 'block';
-        }
 
         function resetarModal() {
             dadosSIEP = null; dadosPlanilha = []; colunasPlanilha = []; modoSIEP = false;
-            fileInput.value = '';
-            dropzone.style.display = '';
-            document.getElementById('al-arquivo-preview').style.display = 'none';
-            document.getElementById('al-siep-preview').style.display = 'none';
-            document.getElementById('al-mapeamento').style.display = 'none';
-            resultado.style.display = 'none';
-            btnConf.disabled = true;
+            fileInput.value = ''; dropzone.style.display = '';
+            ['al-arquivo-preview', 'al-siep-preview', 'al-mapeamento'].forEach(id => document.getElementById(id).style.display = 'none');
+            resultado.style.display = 'none'; btnConf.disabled = true;
         }
 
         /* ══════════════════════════════════════════════
@@ -2006,9 +2647,11 @@
             semResultado.style.display = algumVisivel ? 'none' : 'flex';
         }
 
-        function getCookie(name) {
-            return document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='))?.split('=')[1] ?? '';
-        }
+        /* ══════════════════════════════════════════════
+           HELPERS
+        ══════════════════════════════════════════════ */
+        function mostrarRes(el, tipo, msg) { el.className = 'al-resultado ' + tipo; el.textContent = msg; el.style.display = 'block'; }
+        function getCookie(name) { return document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='))?.split('=')[1] ?? ''; }
 
     })();
 </script>

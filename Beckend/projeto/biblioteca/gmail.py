@@ -1,7 +1,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from django.conf import settings
+from django.conf import settings 
 
 
 # ──────────────────────────────────────────
@@ -9,7 +9,7 @@ from django.conf import settings
 # ──────────────────────────────────────────
 
 def enviar_codigo_verificacao(endereco, codigo):
-    assunto = "Seu código de acesso — Biblioteca"
+    assunto = "Seu Código de Verificação para Acessar sua Conta"
     mensagem = (
         f"Olá!\n\n"
         f"Seu código de verificação para acessar a Biblioteca da EREM Dr. Jaime Monteiro é:\n\n"
