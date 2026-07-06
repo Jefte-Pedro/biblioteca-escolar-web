@@ -151,6 +151,19 @@
                         </a>
                         {% endif %}
 
+                        {% if 'relatorios' in abas %}
+                        <a href="{% url 'relatorios' %}"
+                            class="nl-link {% if request.resolver_match.url_name == 'relatorios' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 3v18h18" />
+                                <path d="M18 17V9" />
+                                <path d="M13 17V5" />
+                                <path d="M8 17v-3" />
+                            </svg>
+                            Relatórios
+                        </a>
+                        {% endif %}
+
                         {% if 'exportar' in abas %}
                         <a href="{% url 'exportar' %}"
                             class="nl-link {% if request.resolver_match.url_name == 'exportar' %}active{% endif %}">

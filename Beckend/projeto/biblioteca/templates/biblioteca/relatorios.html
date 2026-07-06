@@ -1,0 +1,739 @@
+{% extends "biblioteca/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<section id="pag-relatorios" class="conteudo-pag ativo">
+
+    <!-- ── HEADER ── -->
+    <div class="rel-header">
+        <div>
+            <h2 class="titulo-cadastro">Relatórios</h2>
+            <p class="descricao-cad-livro">Métricas de uso da biblioteca no período selecionado</p>
+        </div>
+        <div class="rel-header-acoes">
+            <div class="rel-filtro-wrap">
+                <i class="fa-solid fa-calendar-days"></i>
+                <input type="month" id="rel-mes" class="rel-filtro-input" value="{{ periodo_selecionado }}">
+            </div>
+            <div class="rel-filtro-wrap">
+                <i class="fa-solid fa-chalkboard"></i>
+                <select id="rel-turma" class="rel-filtro-input rel-filtro-select">
+                    <option value="" {% if not turma_filtro %}selected{% endif %}>Todas as séries</option>
+                    {% for turma in turmas %}
+                    <option value="{{ turma }}" {% if turma_filtro == turma %}selected{% endif %}>{{ turma }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <a href="#" id="rel-btn-exportar" class="rel-btn-exportar">
+                <i class="fa-solid fa-file-arrow-down"></i>
+                <span>Exportar PDF</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ── CARDS DE RESUMO ── -->
+    <div class="rel-resumo-grid">
+
+        <div class="rel-card">
+            <span class="rel-card-label">EMPRÉSTIMOS NO MÊS</span>
+            <div class="rel-card-valor-row">
+                <span class="rel-card-valor">{{ total_emprestimos }}</span>
+                <span class="rel-card-badge {% if variacao_emprestimos >= 0 %}pos{% else %}neg{% endif %}">
+                    <i class="fa-solid fa-arrow-{% if variacao_emprestimos >= 0 %}up{% else %}down{% endif %}"></i>
+                    {{ variacao_emprestimos }}%
+                </span>
+            </div>
+            <span class="rel-card-sub">vs {{ periodo_label|lower }} anterior</span>
+        </div>
+
+        <div class="rel-card">
+            <span class="rel-card-label">LEITORES ATIVOS</span>
+            <div class="rel-card-valor-row">
+                <span class="rel-card-valor">{{ leitores_ativos }}</span>
+                <span class="rel-card-badge {% if variacao_leitores >= 0 %}pos{% else %}neg{% endif %}">
+                    <i class="fa-solid fa-arrow-{% if variacao_leitores >= 0 %}up{% else %}down{% endif %}"></i>
+                    {{ variacao_leitores }}
+                </span>
+            </div>
+            <span class="rel-card-sub">de {{ total_cadastrados }} cadastrados</span>
+        </div>
+
+        <div class="rel-card">
+            <span class="rel-card-label">TAXA DE ATRASO</span>
+            <div class="rel-card-valor-row">
+                <span class="rel-card-valor">{{ taxa_atraso }}%</span>
+                <span class="rel-card-badge {% if variacao_atraso <= 0 %}pos{% else %}neg{% endif %}">
+                    <i class="fa-solid fa-arrow-{% if variacao_atraso <= 0 %}down{% else %}up{% endif %}"></i>
+                    {{ variacao_atraso }}%
+                </span>
+            </div>
+            <span class="rel-card-sub">{{ atrasados_count }} livro{{ atrasados_count|pluralize }} no período</span>
+        </div>
+
+        <div class="rel-card">
+            <span class="rel-card-label">LIVRO MAIS PEDIDO</span>
+            <div class="rel-card-valor-row">
+                <span class="rel-card-valor rel-card-valor-texto" title="{{ livro_mais_pedido }}">{{ livro_mais_pedido }}</span>
+            </div>
+            <span class="rel-card-sub">
+                {% if usando_reservas %}{{ livro_mais_pedido_qtd }} reserva{{ livro_mais_pedido_qtd|pluralize }} no mês
+                {% else %}{{ livro_mais_pedido_qtd }} empréstimo{{ livro_mais_pedido_qtd|pluralize }} no mês{% endif %}
+            </span>
+        </div>
+
+    </div>
+
+    <!-- ── GRÁFICO + TOP LIVROS ── -->
+    <div class="rel-grid-principal">
+
+        <div class="rel-painel rel-painel-grafico">
+            <div class="rel-painel-header">
+                <div>
+                    <h3 class="rel-painel-titulo">Empréstimos por dia</h3>
+                    <p class="rel-painel-sub" id="rel-grafico-sub">Últimos 30 dias</p>
+                </div>
+                <div class="rel-toggle-grupo" id="rel-toggle-intervalo">
+                    <button class="rel-toggle-btn {% if intervalo_selecionado == '30' %}ativo{% endif %}"
+                        data-intervalo="30">30 dias</button>
+                    <button class="rel-toggle-btn {% if intervalo_selecionado == '90' %}ativo{% endif %}"
+                        data-intervalo="90">90 dias</button>
+                    <button class="rel-toggle-btn {% if intervalo_selecionado == '365' %}ativo{% endif %}"
+                        data-intervalo="365">1 ano</button>
+                </div>
+            </div>
+            <div class="rel-grafico-wrap">
+                <canvas id="rel-chart-emprestimos"></canvas>
+            </div>
+        </div>
+
+        <div class="rel-painel rel-painel-ranking">
+            <div class="rel-painel-header">
+                <div>
+                    <h3 class="rel-painel-titulo">Os 10 mais lidos</h3>
+                    <p class="rel-painel-sub">Mais emprestados no período</p>
+                </div>
+            </div>
+            <div class="rel-ranking-lista">
+                {% for livro in top_livros %}
+                <div class="rel-ranking-item">
+                    <span class="rel-ranking-pos">{{ livro.posicao }}</span>
+                    <div class="rel-ranking-capa" style="--cor-capa: {{ livro.cor }}">
+                        {% if livro.capa_url %}
+                        <img src="{{ livro.capa_url }}" alt="">
+                        {% else %}
+                        <span>{{ livro.titulo|first|upper }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="rel-ranking-info">
+                        <span class="rel-ranking-nome" title="{{ livro.titulo }}">{{ livro.titulo }}</span>
+                        <div class="rel-ranking-barra-track">
+                            <div class="rel-ranking-barra-fill" style="width:{{ livro.percentual }}%"></div>
+                        </div>
+                    </div>
+                    <span class="rel-ranking-total">{{ livro.total }}</span>
+                </div>
+                {% empty %}
+                <div class="rel-ranking-vazio">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Nenhum empréstimo registrado neste período.</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── TOP ALUNOS ── -->
+    <div class="rel-painel rel-painel-alunos">
+        <div class="rel-painel-header">
+            <div>
+                <h3 class="rel-painel-titulo">Os alunos que mais leram</h3>
+                <p class="rel-painel-sub">Alunos com mais empréstimos no período selecionado</p>
+            </div>
+        </div>
+        <div class="rel-ranking-lista rel-ranking-lista-alunos">
+            {% for aluno in top_alunos %}
+            <div class="rel-ranking-item">
+                <span class="rel-ranking-pos">{{ aluno.posicao }}</span>
+                <div class="rel-ranking-avatar" style="--cor-avatar: {{ aluno.cor }}">
+                    <span>{{ aluno.nome|first|upper }}</span>
+                </div>
+                <div class="rel-ranking-info">
+                    <div class="rel-ranking-nome-linha">
+                        <span class="rel-ranking-nome">{{ aluno.nome }}</span>
+                        <span class="rel-tag-turma-mini">{{ aluno.turma }}</span>
+                    </div>
+                    <div class="rel-ranking-barra-track">
+                        <div class="rel-ranking-barra-fill rel-fill-roxo" style="width:{{ aluno.percentual }}%"></div>
+                    </div>
+                </div>
+                <span class="rel-ranking-total">{{ aluno.total }}</span>
+            </div>
+            {% empty %}
+            <div class="rel-ranking-vazio">
+                <i class="fa-solid fa-user-graduate"></i>
+                <span>Nenhum aluno com empréstimos neste período.</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</section>
+
+<style>
+    .rel-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 22px;
+        flex-wrap: wrap;
+    }
+
+    .rel-header-acoes {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .rel-filtro-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 14px;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--muted);
+        font-size: 13px;
+    }
+
+    .rel-filtro-wrap i {
+        font-size: 12px;
+        color: var(--faint);
+    }
+
+    .rel-filtro-input {
+        border: none;
+        background: transparent;
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 600;
+        outline: none;
+        cursor: pointer;
+    }
+
+    .rel-filtro-select {
+        appearance: none;
+    }
+
+    .rel-btn-exportar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 20px;
+        border-radius: var(--r-md);
+        background: var(--accent);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        transition: opacity .2s, transform .15s;
+    }
+
+    .rel-btn-exportar:hover {
+        opacity: .88;
+        transform: translateY(-1px);
+    }
+
+    .rel-resumo-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    @media(max-width:900px) {
+        .rel-resumo-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    .rel-card {
+        min-width: 0;
+        border-radius: var(--r-lg);
+        border: 1px solid var(--border);
+        padding: 16px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    [data-theme="dark"] .rel-card {
+        background: #162b47;
+    }
+
+    [data-theme="light"] .rel-card {
+        background: #fff;
+    }
+
+    .rel-card-label {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .08em;
+        color: var(--faint);
+    }
+
+    .rel-card-valor-row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .rel-card-valor {
+        font-size: 26px;
+        font-weight: 800;
+        line-height: 1.15;
+        color: var(--text);
+    }
+
+    .rel-card-valor-texto {
+        font-size: 16px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+    }
+
+    .rel-card-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .rel-card-badge.pos {
+        color: #22c55e;
+    }
+
+    .rel-card-badge.neg {
+        color: #ef4444;
+    }
+
+    .rel-card-sub {
+        font-size: 11px;
+        color: var(--muted);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       FIX PRINCIPAL: minmax(0, ...) em vez de apenas "1.6fr 1fr".
+       Sem isso, o item de grid calcula seu tamanho mínimo com base
+       no maior conteúdo interno (ex: título de livro em nowrap),
+       o que pode fazer a coluna do ranking crescer além do previsto
+       e "roubar" espaço da coluna do gráfico.
+    ══════════════════════════════════════════════════════════ */
+    .rel-grid-principal {
+        display: grid;
+        grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
+        gap: 16px;
+        margin-bottom: 16px;
+        align-items: stretch;
+    }
+
+    @media(max-width:1000px) {
+        .rel-grid-principal {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    .rel-painel {
+        min-width: 0;
+        /* trava qualquer vazamento de largura vindo do conteúdo interno */
+        border-radius: var(--r-lg);
+        border: 1px solid var(--border);
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    [data-theme="dark"] .rel-painel {
+        background: #162b47;
+    }
+
+    [data-theme="light"] .rel-painel {
+        background: #fff;
+    }
+
+    .rel-painel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .rel-painel-titulo {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .rel-painel-sub {
+        font-size: 11px;
+        color: var(--faint);
+        margin-top: 2px;
+    }
+
+    .rel-toggle-grupo {
+        display: flex;
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+        overflow: hidden;
+    }
+
+    .rel-toggle-btn {
+        padding: 7px 14px;
+        font-size: 11px;
+        font-weight: 700;
+        background: transparent;
+        color: var(--muted);
+        border: none;
+        border-right: 1px solid var(--border);
+        cursor: pointer;
+        transition: background .15s, color .15s;
+    }
+
+    .rel-toggle-btn:last-child {
+        border-right: none;
+    }
+
+    .rel-toggle-btn.ativo {
+        background: var(--accent);
+        color: #fff;
+    }
+
+    .rel-grafico-wrap {
+        position: relative;
+        height: 320px;
+        min-width: 0;
+    }
+
+    /* ── Ranking: painel com altura estável entre estado vazio e cheio ── */
+    .rel-painel-ranking {
+        min-height: 360px;
+    }
+
+    .rel-ranking-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 320px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        /* impede scroll horizontal caso algo tente vazar */
+        padding-right: 2px;
+        min-width: 0;
+    }
+
+    .rel-ranking-lista-alunos {
+        max-height: none;
+    }
+
+    /* ── Linha do ranking: altura fixa mas fluida (não cresce com o título) ── */
+    .rel-ranking-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: clamp(44px, 4.5vw, 52px);
+        min-width: 0;
+        /* essencial: permite que .rel-ranking-info encolha de verdade */
+    }
+
+    /* ── Capa do livro: proporção travada 3:4, tamanho fluido ── */
+    .rel-ranking-capa {
+        flex-shrink: 0;
+        width: clamp(28px, 2.6vw, 36px);
+        aspect-ratio: 3 / 4;
+        border-radius: 4px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--cor-capa, #4f94d6);
+        color: #fff;
+        font-size: clamp(11px, 1.1vw, 13px);
+        font-weight: 800;
+    }
+
+    .rel-ranking-capa img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* ── Avatar do aluno: círculo, mesma lógica de fluidez ── */
+    .rel-ranking-avatar {
+        flex-shrink: 0;
+        width: clamp(30px, 2.8vw, 38px);
+        aspect-ratio: 1 / 1;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--cor-avatar, #7c3aed);
+        color: #fff;
+        font-size: clamp(11px, 1.1vw, 13px);
+        font-weight: 800;
+    }
+
+    .rel-ranking-info {
+        flex: 1;
+        min-width: 0;
+        /* já existia — agora funciona porque os pais também têm min-width: 0 */
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .rel-ranking-nome-linha {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    /* ── Título sempre em 1 linha, nunca "empurra" a altura/largura da linha ── */
+    .rel-ranking-nome {
+        display: block;
+        min-width: 0;
+        flex: 1;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .rel-tag-turma-mini {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 1px 8px;
+        border-radius: 99px;
+        background: rgba(124, 58, 237, .12);
+        color: #7c3aed;
+        flex-shrink: 0;
+    }
+
+    .rel-ranking-barra-track {
+        height: 5px;
+        border-radius: 99px;
+        background: var(--border);
+        overflow: hidden;
+        min-width: 0;
+    }
+
+    .rel-ranking-barra-fill {
+        height: 100%;
+        border-radius: 99px;
+        background: #4f94d6;
+    }
+
+    .rel-fill-roxo {
+        background: #7c3aed;
+    }
+
+    .rel-ranking-total {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--text);
+        width: 26px;
+        text-align: right;
+        flex-shrink: 0;
+    }
+
+    /* ── Estado vazio: centralizado e ocupando o mesmo espaço do painel cheio ── */
+    .rel-ranking-vazio {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 30px 10px;
+        color: var(--faint);
+        font-size: 12px;
+        text-align: center;
+    }
+
+    .rel-ranking-vazio i {
+        font-size: 24px;
+        opacity: .4;
+    }
+
+    .rel-painel-alunos .rel-ranking-lista-alunos {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 24px;
+    }
+
+    /* ── Linha vertical dividindo as duas colunas ── */
+    .rel-painel-alunos .rel-ranking-lista-alunos::before {
+        content: '';
+        position: absolute;
+        top: 4px;
+        bottom: 4px;
+        left: 50%;
+        width: 1px;
+        background: var(--border);
+        transform: translateX(-50%);
+    }
+
+    /* ── Linha horizontal entre cada "linha" do grid (a partir do 3º item) ── */
+    .rel-painel-alunos .rel-ranking-lista-alunos .rel-ranking-item {
+        padding-top: 10px;
+    }
+
+    .rel-painel-alunos .rel-ranking-lista-alunos .rel-ranking-item:nth-child(-n+2) {
+        padding-top: 0;
+    }
+
+    .rel-painel-alunos .rel-ranking-lista-alunos .rel-ranking-item:nth-child(n+3) {
+        border-top: 1px solid var(--border);
+    }
+
+    @media(max-width:800px) {
+        .rel-painel-alunos .rel-ranking-lista-alunos {
+            grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* No mobile a grid vira 1 coluna: some com a linha vertical
+    e trata todo item (exceto o 1º) como início de nova "linha" */
+    .rel-painel-alunos .rel-ranking-lista-alunos::before {
+        display: none;
+    }
+
+    .rel-painel-alunos .rel-ranking-lista-alunos .rel-ranking-item:nth-child(n+2) {
+        border-top: 1px solid var(--border);
+    }
+
+    .rel-painel-alunos .rel-ranking-lista-alunos .rel-ranking-item:first-child {
+        padding-top: 0;
+    }
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+    (function () {
+        const inputMes = document.getElementById('rel-mes');
+        const selectTurma = document.getElementById('rel-turma');
+        const btnExportar = document.getElementById('rel-btn-exportar');
+        const toggleGrupo = document.getElementById('rel-toggle-intervalo');
+        const graficoSub = document.getElementById('rel-grafico-sub');
+
+        const LABELS_INTERVALO = { '30': 'Últimos 30 dias', '90': 'Últimas semanas (90 dias)', '365': 'Últimos 12 meses' };
+
+        /* ── Navegação por filtros (mês / turma) ── */
+        function irParaFiltros() {
+            const params = new URLSearchParams(window.location.search);
+            params.set('mes', inputMes.value);
+            if (selectTurma.value) params.set('turma', selectTurma.value); else params.delete('turma');
+            window.location.search = params.toString();
+        }
+        inputMes.addEventListener('change', irParaFiltros);
+        selectTurma.addEventListener('change', irParaFiltros);
+
+        /* ── Exportar PDF (mantém os filtros atuais) ── */
+        function montarUrlExportar() {
+            const params = new URLSearchParams();
+            params.set('mes', inputMes.value);
+            if (selectTurma.value) params.set('turma', selectTurma.value);
+            return `{% url 'exportar_relatorio_pdf' %}?${params.toString()}`;
+        }
+        btnExportar.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.location.href = montarUrlExportar();
+        });
+
+        /* ── Gráfico (Chart.js) ── */
+        const ctx = document.getElementById('rel-chart-emprestimos').getContext('2d');
+        let labels = {{ grafico_labels_json|safe }};
+    let valores = {{ grafico_valores_json|safe }};
+    let hojeIndex = {{ grafico_hoje_index|default:"null" }};
+
+    function corDasBarras(valores, hojeIndex) {
+        return valores.map((_, i) => i === hojeIndex ? '#f59e0b' : '#4f94d6');
+    }
+
+    const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Empréstimos',
+                data: valores,
+                backgroundColor: corDasBarras(valores, hojeIndex),
+                borderRadius: 4,
+                maxBarThickness: 34,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (item) => `${item.parsed.y} empréstimo${item.parsed.y === 1 ? '' : 's'}`
+                    }
+                }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: 'rgba(148,163,184,.15)' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    /* ── Troca de intervalo (30 / 90 / 365) via AJAX ── */
+    toggleGrupo.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.rel-toggle-btn');
+        if (!btn) return;
+        toggleGrupo.querySelectorAll('.rel-toggle-btn').forEach(b => b.classList.remove('ativo'));
+        btn.classList.add('ativo');
+
+        const intervalo = btn.dataset.intervalo;
+        graficoSub.textContent = LABELS_INTERVALO[intervalo] || '';
+
+        const params = new URLSearchParams();
+        params.set('intervalo', intervalo);
+        if (selectTurma.value) params.set('turma', selectTurma.value);
+
+        try {
+            const resp = await fetch(`{% url 'relatorios_grafico' %}?${params.toString()}`);
+            const data = await resp.json();
+            chart.data.labels = data.labels;
+            chart.data.datasets[0].data = data.valores;
+            chart.data.datasets[0].backgroundColor = corDasBarras(data.valores, data.hoje_index);
+            chart.update();
+        } catch (err) {
+            console.error('Erro ao carregar gráfico:', err);
+        }
+    });
+}) ();
+</script>
+
+{% endblock %}

@@ -98,3 +98,5 @@ DEFAULT_FROM_EMAIL  = os.getenv('EMAIL_FROM', os.getenv('EMAIL_HOST_USER'))
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'inicio'
 LOGOUT_REDIRECT_URL = 'login'
+
+os.environ['PATH'] = r'C:\Program Files\GTK3-Runtime~\bin' + os.pathsep + os.environ.get('PATH', '')

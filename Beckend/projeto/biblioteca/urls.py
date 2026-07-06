@@ -45,6 +45,10 @@ urlpatterns = [
     
     path('livro/excluir/<int:id_livro>/', views.excluir_livro, name='excluir_livro'),
 
+    path('relatorios/', views.relatorios, name='relatorios'),
+    path('relatorios/grafico/', views.relatorios_grafico, name='relatorios_grafico'),
+    path('relatorios/exportar-pdf/', views.exportar_relatorio_pdf, name='exportar_relatorio_pdf'),
+
     path('login/', views.pagina_login, name='login'),
     path('login/cadastro/', views.cadastro, name='cadastro'),
     path('login/recuperar_senha/', views.recuperar_senha, name='recuperar_senha'),

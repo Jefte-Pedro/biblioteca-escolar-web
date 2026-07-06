@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório da Biblioteca</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 14mm 12mm;
+
+            @bottom-center {
+                content: "EREM Dr. Jaime Monteiro — Relatório gerado em {{ gerado_em }}";
+                font-size: 8px;
+                color: #8a95a6;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+            font-size: 11px;
+        }
+
+        /* ── Cabeçalho ── */
+        .pdf-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #1e3a5f;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+        }
+
+        .pdf-header h1 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1e3a5f;
+            margin: 0 0 4px 0;
+        }
+
+        .pdf-header p {
+            font-size: 11px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .pdf-header-direita {
+            text-align: right;
+            font-size: 10px;
+            color: #64748b;
+        }
+
+        .pdf-header-direita strong {
+            display: block;
+            font-size: 13px;
+            color: #1e3a5f;
+            margin-bottom: 2px;
+        }
+
+        /* ── Cards de resumo ── */
+        .pdf-resumo-grid {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .pdf-card {
+            flex: 1;
+            border: 1px solid #d8e0ea;
+            border-radius: 6px;
+            padding: 10px 12px;
+            background: #f8fafc;
+        }
+
+        .pdf-card-label {
+            font-size: 8.5px;
+            font-weight: 700;
+            letter-spacing: .05em;
+            color: #94a3b8;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .pdf-card-valor-row {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .pdf-card-valor {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .pdf-card-valor-texto {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .pdf-card-badge {
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .pdf-card-badge.pos {
+            color: #16a34a;
+        }
+
+        .pdf-card-badge.neg {
+            color: #dc2626;
+        }
+
+        .pdf-card-sub {
+            font-size: 8.5px;
+            color: #94a3b8;
+            margin-top: 3px;
+            display: block;
+        }
+
+        /* ── Painéis (grid principal) ── */
+        .pdf-grid-principal {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .pdf-painel {
+            border: 1px solid #d8e0ea;
+            border-radius: 6px;
+            padding: 12px 14px;
+            background: #ffffff;
+        }
+
+        .pdf-painel-grafico {
+            flex: 1.6;
+        }
+
+        .pdf-painel-ranking {
+            flex: 1;
+        }
+
+        .pdf-painel-titulo {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 2px 0;
+        }
+
+        .pdf-painel-sub {
+            font-size: 9px;
+            color: #94a3b8;
+            margin: 0 0 8px 0;
+        }
+
+        /* ── Gráfico de barras (renderizado em HTML/CSS puro, sem JS) ── */
+        .pdf-grafico-barras {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 130px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-top: 6px;
+        }
+
+        .pdf-barra-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            height: 100%;
+        }
+
+        .pdf-barra {
+            width: 70%;
+            background: #4f94d6;
+            border-radius: 2px 2px 0 0;
+        }
+
+        .pdf-barra.hoje {
+            background: #f59e0b;
+        }
+
+        /* ── Ranking: livros e alunos ── */
+        .pdf-ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 26px;
+            margin-bottom: 4px;
+        }
+
+        .pdf-ranking-pos {
+            width: 14px;
+            flex-shrink: 0;
+            font-size: 9px;
+            font-weight: 700;
+            color: #94a3b8;
+        }
+
+        .pdf-ranking-capa {
+            flex-shrink: 0;
+            width: 20px;
+            height: 26px;
+            border-radius: 3px;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 800;
+            text-align: center;
+            line-height: 26px;
+        }
+
+        .pdf-ranking-capa img {
+            width: 100%;
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        .pdf-ranking-avatar {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 800;
+            text-align: center;
+            line-height: 22px;
+        }
+
+        .pdf-ranking-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pdf-ranking-nome-linha {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pdf-ranking-nome {
+            font-size: 10px;
+            font-weight: 600;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+            max-width: 100%;
+        }
+
+        .pdf-tag-turma {
+            font-size: 8px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 20px;
+            background: #f3e8ff;
+            color: #7c3aed;
+            flex-shrink: 0;
+        }
+
+        .pdf-ranking-barra-track {
+            height: 4px;
+            border-radius: 10px;
+            background: #e2e8f0;
+            margin-top: 3px;
+            overflow: hidden;
+        }
+
+        .pdf-ranking-barra-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: #4f94d6;
+        }
+
+        .pdf-fill-roxo {
+            background: #7c3aed;
+        }
+
+        .pdf-ranking-total {
+            font-size: 11px;
+            font-weight: 800;
+            color: #1e293b;
+            width: 18px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .pdf-ranking-vazio {
+            font-size: 10px;
+            color: #94a3b8;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        /* ── Top alunos: 2 colunas ── */
+        .pdf-painel-alunos {
+            margin-top: 4px;
+        }
+
+        .pdf-alunos-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0 24px;
+        }
+
+        .pdf-alunos-grid .pdf-ranking-item {
+            width: calc(50% - 12px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ── CABEÇALHO ── -->
+    <div class="pdf-header">
+        <div>
+            <h1>Relatório da Biblioteca</h1>
+            <p>{{ periodo_label }} · {{ turma_label }}</p>
+        </div>
+        <div class="pdf-header-direita">
+            <strong>EREM Dr. Jaime Monteiro</strong>
+            Gerado em {{ gerado_em }}
+        </div>
+    </div>
+
+    <!-- ── CARDS DE RESUMO ── -->
+    <div class="pdf-resumo-grid">
+        <div class="pdf-card">
+            <span class="pdf-card-label">EMPRÉSTIMOS NO MÊS</span>
+            <div class="pdf-card-valor-row">
+                <span class="pdf-card-valor">{{ total_emprestimos }}</span>
+                <span class="pdf-card-badge {% if variacao_emprestimos >= 0 %}pos{% else %}neg{% endif %}">
+                    {% if variacao_emprestimos >= 0 %}▲{% else %}▼{% endif %} {{ variacao_emprestimos }}%
+                </span>
+            </div>
+            <span class="pdf-card-sub">vs {{ periodo_label|lower }} anterior</span>
+        </div>
+
+        <div class="pdf-card">
+            <span class="pdf-card-label">LEITORES ATIVOS</span>
+            <div class="pdf-card-valor-row">
+                <span class="pdf-card-valor">{{ leitores_ativos }}</span>
+                <span class="pdf-card-badge {% if variacao_leitores >= 0 %}pos{% else %}neg{% endif %}">
+                    {% if variacao_leitores >= 0 %}▲{% else %}▼{% endif %} {{ variacao_leitores }}
+                </span>
+            </div>
+            <span class="pdf-card-sub">de {{ total_cadastrados }} cadastrados</span>
+        </div>
+
+        <div class="pdf-card">
+            <span class="pdf-card-label">TAXA DE ATRASO</span>
+            <div class="pdf-card-valor-row">
+                <span class="pdf-card-valor">{{ taxa_atraso }}%</span>
+                <span class="pdf-card-badge {% if variacao_atraso <= 0 %}pos{% else %}neg{% endif %}">
+                    {% if variacao_atraso <= 0 %}▼{% else %}▲{% endif %} {{ variacao_atraso }}% </span>
+            </div>
+            <span class="pdf-card-sub">{{ atrasados_count }} livro{{ atrasados_count|pluralize }} no período</span>
+        </div>
+
+        <div class="pdf-card">
+            <span class="pdf-card-label">LIVRO MAIS PEDIDO</span>
+            <div class="pdf-card-valor-row">
+                <span class="pdf-card-valor pdf-card-valor-texto">{{ livro_mais_pedido }}</span>
+            </div>
+            <span class="pdf-card-sub">
+                {% if usando_reservas %}{{ livro_mais_pedido_qtd }} reserva{{ livro_mais_pedido_qtd|pluralize }} no mês
+                {% else %}{{ livro_mais_pedido_qtd }} empréstimo{{ livro_mais_pedido_qtd|pluralize }} no mês{% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- ── GRÁFICO + TOP LIVROS ── -->
+    <div class="pdf-grid-principal">
+
+        <div class="pdf-painel pdf-painel-grafico">
+            <p class="pdf-painel-titulo">Empréstimos por dia</p>
+            <p class="pdf-painel-sub">Últimos 30 dias</p>
+
+            {% if grafico_valores_max > 0 %}
+            <div class="pdf-grafico-barras">
+                {% for item in grafico_barras %}
+                <div class="pdf-barra-col">
+                    <div class="pdf-barra {% if item.hoje %}hoje{% endif %}" style="height: {{ item.altura }}%"></div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="pdf-ranking-vazio">Nenhum empréstimo registrado neste período.</p>
+            {% endif %}
+        </div>
+
+        <div class="pdf-painel pdf-painel-ranking">
+            <p class="pdf-painel-titulo">Os 10 mais lidos</p>
+            <p class="pdf-painel-sub">Mais emprestados no período</p>
+
+            {% for livro in top_livros %}
+            <div class="pdf-ranking-item">
+                <span class="pdf-ranking-pos">{{ livro.posicao }}</span>
+                <div class="pdf-ranking-capa" style="background:{{ livro.cor }}">
+                    {% if livro.capa_url %}
+                    <img src="{{ livro.capa_url }}" alt="">
+                    {% else %}
+                    {{ livro.titulo|first|upper }}
+                    {% endif %}
+                </div>
+                <div class="pdf-ranking-info">
+                    <span class="pdf-ranking-nome">{{ livro.titulo }}</span>
+                    <div class="pdf-ranking-barra-track">
+                        <div class="pdf-ranking-barra-fill" style="width:{{ livro.percentual }}%"></div>
+                    </div>
+                </div>
+                <span class="pdf-ranking-total">{{ livro.total }}</span>
+            </div>
+            {% empty %}
+            <p class="pdf-ranking-vazio">Nenhum empréstimo registrado neste período.</p>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- ── TOP ALUNOS ── -->
+    <div class="pdf-painel pdf-painel-alunos">
+        <p class="pdf-painel-titulo">Os alunos que mais leram</p>
+        <p class="pdf-painel-sub">Alunos com mais empréstimos no período selecionado</p>
+
+        <div class="pdf-alunos-grid">
+            {% for aluno in top_alunos %}
+            <div class="pdf-ranking-item">
+                <span class="pdf-ranking-pos">{{ aluno.posicao }}</span>
+                <div class="pdf-ranking-avatar" style="background:{{ aluno.cor }}">
+                    {{ aluno.nome|first|upper }}
+                </div>
+                <div class="pdf-ranking-info">
+                    <div class="pdf-ranking-nome-linha">
+                        <span class="pdf-ranking-nome">{{ aluno.nome }}</span>
+                        <span class="pdf-tag-turma">{{ aluno.turma }}</span>
+                    </div>
+                    <div class="pdf-ranking-barra-track">
+                        <div class="pdf-ranking-barra-fill pdf-fill-roxo" style="width:{{ aluno.percentual }}%"></div>
+                    </div>
+                </div>
+                <span class="pdf-ranking-total">{{ aluno.total }}</span>
+            </div>
+            {% empty %}
+            <p class="pdf-ranking-vazio">Nenhum aluno com empréstimos neste período.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+
+</html>

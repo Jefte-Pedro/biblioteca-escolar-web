@@ -35,6 +35,11 @@ from .serializers import LivroSerializer
 from django.core.paginator import Paginator
 from .models import Emprestimo, Exemplar, Lista, Livro, LivroLido, Reserva, Usuario, Turma, Cargo, ABAS_DISPONIVEIS
 
+from calendar import monthrange
+from django.db.models import Count
+from django.db.models.functions import TruncWeek, TruncMonth
+from datetime import date, datetime, timedelta
+
 # ──────────────────────────────────────────
 # AUTENTICAÇÃO
 # ──────────────────────────────────────────
@@ -364,14 +369,14 @@ def explorar(request):
     # ── Paginação ──────────────────────────────────────────────
     paginator = Paginator(livros, 24)
     page_obj  = paginator.get_page(page_number)
-    
+
      # ── Janela de páginas para o template ─────────────────────
     page_num      = page_obj.number
     total_pages   = paginator.num_pages
-    vizinhos      = 2  
+    vizinhos      = 2
 
-    inicio = max(page_num - vizinhos, 2)         
-    fim    = min(page_num + vizinhos, total_pages - 1)  
+    inicio = max(page_num - vizinhos, 2)
+    fim    = min(page_num + vizinhos, total_pages - 1)
     pag_janela = list(range(inicio, fim + 1))
 
     # ── Listas para os filtros (sempre completas, sem filtro) ──
@@ -397,7 +402,7 @@ def explorar(request):
         'filtro_prat':  filtro_prat,
         'filtro_disp':  filtro_disp,
         'filtro_ordem': filtro_ordem,
-        'pag_janela':   pag_janela, 
+        'pag_janela':   pag_janela,
     })
 @login_required
 def prazos(request):
@@ -1439,7 +1444,7 @@ class LivroViewset(viewsets.ModelViewSet):
     serializer_class = LivroSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['titulo', 'autor']
-    
+
 # ──────────────────────────────────────────
 # TURMAS (banco de dados)
 # ──────────────────────────────────────────
@@ -1549,4 +1554,352 @@ def atribuir_cargo(request, pk):
     return JsonResponse({
         'sucesso':    True,
         'cargo_nome': usuario.cargo.nome if usuario.cargo else None,
-    })    
+    })
+
+MESES_PT = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+
+MESES_PT_ABREV = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+                   'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+
+
+def _variacao_pct(atual, anterior):
+    """Retorna a variação percentual entre dois períodos."""
+    if anterior == 0:
+        return 100.0 if atual > 0 else 0.0
+    return round(((atual - anterior) / anterior) * 100, 1)
+
+
+def _emprestimo_esta_atrasado_em(emp, referencia):
+    """
+    Considera atrasado se:
+    - já foi devolvido, mas depois do prazo; ou
+    - ainda não foi devolvido e a data de referência já passou do prazo.
+    """
+    if emp.data_devolucao_real:
+        return emp.data_devolucao_real > emp.data_devolucao_prevista
+    return referencia > emp.data_devolucao_prevista
+
+
+def _contar_atrasados(queryset, referencia):
+    total = 0
+    for emp in queryset.only('data_devolucao_real', 'data_devolucao_prevista'):
+        if _emprestimo_esta_atrasado_em(emp, referencia):
+            total += 1
+    return total
+
+
+def _dados_grafico(intervalo, turma_filtro):
+    """
+    Monta os dados do gráfico "Empréstimos por dia".
+    - 30 dias  -> granularidade diária
+    - 90 dias  -> granularidade semanal
+    - 365 dias -> granularidade mensal
+    """
+    hoje = date.today()
+    intervalo = str(intervalo)
+    dias = {'30': 30, '90': 90, '365': 365}.get(intervalo, 30)
+    data_inicio = hoje - timedelta(days=dias - 1)
+
+    qs = Emprestimo.objects.filter(
+        data_emprestimo__gte=data_inicio,
+        data_emprestimo__lte=hoje,
+    )
+    if turma_filtro:
+        qs = qs.filter(usuario__serie=turma_filtro)
+
+    labels, valores, hoje_index = [], [], None
+
+    if intervalo == '30':
+        contagem = defaultdict(int)
+        for row in qs.values('data_emprestimo').annotate(total=Count('id')):
+            contagem[row['data_emprestimo']] = row['total']
+
+        d, i = data_inicio, 0
+        while d <= hoje:
+            labels.append(d.strftime('%d/%m'))
+            valores.append(contagem.get(d, 0))
+            if d == hoje:
+                hoje_index = i
+            d += timedelta(days=1)
+            i += 1
+
+    elif intervalo == '90':
+        agregados = (
+            qs.annotate(semana=TruncWeek('data_emprestimo'))
+              .values('semana')
+              .annotate(total=Count('id'))
+        )
+        mapa = {row['semana']: row['total'] for row in agregados}
+
+        semana_atual = hoje - timedelta(days=hoje.weekday())
+        d = data_inicio - timedelta(days=data_inicio.weekday())
+        i = 0
+        while d <= semana_atual:
+            labels.append(d.strftime('%d/%m'))
+            valores.append(mapa.get(d, 0))
+            if d == semana_atual:
+                hoje_index = i
+            d += timedelta(days=7)
+            i += 1
+
+    else:  # 365 dias
+        agregados = (
+            qs.annotate(mes_ref=TruncMonth('data_emprestimo'))
+              .values('mes_ref')
+              .annotate(total=Count('id'))
+        )
+        mapa = {row['mes_ref']: row['total'] for row in agregados}
+
+        mes_atual = date(hoje.year, hoje.month, 1)
+        d = date(data_inicio.year, data_inicio.month, 1)
+        i = 0
+        while d <= mes_atual:
+            labels.append(f"{MESES_PT_ABREV[d.month]}/{str(d.year)[2:]}")
+            valores.append(mapa.get(d, 0))
+            if d == mes_atual:
+                hoje_index = i
+            d = date(d.year + 1, 1, 1) if d.month == 12 else date(d.year, d.month + 1, 1)
+            i += 1
+
+    return {'labels': labels, 'valores': valores, 'hoje_index': hoje_index}
+
+
+# ──────────────────────────────────────────
+# RANKING: paleta de cores (livros mais lidos / alunos que mais leram)
+# ──────────────────────────────────────────
+
+PALETA_RANKING = ['#4f94d6', '#22c55e', '#ec4899', '#64748b', '#f59e0b']
+
+
+def _cor_ranking(indice):
+    return PALETA_RANKING[indice % len(PALETA_RANKING)]
+
+
+def _grafico_barras_pdf(intervalo, turma_filtro):
+    """
+    Mesma lógica de _dados_grafico, mas devolve a altura de cada barra em %
+    (0-100), pronta para renderizar em CSS puro no PDF (sem JS/Chart.js,
+    que o WeasyPrint não executa).
+    """
+    dados = _dados_grafico(intervalo, turma_filtro)
+    valores = dados['valores']
+    hoje_index = dados['hoje_index']
+    maximo = max(valores) if valores else 0
+
+    barras = [{
+        'altura': int((v / maximo) * 100) if maximo else 0,
+        'hoje': (i == hoje_index),
+    } for i, v in enumerate(valores)]
+
+    return {'barras': barras, 'maximo': maximo}
+
+
+def _montar_contexto_relatorio(periodo_str, turma_filtro, intervalo):
+    """
+    Monta todo o contexto de dados do relatório para um período (mês/ano) e
+    turma opcionais. Reutilizado tanto pela página normal quanto pela
+    exportação em PDF, para garantir que os números batem exatamente.
+    """
+    hoje = date.today()
+
+    try:
+        ano, mes = map(int, periodo_str.split('-'))
+    except (ValueError, AttributeError, TypeError):
+        ano, mes = hoje.year, hoje.month
+        periodo_str = hoje.strftime('%Y-%m')
+
+    data_inicio = date(ano, mes, 1)
+    data_fim = date(ano, mes, monthrange(ano, mes)[1])
+
+    # Período anterior (mês anterior), para calcular variações
+    if mes == 1:
+        ano_ant, mes_ant = ano - 1, 12
+    else:
+        ano_ant, mes_ant = ano, mes - 1
+    data_inicio_ant = date(ano_ant, mes_ant, 1)
+    data_fim_ant = date(ano_ant, mes_ant, monthrange(ano_ant, mes_ant)[1])
+
+    emprestimos_periodo = Emprestimo.objects.filter(
+        data_emprestimo__gte=data_inicio, data_emprestimo__lte=data_fim
+    )
+    emprestimos_periodo_ant = Emprestimo.objects.filter(
+        data_emprestimo__gte=data_inicio_ant, data_emprestimo__lte=data_fim_ant
+    )
+
+    if turma_filtro:
+        emprestimos_periodo = emprestimos_periodo.filter(usuario__serie=turma_filtro)
+        emprestimos_periodo_ant = emprestimos_periodo_ant.filter(usuario__serie=turma_filtro)
+
+    # ── 1) Empréstimos no mês ──────────────────────────────
+    total_emprestimos = emprestimos_periodo.count()
+    total_emprestimos_ant = emprestimos_periodo_ant.count()
+    variacao_emprestimos = _variacao_pct(total_emprestimos, total_emprestimos_ant)
+
+    # ── 2) Leitores ativos (>= 1 empréstimo no período) ────
+    leitores_ativos = emprestimos_periodo.values('usuario_id').distinct().count()
+    leitores_ativos_ant = emprestimos_periodo_ant.values('usuario_id').distinct().count()
+    variacao_leitores = leitores_ativos - leitores_ativos_ant
+
+    total_cadastrados_qs = Usuario.objects.filter(tipo_usuario='aluno')
+    if turma_filtro:
+        total_cadastrados_qs = total_cadastrados_qs.filter(serie=turma_filtro)
+    total_cadastrados = total_cadastrados_qs.count()
+
+    # ── 3) Taxa de atraso ───────────────────────────────────
+    atrasados_count = _contar_atrasados(emprestimos_periodo, hoje)
+    taxa_atraso = round((atrasados_count / total_emprestimos * 100), 1) if total_emprestimos else 0.0
+
+    atrasados_count_ant = _contar_atrasados(emprestimos_periodo_ant, hoje)
+    taxa_atraso_ant = round((atrasados_count_ant / total_emprestimos_ant * 100), 1) if total_emprestimos_ant else 0.0
+    variacao_atraso = round(taxa_atraso - taxa_atraso_ant, 1)
+
+    # ── 4) Livro mais pedido (reservas -> fallback empréstimos) ──
+    reservas_periodo = Reserva.objects.filter(
+        data_reserva__date__gte=data_inicio,
+        data_reserva__date__lte=data_fim,
+        status='pendente',
+    )
+    if turma_filtro:
+        reservas_periodo = reservas_periodo.filter(usuario__serie=turma_filtro)
+
+    usando_reservas = reservas_periodo.exists()
+
+    if usando_reservas:
+        row = (
+            reservas_periodo.values('livro__titulo')
+            .annotate(total=Count('id'))
+            .order_by('-total')
+            .first()
+        )
+        livro_mais_pedido = row['livro__titulo'] if row else '—'
+        livro_mais_pedido_qtd = row['total'] if row else 0
+    else:
+        row = (
+            emprestimos_periodo.values('exemplar__livro__titulo')
+            .annotate(total=Count('id'))
+            .order_by('-total')
+            .first()
+        )
+        livro_mais_pedido = row['exemplar__livro__titulo'] if row else '—'
+        livro_mais_pedido_qtd = row['total'] if row else 0
+
+    # ── 5) Top 10 livros mais emprestados no período ───────
+    top_livros_qs = (
+        emprestimos_periodo.values(
+            'exemplar__livro__id_livro', 'exemplar__livro__titulo', 'exemplar__livro__capa_url'
+        )
+        .annotate(total=Count('id'))
+        .order_by('-total')[:10]
+    )
+    top_livros_qs = list(top_livros_qs)
+    max_livro_total = top_livros_qs[0]['total'] if top_livros_qs else 1
+    top_livros = [{
+        'posicao': i + 1,
+        'titulo': item['exemplar__livro__titulo'],
+        'total': item['total'],
+        'percentual': int((item['total'] / max_livro_total) * 100) if max_livro_total else 0,
+        'cor': _cor_ranking(i),
+        'capa_url': item['exemplar__livro__capa_url'] or None,
+    } for i, item in enumerate(top_livros_qs)]
+
+    # ── 6) Top 10 alunos que mais leram no período ─────────
+    top_alunos_qs = (
+        emprestimos_periodo.values(
+            'usuario__id', 'usuario__first_name', 'usuario__last_name', 'usuario__serie'
+        )
+        .annotate(total=Count('id'))
+        .order_by('-total')[:10]
+    )
+    top_alunos_qs = list(top_alunos_qs)
+    max_aluno_total = top_alunos_qs[0]['total'] if top_alunos_qs else 1
+    top_alunos = [{
+        'posicao': i + 1,
+        'nome': f"{item['usuario__first_name']} {item['usuario__last_name']}".strip() or 'Sem nome',
+        'turma': item['usuario__serie'] or '—',
+        'total': item['total'],
+        'percentual': int((item['total'] / max_aluno_total) * 100) if max_aluno_total else 0,
+        'cor': _cor_ranking(i),
+    } for i, item in enumerate(top_alunos_qs)]
+
+    grafico_dados = _dados_grafico(intervalo, turma_filtro)
+
+    return {
+        'periodo_selecionado': periodo_str,
+        'periodo_label': f"{MESES_PT[mes]} de {ano}",
+        'periodo_label_curto': f"{MESES_PT_ABREV[mes]} {ano}",
+        'turma_filtro': turma_filtro,
+        'intervalo_selecionado': intervalo,
+
+        'total_emprestimos': total_emprestimos,
+        'variacao_emprestimos': variacao_emprestimos,
+
+        'leitores_ativos': leitores_ativos,
+        'variacao_leitores': variacao_leitores,
+        'total_cadastrados': total_cadastrados,
+
+        'taxa_atraso': taxa_atraso,
+        'variacao_atraso': variacao_atraso,
+        'atrasados_count': atrasados_count,
+
+        'livro_mais_pedido': livro_mais_pedido,
+        'livro_mais_pedido_qtd': livro_mais_pedido_qtd,
+        'usando_reservas': usando_reservas,
+
+        'top_livros': top_livros,
+        'top_alunos': top_alunos,
+
+        'grafico_labels_json': json.dumps(grafico_dados['labels']),
+        'grafico_valores_json': json.dumps(grafico_dados['valores']),
+        'grafico_hoje_index': grafico_dados['hoje_index'],
+    }
+
+
+@login_required
+def relatorios(request):
+    hoje = date.today()
+    periodo_str = request.GET.get('mes', hoje.strftime('%Y-%m'))
+    turma_filtro = request.GET.get('turma', '').strip()
+    intervalo = request.GET.get('intervalo', '30')
+
+    contexto = _montar_contexto_relatorio(periodo_str, turma_filtro, intervalo)
+    contexto['turmas'] = Turma.objects.values_list('nome', flat=True)
+
+    return render(request, 'biblioteca/relatorios.html', contexto)
+
+
+def relatorios_grafico(request):
+    """Endpoint AJAX chamado ao trocar o intervalo do gráfico (30d / 90d / 1 ano)."""
+    intervalo = request.GET.get('intervalo', '30')
+    turma_filtro = request.GET.get('turma', '').strip()
+    dados = _dados_grafico(intervalo, turma_filtro)
+    return JsonResponse(dados)
+
+
+@staff_member_required
+def exportar_relatorio_pdf(request):
+    """Gera o PDF do relatório (paisagem) para a bibliotecária imprimir/colar."""
+    hoje = date.today()
+    periodo_str = request.GET.get('mes', hoje.strftime('%Y-%m'))
+    turma_filtro = request.GET.get('turma', '').strip()
+
+    contexto = _montar_contexto_relatorio(periodo_str, turma_filtro, intervalo='30')
+    contexto['gerado_em'] = timezone.now().strftime('%d/%m/%Y às %H:%M')
+    contexto['turma_label'] = turma_filtro if turma_filtro else 'Todas as turmas'
+
+    grafico_pdf = _grafico_barras_pdf('30', turma_filtro)
+    contexto['grafico_barras'] = grafico_pdf['barras']
+    contexto['grafico_valores_max'] = grafico_pdf['maximo']
+
+    html_renderizado = render(request, 'biblioteca/relatorio_pdf.html', contexto).content.decode('utf-8')
+
+    from weasyprint import HTML
+    pdf_bytes = HTML(
+        string=html_renderizado,
+        base_url=request.build_absolute_uri('/'),
+    ).write_pdf()
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    nome_arquivo = f"Relatorio_Biblioteca_{periodo_str}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{nome_arquivo}"'
+    return response

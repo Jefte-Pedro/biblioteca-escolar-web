@@ -29,6 +29,7 @@ ABAS_DISPONIVEIS = [
     ('emprestimos',     'Empréstimos'),
     ('alunos',          'Alunos & Funcionários'),
     ('exportar',        'Exportar Dados'),
+    ('relatorios',      'Relatórios'),
 ]
 
 
