@@ -12,19 +12,45 @@
             <p class="descricao-cad-livro">Métricas de uso da biblioteca no período selecionado</p>
         </div>
         <div class="rel-header-acoes">
-            <div class="rel-filtro-wrap">
+
+            <!-- ── Filtro de mês (dropdown customizado) ── -->
+            <div class="rel-filtro-wrap" id="rel-mes-wrap">
                 <i class="fa-solid fa-calendar-days"></i>
-                <input type="month" id="rel-mes" class="rel-filtro-input" value="{{ periodo_selecionado }}">
+                <span class="rel-filtro-valor" id="rel-mes-label">Selecionar mês</span>
+                <i class="fa-solid fa-chevron-down rel-filtro-seta"></i>
+                <input type="hidden" id="rel-mes" value="{{ periodo_selecionado }}">
+
+                <div class="rel-dropdown rel-dropdown-mes" id="rel-mes-dropdown">
+                    <div class="rel-dropdown-ano">
+                        <button type="button" class="rel-ano-btn" id="rel-ano-prev"><i
+                                class="fa-solid fa-chevron-left"></i></button>
+                        <span id="rel-ano-label">2026</span>
+                        <button type="button" class="rel-ano-btn" id="rel-ano-next"><i
+                                class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                    <div class="rel-dropdown-meses" id="rel-meses-grid"></div>
+                    <div class="rel-dropdown-footer">
+                        <button type="button" class="rel-dropdown-link" id="rel-mes-limpar">Limpar</button>
+                        <button type="button" class="rel-dropdown-link rel-dropdown-link-azul" id="rel-mes-atual">Este mês</button>
+                    </div>
+                </div>
             </div>
-            <div class="rel-filtro-wrap">
+
+            <!-- ── Filtro de turma (dropdown customizado) ── -->
+            <div class="rel-filtro-wrap" id="rel-turma-wrap">
                 <i class="fa-solid fa-chalkboard"></i>
-                <select id="rel-turma" class="rel-filtro-input rel-filtro-select">
-                    <option value="" {% if not turma_filtro %}selected{% endif %}>Todas as séries</option>
+                <span class="rel-filtro-valor" id="rel-turma-label">{% if turma_filtro %}{{ turma_filtro }}{% else %}Todas as séries{% endif %}</span>
+                <i class="fa-solid fa-chevron-down rel-filtro-seta"></i>
+                <input type="hidden" id="rel-turma" value="{{ turma_filtro }}">
+
+                <div class="rel-dropdown rel-dropdown-turma" id="rel-turma-dropdown">
+                    <div class="rel-dropdown-item {% if not turma_filtro %}selecionado{% endif %}" data-valor="">Todas as séries</div>
                     {% for turma in turmas %}
-                    <option value="{{ turma }}" {% if turma_filtro == turma %}selected{% endif %}>{{ turma }}</option>
+                    <div class="rel-dropdown-item {% if turma_filtro == turma %}selecionado{% endif %}" data-valor="{{ turma }}">{{ turma }}</div>
                     {% endfor %}
-                </select>
+                </div>
             </div>
+
             <a href="#" id="rel-btn-exportar" class="rel-btn-exportar">
                 <i class="fa-solid fa-file-arrow-down"></i>
                 <span>Exportar PDF</span>
@@ -199,6 +225,7 @@
     }
 
     .rel-filtro-wrap {
+        position: relative;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -209,6 +236,17 @@
         background: var(--surface);
         color: var(--muted);
         font-size: 13px;
+        cursor: pointer;
+        user-select: none;
+        transition: border-color .15s, background .15s;
+    }
+
+    .rel-filtro-wrap:hover {
+        border-color: var(--accent);
+    }
+
+    .rel-filtro-wrap.aberto {
+        border-color: var(--accent);
     }
 
     .rel-filtro-wrap i {
@@ -216,18 +254,170 @@
         color: var(--faint);
     }
 
-    .rel-filtro-input {
-        border: none;
-        background: transparent;
+    .rel-filtro-valor {
         color: var(--text);
         font-size: 13px;
         font-weight: 600;
-        outline: none;
-        cursor: pointer;
+        white-space: nowrap;
     }
 
-    .rel-filtro-select {
-        appearance: none;
+    .rel-filtro-seta {
+        font-size: 10px !important;
+        color: var(--faint) !important;
+        margin-left: 2px;
+        transition: transform .15s;
+    }
+
+    .rel-filtro-wrap.aberto .rel-filtro-seta {
+        transform: rotate(180deg);
+    }
+
+    /* ── Painel flutuante base dos dois dropdowns ── */
+    .rel-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r-md);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, .3);
+        padding: 10px;
+        z-index: 40;
+        display: none;
+        cursor: default;
+    }
+
+    [data-theme="light"] .rel-dropdown {
+        background: #fff;
+    }
+
+    [data-theme="dark"] .rel-dropdown {
+        background: #162b47;
+    }
+
+    .rel-filtro-wrap.aberto .rel-dropdown {
+        display: block;
+    }
+
+    /* ── Dropdown de mês ── */
+    .rel-dropdown-mes {
+        width: 240px;
+    }
+
+    .rel-dropdown-ano {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 2px 4px 10px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .rel-ano-btn {
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 11px;
+        transition: background .15s, color .15s;
+    }
+
+    .rel-ano-btn:hover {
+        background: rgba(148, 163, 184, .15);
+        color: var(--text);
+    }
+
+    .rel-dropdown-meses {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .rel-mes-btn {
+        padding: 8px 0;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s, color .15s;
+    }
+
+    .rel-mes-btn:hover {
+        background: rgba(148, 163, 184, .15);
+    }
+
+    .rel-mes-btn.selecionado {
+        background: var(--accent);
+        color: #fff;
+    }
+
+    .rel-dropdown-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+    }
+
+    .rel-dropdown-link {
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 2px 4px;
+    }
+
+    .rel-dropdown-link:hover {
+        color: var(--text);
+    }
+
+    .rel-dropdown-link-azul {
+        color: var(--accent);
+    }
+
+    .rel-dropdown-link-azul:hover {
+        opacity: .8;
+    }
+
+    /* ── Dropdown de turma ── */
+    .rel-dropdown-turma {
+        width: 180px;
+        max-height: 260px;
+        overflow-y: auto;
+        padding: 6px;
+    }
+
+    .rel-dropdown-item {
+        padding: 9px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        cursor: pointer;
+        transition: background .15s, color .15s;
+        white-space: nowrap;
+    }
+
+    .rel-dropdown-item:hover {
+        background: rgba(148, 163, 184, .15);
+    }
+
+    .rel-dropdown-item.selecionado {
+        background: var(--accent);
+        color: #fff;
     }
 
     .rel-btn-exportar {
@@ -563,6 +753,10 @@
         flex-shrink: 0;
     }
 
+    .rel-mes {
+        background-color: #22c55e;
+    }
+
     /* ── Estado vazio: centralizado e ocupando o mesmo espaço do painel cheio ── */
     .rel-ranking-vazio {
         flex: 1;
@@ -617,29 +811,29 @@
     @media(max-width:800px) {
         .rel-painel-alunos .rel-ranking-lista-alunos {
             grid-template-columns: minmax(0, 1fr);
-    }
+        }
 
-    /* No mobile a grid vira 1 coluna: some com a linha vertical
+        /* No mobile a grid vira 1 coluna: some com a linha vertical
     e trata todo item (exceto o 1º) como início de nova "linha" */
-    .rel-painel-alunos .rel-ranking-lista-alunos::before {
-        display: none;
-    }
+        .rel-painel-alunos .rel-ranking-lista-alunos::before {
+            display: none;
+        }
 
-    .rel-painel-alunos .rel-ranking-lista-alunos .rel-ranking-item:nth-child(n+2) {
-        border-top: 1px solid var(--border);
-    }
+        .rel-painel-alunos .rel-ranking-lista-alunos .rel-ranking-item:nth-child(n+2) {
+            border-top: 1px solid var(--border);
+        }
 
-    .rel-painel-alunos .rel-ranking-lista-alunos .rel-ranking-item:first-child {
-        padding-top: 0;
+        .rel-painel-alunos .rel-ranking-lista-alunos .rel-ranking-item:first-child {
+            padding-top: 0;
+        }
     }
-}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
     (function () {
         const inputMes = document.getElementById('rel-mes');
-        const selectTurma = document.getElementById('rel-turma');
+        const inputTurma = document.getElementById('rel-turma');
         const btnExportar = document.getElementById('rel-btn-exportar');
         const toggleGrupo = document.getElementById('rel-toggle-intervalo');
         const graficoSub = document.getElementById('rel-grafico-sub');
@@ -649,18 +843,16 @@
         /* ── Navegação por filtros (mês / turma) ── */
         function irParaFiltros() {
             const params = new URLSearchParams(window.location.search);
-            params.set('mes', inputMes.value);
-            if (selectTurma.value) params.set('turma', selectTurma.value); else params.delete('turma');
+            if (inputMes.value) params.set('mes', inputMes.value); else params.delete('mes');
+            if (inputTurma.value) params.set('turma', inputTurma.value); else params.delete('turma');
             window.location.search = params.toString();
         }
-        inputMes.addEventListener('change', irParaFiltros);
-        selectTurma.addEventListener('change', irParaFiltros);
 
         /* ── Exportar PDF (mantém os filtros atuais) ── */
         function montarUrlExportar() {
             const params = new URLSearchParams();
-            params.set('mes', inputMes.value);
-            if (selectTurma.value) params.set('turma', selectTurma.value);
+            if (inputMes.value) params.set('mes', inputMes.value);
+            if (inputTurma.value) params.set('turma', inputTurma.value);
             return `{% url 'exportar_relatorio_pdf' %}?${params.toString()}`;
         }
         btnExportar.addEventListener('click', function (e) {
@@ -668,11 +860,123 @@
             window.location.href = montarUrlExportar();
         });
 
+        /* ── Fecha qualquer dropdown de filtro aberto ── */
+        function fecharDropdowns() {
+            mesWrap.classList.remove('aberto');
+            turmaWrap.classList.remove('aberto');
+        }
+
+        /* -- Dropdown customizado: MES -- */
+        const mesWrap = document.getElementById('rel-mes-wrap');
+        const mesDropdown = document.getElementById('rel-mes-dropdown');
+        const mesLabel = document.getElementById('rel-mes-label');
+        const anoLabel = document.getElementById('rel-ano-label');
+        const mesesGrid = document.getElementById('rel-meses-grid');
+        const anoPrevBtn = document.getElementById('rel-ano-prev');
+        const anoNextBtn = document.getElementById('rel-ano-next');
+        const btnMesLimpar = document.getElementById('rel-mes-limpar');
+        const btnMesAtual = document.getElementById('rel-mes-atual');
+
+        const NOMES_MES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const ABREV_MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
+        const hoje = new Date();
+        let anoExibido = inputMes.value ? Number(inputMes.value.split('-')[0]) : hoje.getFullYear();
+
+        function atualizarLabelMes() {
+            if (inputMes.value) {
+                const [a, m] = inputMes.value.split('-').map(Number);
+                mesLabel.textContent = `${NOMES_MES[m - 1]} de ${a}`;
+            } else {
+                mesLabel.textContent = 'Selecionar mês';
+            }
+        }
+
+        function renderMesesGrid() {
+            anoLabel.textContent = anoExibido;
+            mesesGrid.innerHTML = '';
+            ABREV_MES.forEach((abrev, i) => {
+                const mesNum = i + 1;
+                const valorMes = `${anoExibido}-${String(mesNum).padStart(2, '0')}`;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'rel-mes-btn' + (inputMes.value === valorMes ? ' selecionado' : '');
+                btn.textContent = abrev;
+                btn.addEventListener('click', () => {
+                    inputMes.value = valorMes;
+                    atualizarLabelMes();
+                    fecharDropdowns();
+                    irParaFiltros();
+                });
+                mesesGrid.appendChild(btn);
+            });
+        }
+
+        anoPrevBtn.addEventListener('click', () => { anoExibido--; renderMesesGrid(); });
+        anoNextBtn.addEventListener('click', () => { anoExibido++; renderMesesGrid(); });
+
+        btnMesLimpar.addEventListener('click', () => {
+            inputMes.value = '';
+            atualizarLabelMes();
+            fecharDropdowns();
+            irParaFiltros();
+        });
+
+        btnMesAtual.addEventListener('click', () => {
+            inputMes.value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+            anoExibido = hoje.getFullYear();
+            atualizarLabelMes();
+            fecharDropdowns();
+            irParaFiltros();
+        });
+
+        mesWrap.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const abrindo = !mesWrap.classList.contains('aberto');
+            fecharDropdowns();
+            if (abrindo) {
+                anoExibido = inputMes.value ? Number(inputMes.value.split('-')[0]) : hoje.getFullYear();
+                renderMesesGrid();
+                mesWrap.classList.add('aberto');
+            }
+        });
+        mesDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+        atualizarLabelMes();
+
+        /* -- Dropdown customizado: TURMA -- */
+        const turmaWrap = document.getElementById('rel-turma-wrap');
+        const turmaDropdown = document.getElementById('rel-turma-dropdown');
+        const turmaLabel = document.getElementById('rel-turma-label');
+        const turmaItens = turmaDropdown.querySelectorAll('.rel-dropdown-item');
+
+        turmaItens.forEach(item => {
+            item.addEventListener('click', () => {
+                inputTurma.value = item.dataset.valor;
+                turmaLabel.textContent = item.textContent;
+                turmaItens.forEach(i => i.classList.remove('selecionado'));
+                item.classList.add('selecionado');
+                fecharDropdowns();
+                irParaFiltros();
+            });
+        });
+
+        turmaWrap.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const abrindo = !turmaWrap.classList.contains('aberto');
+            fecharDropdowns();
+            if (abrindo) turmaWrap.classList.add('aberto');
+        });
+        turmaDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+        /* ── Fecha os dois dropdowns ao clicar fora ── */
+        document.addEventListener('click', fecharDropdowns);
+
         /* ── Gráfico (Chart.js) ── */
-        const ctx = document.getElementById('rel-chart-emprestimos').getContext('2d');
-        let labels = {{ grafico_labels_json|safe }};
-    let valores = {{ grafico_valores_json|safe }};
-    let hojeIndex = {{ grafico_hoje_index|default:"null" }};
+    const ctx = document.getElementById('rel-chart-emprestimos').getContext('2d');
+        let labels = {{ grafico_labels_json|safe}};
+        let valores = {{ grafico_valores_json|safe }};
+        let hojeIndex = {{ grafico_hoje_index|default:"null" }};
 
     function corDasBarras(valores, hojeIndex) {
         return valores.map((_, i) => i === hojeIndex ? '#f59e0b' : '#4f94d6');
@@ -720,7 +1024,7 @@
 
         const params = new URLSearchParams();
         params.set('intervalo', intervalo);
-        if (selectTurma.value) params.set('turma', selectTurma.value);
+        if (inputTurma.value) params.set('turma', inputTurma.value);
 
         try {
             const resp = await fetch(`{% url 'relatorios_grafico' %}?${params.toString()}`);

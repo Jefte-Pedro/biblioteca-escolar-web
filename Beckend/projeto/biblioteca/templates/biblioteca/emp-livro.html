@@ -59,28 +59,35 @@
                     <i class="fa-solid fa-magnifying-glass emp-busca-ico"></i>
                     <input type="text" id="emp-busca" class="emp-busca-input" placeholder="Buscar aluno ou livro...">
                 </div>
-                <select class="emp-select" id="filtro-turma">
-                    <option value="">Turma ↓</option>
-                </select>
-                <select class="emp-select" id="filtro-periodo">
-                    <option value="">Período ↓</option>
-                    <option value="hoje">Hoje</option>
-                    <option value="semana">Esta semana</option>
-                    <option value="mes">Este mês</option>
-                </select>
+
+                <!-- ── Filtro de turma (dropdown customizado) ── -->
+                <div class="cs-wrap" id="wrap-filtro-turma">
+                    <span class="cs-valor" id="label-filtro-turma">Turma</span>
+                    <i class="fa-solid fa-chevron-down cs-seta"></i>
+                    <input type="hidden" id="filtro-turma" value="">
+                    <div class="cs-dropdown" id="dropdown-filtro-turma"></div>
+                </div>
+
+                <!-- ── Filtro de período (dropdown customizado) ── -->
+                <div class="cs-wrap" id="wrap-filtro-periodo">
+                    <span class="cs-valor" id="label-filtro-periodo">Período</span>
+                    <i class="fa-solid fa-chevron-down cs-seta"></i>
+                    <input type="hidden" id="filtro-periodo" value="">
+                    <div class="cs-dropdown" id="dropdown-filtro-periodo"></div>
+                </div>
             </div>
         </div>
 
         <!-- TABELA -->
-    <div class="container-conteudo-branco" style="margin-top:8px;">
-        <div class="emp-tabela-header" id="emp-tabela-header">
-            <span>LIVRO</span>
-            <span>ALUNO</span>
-            <span>EMPRESTADO EM</span>
-            <span>DEVOLUÇÃO</span>
-            <span>STATUS</span>
-            <span>AÇÕES</span>
-        </div>
+        <div class="container-conteudo-branco" style="margin-top:8px;">
+            <div class="emp-tabela-header" id="emp-tabela-header">
+                <span>LIVRO</span>
+                <span>ALUNO</span>
+                <span>EMPRESTADO EM</span>
+                <span>DEVOLUÇÃO</span>
+                <span>STATUS</span>
+                <span>AÇÕES</span>
+            </div>
 
             <div id="conteudo-dinamico-emprestimo">
                 {% for emp in emprestimos %}
@@ -162,7 +169,8 @@
                         </button>
                         {% else %}
                         <button class="emp-btn-renovar" onclick="renovarEmprestimo({{ emp.pk }})" title="Renovar">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
                                 <path d="M21 2v6h-6" />
                                 <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
                                 <path d="M3 22v-6h6" />
@@ -187,7 +195,8 @@
                         <i class="fa-solid fa-note-sticky"></i>
                         <div>
                             <strong>Observações</strong>
-                            <span>{% if emp.observacoes %}{{ emp.observacoes }}{% else %}<em style="opacity:.5;">Nenhuma observação
+                            <span>{% if emp.observacoes %}{{ emp.observacoes }}{% else %}<em style="opacity:.5;">Nenhuma
+                                    observação
                                     registrada.</em>{% endif %}</span>
                         </div>
                     </div>
@@ -201,9 +210,9 @@
                 {# ── HISTÓRICO (renderizado mas oculto, JS controla) ── #}
                 {% for emp in historico %}
                 <div class="emp-linha emp-linha-historico" id="emp-hist-{{ emp.pk }}" data-turma="{{ emp.turma }}"
-                    data-nome="{{ emp.nome_aluno|lower }}" data-titulo="{{ emp.livro_obj.titulo|lower }}" data-atrasado="0"
-                    style="display:none; opacity:.75;">
-                
+                    data-nome="{{ emp.nome_aluno|lower }}" data-titulo="{{ emp.livro_obj.titulo|lower }}"
+                    data-atrasado="0" style="display:none; opacity:.75;">
+
                     <!-- LIVRO -->
                     <div class="emp-cell-livro">
                         <div class="emp-capa"
@@ -220,7 +229,7 @@
                             <div class="emp-livro-codigo">{{ emp.codigo_catalografico }}</div>
                         </div>
                     </div>
-                
+
                     <!-- ALUNO -->
                     <div class="emp-cell-aluno">
                         <div class="emp-av" style="background: {{ emp.cor_avatar }};">{{ emp.iniciais_av }}</div>
@@ -229,13 +238,14 @@
                             <div class="emp-aluno-info">{{ emp.turma }} · {{ emp.matricula_aluno|default:"" }}</div>
                         </div>
                     </div>
-                
+
                     <!-- DATA EMPRÉSTIMO -->
                     <div class="emp-cell-data">{{ emp.data_emprestimo }}</div>
-                
+
                     <!-- DATA DEVOLUÇÃO REAL -->
                     <div class="emp-cell-devolver">
-                        <span class="{% if emp.foi_devolvido_atrasado %}emp-data-atrasado{% else %}emp-data-ok{% endif %}">
+                        <span
+                            class="{% if emp.foi_devolvido_atrasado %}emp-data-atrasado{% else %}emp-data-ok{% endif %}">
                             {{ emp.data_devolucao_real }}
                             {% if emp.foi_devolvido_atrasado %}
                             <span class="emp-days-badge emp-badge-red">atrasado</span>
@@ -244,17 +254,18 @@
                             {% endif %}
                         </span>
                     </div>
-                
+
                     <!-- STATUS -->
                     <div class="emp-cell-status">
                         <span class="emp-status emp-status-ok">
                             <i class="fa-solid fa-check-double"></i> DEVOLVIDO
                         </span>
                     </div>
-                
+
                     <!-- AÇÕES (histórico) -->
                     <div class="emp-cell-acoes">
-                        <button class="emp-btn-mais" onclick="abrirMenuEmp(this, {{ emp.pk }}, 'historico')" title="Mais opções">
+                        <button class="emp-btn-mais" onclick="abrirMenuEmp(this, {{ emp.pk }}, 'historico')"
+                            title="Mais opções">
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </button>
                     </div>
@@ -265,7 +276,8 @@
                         <i class="fa-solid fa-note-sticky"></i>
                         <div>
                             <strong>Observações</strong>
-                            <span>{% if emp.observacoes %}{{ emp.observacoes }}{% else %}<em style="opacity:.5;">Nenhuma observação
+                            <span>{% if emp.observacoes %}{{ emp.observacoes }}{% else %}<em style="opacity:.5;">Nenhuma
+                                    observação
                                     registrada.</em>{% endif %}</span>
                         </div>
                     </div>
@@ -275,7 +287,7 @@
 
             <!-- PAGINAÇÃO -->
             <div class="emp-paginacao" id="emp-paginacao">
-                <span id="emp-paginacao-info">Mostrando {{ emprestimos|length }} ativo{% if emprestimos|length != 1 %}s 
+                <span id="emp-paginacao-info">Mostrando {{ emprestimos|length }} ativo{% if emprestimos|length != 1 %}s
                     {% endif %} </span>
                 <div class="emp-paginacao-btns">
                     <button class="emp-pag-btn" id="btn-pag-prev" disabled><i
@@ -336,9 +348,12 @@
                 <label class="emp-modal-label" style="margin-top:8px;">
                     <i class="fa-solid fa-layer-group"></i> EXEMPLAR <span class="obrigatorio">*</span>
                 </label>
-                <select id="emp-volume" class="emp-select-volume" onchange="onVolumeChange()">
-                    <option value="">Selecione o exemplar...</option>
-                </select>
+                <div class="cs-wrap cs-wrap-full" id="wrap-emp-volume">
+                    <span class="cs-valor" id="label-emp-volume">Selecione o exemplar...</span>
+                    <i class="fa-solid fa-chevron-down cs-seta"></i>
+                    <input type="hidden" id="emp-volume" value="">
+                    <div class="cs-dropdown cs-dropdown-full" id="dropdown-emp-volume"></div>
+                </div>
             </div>
         </div>
 
@@ -377,10 +392,31 @@
                     <label class="emp-modal-label">
                         <i class="fa-regular fa-calendar"></i> DATA DO EMPRÉSTIMO <span class="obrigatorio">*</span>
                     </label>
-                    <div class="emp-modal-data-wrap">
-                        <input type="date" id="emp-data-emp" class="emp-modal-input emp-modal-input-data"
-                            onchange="calcularDevolucao()">
+                    <div class="dp-wrap" id="wrap-data-emp">
+                        <div class="dp-campo">
+                            <i class="fa-regular fa-calendar"></i>
+                            <span class="dp-valor" id="valor-data-emp">Selecionar data</span>
+                        </div>
+                        <input type="hidden" id="emp-data-emp" value="">
                         <span class="emp-modal-data-hint" id="hint-emp-data"></span>
+
+                        <div class="dp-dropdown" id="dp-dropdown-data-emp">
+                            <div class="dp-header">
+                                <button type="button" class="dp-nav" data-nav="-1"><i
+                                        class="fa-solid fa-chevron-left"></i></button>
+                                <span id="dp-mes-ano-emp"></span>
+                                <button type="button" class="dp-nav" data-nav="1"><i
+                                        class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                            <div class="dp-dias-semana">
+                                <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+                            </div>
+                            <div class="dp-grid-dias" id="dp-grid-data-emp"></div>
+                            <div class="dp-footer">
+                                <button type="button" class="dp-link" data-acao="hoje">Hoje</button>
+                                <button type="button" class="dp-link" data-acao="limpar">Limpar</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div>
@@ -388,10 +424,31 @@
                         <i class="fa-regular fa-calendar-check"></i> DEVOLVER ATÉ
                         <span class="emp-opcional">(padrão: +15 dias)</span>
                     </label>
-                    <div class="emp-modal-data-wrap">
-                        <input type="date" id="emp-data-dev" class="emp-modal-input emp-modal-input-data"
-                            onchange="onDataDevChange()">
+                    <div class="dp-wrap" id="wrap-data-dev">
+                        <div class="dp-campo">
+                            <i class="fa-regular fa-calendar-check"></i>
+                            <span class="dp-valor" id="valor-data-dev">Selecionar data</span>
+                        </div>
+                        <input type="hidden" id="emp-data-dev" value="">
                         <span class="emp-modal-data-hint emp-hint-auto" id="hint-dev-data">+15d automático</span>
+
+                        <div class="dp-dropdown" id="dp-dropdown-data-dev">
+                            <div class="dp-header">
+                                <button type="button" class="dp-nav" data-nav="-1"><i
+                                        class="fa-solid fa-chevron-left"></i></button>
+                                <span id="dp-mes-ano-dev"></span>
+                                <button type="button" class="dp-nav" data-nav="1"><i
+                                        class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                            <div class="dp-dias-semana">
+                                <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+                            </div>
+                            <div class="dp-grid-dias" id="dp-grid-data-dev"></div>
+                            <div class="dp-footer">
+                                <button type="button" class="dp-link" data-acao="hoje">Hoje</button>
+                                <button type="button" class="dp-link" data-acao="limpar">Limpar</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -523,6 +580,276 @@
     </div>
 </div>
 
+<style>
+    /* ── Dropdown customizado tipo select (turma / período / exemplar) ── */
+    .cs-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 38px;
+        padding: 0 12px;
+        border-radius: var(--r-md, 10px);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--muted);
+        font-size: 13px;
+        cursor: pointer;
+        user-select: none;
+        min-width: 120px;
+        transition: border-color .15s;
+    }
+
+    .cs-wrap:hover {
+        border-color: var(--accent);
+    }
+
+    .cs-wrap.aberto {
+        border-color: var(--accent);
+    }
+
+    .cs-wrap-full {
+        width: 100%;
+        min-width: 0;
+        height: 42px;
+    }
+
+    .cs-valor {
+        flex: 1;
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cs-seta {
+        font-size: 10px !important;
+        color: var(--faint) !important;
+        transition: transform .15s;
+        flex-shrink: 0;
+    }
+
+    .cs-wrap.aberto .cs-seta {
+        transform: rotate(180deg);
+    }
+
+    .cs-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        min-width: 100%;
+        max-height: 240px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r-md, 10px);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, .3);
+        padding: 6px;
+        z-index: 60;
+        display: none;
+        cursor: default;
+    }
+
+    [data-theme="dark"] .cs-dropdown {
+        background: #162b47;
+    }
+
+    [data-theme="light"] .cs-dropdown {
+        background: #fff;
+    }
+
+    .cs-wrap.aberto .cs-dropdown {
+        display: block;
+    }
+
+    .cs-dropdown-full {
+        width: 100%;
+    }
+
+    .cs-item {
+        padding: 9px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background .15s, color .15s;
+    }
+
+    .cs-item:hover {
+        background: rgba(148, 163, 184, .15);
+    }
+
+    .cs-item.selecionado {
+        background: var(--accent);
+        color: #fff;
+    }
+
+    /* ── Date picker customizado ── */
+    .dp-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .dp-campo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+        height: 42px;
+        padding: 0 14px;
+        border-radius: var(--r-md, 10px);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        transition: border-color .15s;
+    }
+
+    .dp-wrap.aberto .dp-campo,
+    .dp-wrap:hover .dp-campo {
+        border-color: var(--accent);
+    }
+
+    .dp-campo i {
+        color: var(--faint);
+        font-size: 13px;
+    }
+
+    .dp-valor {
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .dp-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        width: 260px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r-md, 10px);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, .3);
+        padding: 12px;
+        z-index: 60;
+        display: none;
+        cursor: default;
+    }
+
+    [data-theme="dark"] .dp-dropdown {
+        background: #162b47;
+    }
+
+    [data-theme="light"] .dp-dropdown {
+        background: #fff;
+    }
+
+    .dp-wrap.aberto .dp-dropdown {
+        display: block;
+    }
+
+    .dp-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 10px;
+    }
+
+    .dp-nav {
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 11px;
+    }
+
+    .dp-nav:hover {
+        background: rgba(148, 163, 184, .15);
+        color: var(--text);
+    }
+
+    .dp-dias-semana {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--faint);
+        margin-bottom: 4px;
+    }
+
+    .dp-grid-dias {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+    }
+
+    .dp-dia {
+        aspect-ratio: 1 / 1;
+        border: none;
+        background: transparent;
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background .15s, color .15s;
+    }
+
+    .dp-dia:hover {
+        background: rgba(148, 163, 184, .15);
+    }
+
+    .dp-dia.selecionado {
+        background: var(--accent);
+        color: #fff;
+    }
+
+    .dp-dia.hoje:not(.selecionado) {
+        color: var(--accent);
+        font-weight: 800;
+    }
+
+    .dp-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+    }
+
+    .dp-link {
+        border: none;
+        background: transparent;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 2px 4px;
+    }
+
+    .dp-link:hover {
+        opacity: .8;
+    }
+</style>
+
 <script>
     // ═══════════════════════════════════════════════════════════
     // GRID — vence o CSS global via style inline
@@ -531,26 +858,26 @@
     const GRID_HISTORICO = '1.7fr 1.7fr 1.1fr 1.5fr 1.2fr 0.8fr';
 
     function aplicarGrid(abaAtiva) {
-            const isHist = abaAtiva === 'historico';
-            const grid = isHist ? GRID_HISTORICO : GRID_ATIVO;
+        const isHist = abaAtiva === 'historico';
+        const grid = isHist ? GRID_HISTORICO : GRID_ATIVO;
 
-            const header = document.getElementById('emp-tabela-header');
-            if (header) {
-                header.style.cssText += `; grid-template-columns: ${grid} !important`;
-            }
-
-            document.querySelectorAll(
-                '#conteudo-dinamico-emprestimo .emp-linha:not(.emp-linha-historico)'
-            ).forEach(l => {
-                l.style.cssText += `; grid-template-columns: ${GRID_ATIVO} !important`;
-            });
-
-            document.querySelectorAll(
-                '#conteudo-dinamico-emprestimo .emp-linha-historico:not(.emp-gaveta)'
-            ).forEach(l => {
-                l.style.cssText += `; grid-template-columns: ${GRID_HISTORICO} !important`;
-            });
+        const header = document.getElementById('emp-tabela-header');
+        if (header) {
+            header.style.cssText += `; grid-template-columns: ${grid} !important`;
         }
+
+        document.querySelectorAll(
+            '#conteudo-dinamico-emprestimo .emp-linha:not(.emp-linha-historico)'
+        ).forEach(l => {
+            l.style.cssText += `; grid-template-columns: ${GRID_ATIVO} !important`;
+        });
+
+        document.querySelectorAll(
+            '#conteudo-dinamico-emprestimo .emp-linha-historico:not(.emp-gaveta)'
+        ).forEach(l => {
+            l.style.cssText += `; grid-template-columns: ${GRID_HISTORICO} !important`;
+        });
+    }
 
     aplicarGrid('ativos');
 
@@ -585,6 +912,209 @@
     }
 
     // ═══════════════════════════════════════════════════════════
+    // DROPDOWNS CUSTOMIZADOS — infraestrutura comum
+    // ═══════════════════════════════════════════════════════════
+    function fecharTodosDropdownsCustom() {
+        document.querySelectorAll('.cs-wrap.aberto, .dp-wrap.aberto').forEach(w => w.classList.remove('aberto'));
+    }
+    document.addEventListener('click', fecharTodosDropdownsCustom);
+
+    function initCustomSelect(wrapId) {
+        const wrap = document.getElementById(wrapId);
+        wrap.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const abrindo = !wrap.classList.contains('aberto');
+            fecharTodosDropdownsCustom();
+            if (abrindo) wrap.classList.add('aberto');
+        });
+        wrap.querySelector('.cs-dropdown')?.addEventListener('click', e => e.stopPropagation());
+        return wrap;
+    }
+
+    function montarOpcoesCS(dropdownEl, opcoes, valorAtual) {
+        dropdownEl.innerHTML = '';
+        opcoes.forEach(op => {
+            const item = document.createElement('div');
+            item.className = 'cs-item' + (op.valor === valorAtual ? ' selecionado' : '');
+            item.textContent = op.texto;
+            item.dataset.valor = op.valor;
+            dropdownEl.appendChild(item);
+        });
+    }
+
+    // ── Filtro de turma ──
+    initCustomSelect('wrap-filtro-turma');
+    const dropdownTurma = document.getElementById('dropdown-filtro-turma');
+    const inputTurmaFiltro = document.getElementById('filtro-turma');
+    const labelTurma = document.getElementById('label-filtro-turma');
+
+    function renderTurmaDropdown() {
+        const turmasSet = new Set();
+        document.querySelectorAll('.emp-linha').forEach(l => { if (l.dataset.turma) turmasSet.add(l.dataset.turma); });
+        const opcoes = [{ valor: '', texto: 'Turma' }, ...Array.from(turmasSet).sort().map(t => ({ valor: t, texto: t }))];
+        montarOpcoesCS(dropdownTurma, opcoes, inputTurmaFiltro.value);
+        dropdownTurma.querySelectorAll('.cs-item').forEach(item => {
+            item.addEventListener('click', () => {
+                inputTurmaFiltro.value = item.dataset.valor;
+                labelTurma.textContent = item.textContent;
+                renderTurmaDropdown();
+                fecharTodosDropdownsCustom();
+                filtrarLinhas();
+            });
+        });
+    }
+    renderTurmaDropdown();
+
+    // ── Filtro de período ──
+    initCustomSelect('wrap-filtro-periodo');
+    const dropdownPeriodo = document.getElementById('dropdown-filtro-periodo');
+    const inputPeriodoFiltro = document.getElementById('filtro-periodo');
+    const labelPeriodo = document.getElementById('label-filtro-periodo');
+    const OPCOES_PERIODO = [
+        { valor: '', texto: 'Período' },
+        { valor: 'hoje', texto: 'Hoje' },
+        { valor: 'semana', texto: 'Esta semana' },
+        { valor: 'mes', texto: 'Este mês' },
+    ];
+
+    function renderPeriodoDropdown() {
+        montarOpcoesCS(dropdownPeriodo, OPCOES_PERIODO, inputPeriodoFiltro.value);
+        dropdownPeriodo.querySelectorAll('.cs-item').forEach(item => {
+            item.addEventListener('click', () => {
+                inputPeriodoFiltro.value = item.dataset.valor;
+                labelPeriodo.textContent = item.textContent;
+                renderPeriodoDropdown();
+                fecharTodosDropdownsCustom();
+            });
+        });
+    }
+    renderPeriodoDropdown();
+
+    // ── Exemplar (volume) ──
+    initCustomSelect('wrap-emp-volume');
+    const dropdownVol = document.getElementById('dropdown-emp-volume');
+    const inputVol = document.getElementById('emp-volume');
+    const labelVol = document.getElementById('label-emp-volume');
+    let opcoesVolAtual = [];
+
+    function wireVolumeItems() {
+        dropdownVol.querySelectorAll('.cs-item').forEach(item => {
+            item.addEventListener('click', () => {
+                inputVol.value = item.dataset.valor;
+                labelVol.textContent = item.textContent;
+                montarOpcoesCS(dropdownVol, opcoesVolAtual, item.dataset.valor);
+                wireVolumeItems();
+                fecharTodosDropdownsCustom();
+                onVolumeChange();
+            });
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // DATE PICKER CUSTOMIZADO
+    // ═══════════════════════════════════════════════════════════
+    function criarDatePicker({ wrapId, inputId, valorId, dropdownId, gridId, mesAnoId, onChange }) {
+        const wrap = document.getElementById(wrapId);
+        const input = document.getElementById(inputId);
+        const valorEl = document.getElementById(valorId);
+        const dropdown = document.getElementById(dropdownId);
+        const grid = document.getElementById(gridId);
+        const mesAnoEl = document.getElementById(mesAnoId);
+
+        const hoje = new Date();
+        let mesExibido = hoje.getMonth();
+        let anoExibido = hoje.getFullYear();
+
+        const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+        function atualizarLabel() {
+            if (input.value) {
+                const [y, m, d] = input.value.split('-');
+                valorEl.textContent = `${d}/${m}/${y}`;
+            } else {
+                valorEl.textContent = 'Selecionar data';
+            }
+        }
+
+        function render() {
+            mesAnoEl.textContent = `${MESES[mesExibido]} ${anoExibido}`;
+            grid.innerHTML = '';
+            const primeiroDia = new Date(anoExibido, mesExibido, 1).getDay();
+            const totalDias = new Date(anoExibido, mesExibido + 1, 0).getDate();
+            for (let i = 0; i < primeiroDia; i++) {
+                grid.appendChild(document.createElement('span'));
+            }
+            for (let dia = 1; dia <= totalDias; dia++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'dp-dia';
+                btn.textContent = dia;
+                const valorIso = `${anoExibido}-${String(mesExibido + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+                if (input.value === valorIso) btn.classList.add('selecionado');
+                if (hoje.getFullYear() === anoExibido && hoje.getMonth() === mesExibido && hoje.getDate() === dia) btn.classList.add('hoje');
+                btn.addEventListener('click', () => {
+                    input.value = valorIso;
+                    atualizarLabel();
+                    fecharTodosDropdownsCustom();
+                    if (onChange) onChange();
+                });
+                grid.appendChild(btn);
+            }
+        }
+
+        dropdown.querySelector('[data-nav="-1"]').addEventListener('click', () => {
+            mesExibido--; if (mesExibido < 0) { mesExibido = 11; anoExibido--; } render();
+        });
+        dropdown.querySelector('[data-nav="1"]').addEventListener('click', () => {
+            mesExibido++; if (mesExibido > 11) { mesExibido = 0; anoExibido++; } render();
+        });
+        dropdown.querySelector('[data-acao="hoje"]').addEventListener('click', () => {
+            const iso = hoje.toISOString().split('T')[0];
+            input.value = iso;
+            mesExibido = hoje.getMonth(); anoExibido = hoje.getFullYear();
+            atualizarLabel(); render();
+            fecharTodosDropdownsCustom();
+            if (onChange) onChange();
+        });
+        dropdown.querySelector('[data-acao="limpar"]').addEventListener('click', () => {
+            input.value = '';
+            atualizarLabel();
+            fecharTodosDropdownsCustom();
+            if (onChange) onChange();
+        });
+
+        wrap.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const abrindo = !wrap.classList.contains('aberto');
+            fecharTodosDropdownsCustom();
+            if (abrindo) {
+                if (input.value) { const [y, m] = input.value.split('-').map(Number); anoExibido = y; mesExibido = m - 1; }
+                else { anoExibido = hoje.getFullYear(); mesExibido = hoje.getMonth(); }
+                render();
+                wrap.classList.add('aberto');
+            }
+        });
+        dropdown.addEventListener('click', e => e.stopPropagation());
+
+        atualizarLabel();
+        return {
+            atualizarLabel,
+            setValor: (iso) => { input.value = iso; atualizarLabel(); }
+        };
+    }
+
+    const dpEmp = criarDatePicker({
+        wrapId: 'wrap-data-emp', inputId: 'emp-data-emp', valorId: 'valor-data-emp',
+        dropdownId: 'dp-dropdown-data-emp', gridId: 'dp-grid-data-emp', mesAnoId: 'dp-mes-ano-emp',
+        onChange: () => calcularDevolucao()
+    });
+    const dpDev = criarDatePicker({
+        wrapId: 'wrap-data-dev', inputId: 'emp-data-dev', valorId: 'valor-data-dev',
+        dropdownId: 'dp-dropdown-data-dev', gridId: 'dp-grid-data-dev', mesAnoId: 'dp-mes-ano-dev',
+        onChange: () => onDataDevChange()
+    });
+
+    // ═══════════════════════════════════════════════════════════
     // MODAL NOVO EMPRÉSTIMO
     // ═══════════════════════════════════════════════════════════
     document.getElementById('btn-abrir-modal-emp').addEventListener('click', abrirModalEmp);
@@ -593,7 +1123,7 @@
         const modal = document.getElementById('modal-emprestimo');
         modal.style.setProperty('display', 'flex', 'important');
         const hoje = new Date().toISOString().split('T')[0];
-        document.getElementById('emp-data-emp').value = hoje;
+        dpEmp.setValor(hoje);
         calcularDevolucao();
         document.getElementById('emp-modal-status-wrap').style.display = 'none';
     }
@@ -612,8 +1142,9 @@
         document.getElementById('emp-nome').value = '';
         document.getElementById('emp-nome').style.display = '';
         document.getElementById('emp-obs').value = '';
-        document.getElementById('emp-data-dev').value = '';
+        dpDev.setValor('');
         document.getElementById('hint-dev-data').textContent = '+15d automático';
+        document.getElementById('hint-dev-data').style.color = '';
         document.getElementById('preview-livro').style.display = 'none';
         document.getElementById('preview-aluno').style.display = 'none';
         document.getElementById('wrap-volume').style.display = 'none';
@@ -683,24 +1214,22 @@
             ? `<span class="emp-ac-badge emp-ac-badge-green">${livro.qtd_disponivel} exemplar${livro.qtd_disponivel > 1 ? 'es' : ''} disponível${livro.qtd_disponivel > 1 ? 'is' : ''}</span>`
             : `<span class="emp-ac-badge emp-ac-badge-red">Sem exemplares disponíveis</span>`;
         document.getElementById('preview-livro').style.display = 'flex';
+
         const wrapVol = document.getElementById('wrap-volume');
-        const selectVol = document.getElementById('emp-volume');
-        selectVol.innerHTML = '<option value="">Selecione o exemplar...</option>';
+        inputVol.value = '';
+        labelVol.textContent = 'Selecione o exemplar...';
+        opcoesVolAtual = livro.exemplares_disponiveis.map(ex => ({ valor: String(ex.id_exemplar), texto: ex.codigo_completo }));
+        montarOpcoesCS(dropdownVol, opcoesVolAtual, '');
+        wireVolumeItems();
+
         if (livro.exemplares_disponiveis.length === 1) {
             exemplarSelecionado = livro.exemplares_disponiveis[0];
-            const opt = document.createElement('option');
-            opt.value = livro.exemplares_disponiveis[0].id_exemplar;
-            opt.textContent = livro.exemplares_disponiveis[0].codigo_completo;
-            opt.selected = true;
-            selectVol.appendChild(opt);
+            inputVol.value = String(exemplarSelecionado.id_exemplar);
+            labelVol.textContent = exemplarSelecionado.codigo_completo;
+            montarOpcoesCS(dropdownVol, opcoesVolAtual, inputVol.value);
+            wireVolumeItems();
             wrapVol.style.display = 'block';
         } else if (livro.exemplares_disponiveis.length > 1) {
-            livro.exemplares_disponiveis.forEach(ex => {
-                const opt = document.createElement('option');
-                opt.value = ex.id_exemplar;
-                opt.textContent = ex.codigo_completo;
-                selectVol.appendChild(opt);
-            });
             wrapVol.style.display = 'block';
         } else {
             wrapVol.style.display = 'none';
@@ -961,6 +1490,7 @@
             linha.style.transform = 'translateY(0)';
         });
         atualizarContadores();
+        renderTurmaDropdown();
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -1162,12 +1692,11 @@
     });
 
     document.getElementById('emp-busca').addEventListener('input', filtrarLinhas);
-    document.getElementById('filtro-turma').addEventListener('change', filtrarLinhas);
 
     function filtrarLinhas() {
         const abaAtiva = document.querySelector('.emp-aba.ativa')?.dataset.aba || 'ativos';
         const busca = document.getElementById('emp-busca').value.toLowerCase();
-        const turma = document.getElementById('filtro-turma').value.toLowerCase();
+        const turma = inputTurmaFiltro.value.toLowerCase();
         let visiveis = 0;
 
         aplicarGrid(abaAtiva);
@@ -1262,17 +1791,6 @@
         document.getElementById('badge-atrasados').textContent = atrasados;
     }
 
-    (function () {
-        const select = document.getElementById('filtro-turma');
-        const turmas = new Set();
-        document.querySelectorAll('.emp-linha').forEach(l => { if (l.dataset.turma) turmas.add(l.dataset.turma); });
-        turmas.forEach(t => {
-            const opt = document.createElement('option');
-            opt.value = t; opt.textContent = t;
-            select.appendChild(opt);
-        });
-    })();
-
     // ═══════════════════════════════════════════════════════════
     // FECHAR COM ESCAPE / CLIQUE FORA
     // ═══════════════════════════════════════════════════════════
@@ -1282,6 +1800,7 @@
             fecharModalDevolver();
             fecharModalRenovar();
             fecharModalExcluirHistorico();
+            fecharTodosDropdownsCustom();
         }
     });
 
