@@ -113,7 +113,7 @@
                     </div>
 
                     <!-- ALUNO -->
-                    <div class="emp-cell-aluno">
+                    <div class="emp-cell-aluno" data-label="Aluno">
                         <div class="emp-av" style="background: {{ emp.cor_avatar|default:'#1e5aa8' }};">
                             {{ emp.iniciais_av }}
                         </div>
@@ -124,17 +124,19 @@
                     </div>
 
                     <!-- DATA EMPRÉSTIMO -->
-                    <div class="emp-cell-data">{{ emp.data_emprestimo }}</div>
+                    <div class="emp-cell-data" data-label="Emprestado em">{{ emp.data_emprestimo }}</div>
 
                     <!-- DATA DEVOLUÇÃO -->
-                    <div class="emp-cell-devolver">
+                    <div class="emp-cell-devolver" data-label="Devolução">
                         <span
-                            class="emp-data-dev {% if emp.esta_atrasado %}emp-data-atrasado{% elif emp.vence_hoje %}emp-data-vence{% else %}emp-data-ok{% endif %}">
+                            class="emp-data-dev {% if emp.esta_atrasado %}emp-data-atrasado{% elif emp.vence_hoje or emp.vence_em_breve %}emp-data-vence{% else %}emp-data-ok{% endif %}">
                             {{ emp.data_devolucao_prevista }}
                             {% if emp.esta_atrasado %}
                             <span class="emp-days-badge emp-badge-red">{{ emp.dias_atraso }}d atraso</span>
                             {% elif emp.vence_hoje %}
                             <span class="emp-days-badge emp-badge-yellow">hoje</span>
+                            {% elif emp.vence_em_breve %}
+                            <span class="emp-days-badge emp-badge-yellow">{{ emp.dias_restantes }}d</span>
                             {% else %}
                             <span class="emp-days-badge emp-badge-green">+{{ emp.dias_restantes }}d</span>
                             {% endif %}
@@ -142,7 +144,7 @@
                     </div>
 
                     <!-- STATUS -->
-                    <div class="emp-cell-status">
+                    <div class="emp-cell-status" data-label="Status">
                         {% if emp.esta_atrasado %}
                         <span class="emp-status emp-status-atrasado">
                             <i class="fa-solid fa-triangle-exclamation"></i> ATRASADO
@@ -150,6 +152,10 @@
                         {% elif emp.vence_hoje %}
                         <span class="emp-status emp-status-vence">
                             <i class="fa-solid fa-clock"></i> VENCE
+                        </span>
+                        {% elif emp.vence_em_breve %}
+                        <span class="emp-status emp-status-vence">
+                            <i class="fa-solid fa-clock"></i> VENCE EM {{ emp.dias_restantes }}D
                         </span>
                         {% else %}
                         <span class="emp-status emp-status-ok">
@@ -160,8 +166,8 @@
                         <span class="emp-tag-renovado">Renovado ({{ emp.renovacoes_concluidas }}x)</span>
                         {% endif %}
                     </div>
-
-                    <!-- AÇÕES -->
+                        
+                        <!-- AÇÕES -->
                     <div class="emp-cell-acoes">
                         {% if emp.esta_atrasado %}
                         <button class="emp-btn-notificar" title="Notificar aluno">
@@ -231,7 +237,7 @@
                     </div>
 
                     <!-- ALUNO -->
-                    <div class="emp-cell-aluno">
+                    <div class="emp-cell-aluno" data-label="Aluno">
                         <div class="emp-av" style="background: {{ emp.cor_avatar }};">{{ emp.iniciais_av }}</div>
                         <div>
                             <div class="emp-aluno-nome">{{ emp.nome_aluno }}</div>
@@ -240,10 +246,10 @@
                     </div>
 
                     <!-- DATA EMPRÉSTIMO -->
-                    <div class="emp-cell-data">{{ emp.data_emprestimo }}</div>
+                    <div class="emp-cell-data" data-label="Emprestado em">{{ emp.data_emprestimo }}</div>
 
                     <!-- DATA DEVOLUÇÃO REAL -->
-                    <div class="emp-cell-devolver">
+                    <div class="emp-cell-devolver" data-label="Devolução">
                         <span
                             class="{% if emp.foi_devolvido_atrasado %}emp-data-atrasado{% else %}emp-data-ok{% endif %}">
                             {{ emp.data_devolucao_real }}
@@ -256,7 +262,7 @@
                     </div>
 
                     <!-- STATUS -->
-                    <div class="emp-cell-status">
+                    <div class="emp-cell-status" data-label="Status">
                         <span class="emp-status emp-status-ok">
                             <i class="fa-solid fa-check-double"></i> DEVOLVIDO
                         </span>
@@ -848,6 +854,82 @@
     .dp-link:hover {
         opacity: .8;
     }
+
+    /* ══════════════════════════════════════════
+   RESPONSIVO — layout em cards no mobile
+═══════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+    .emp-tabela-header {
+        display: none !important;
+    }
+
+    #conteudo-dinamico-emprestimo .emp-linha,
+    #conteudo-dinamico-emprestimo .emp-linha-historico {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px;
+        padding: 14px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .emp-cell-livro {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .emp-cell-aluno,
+    .emp-cell-data,
+    .emp-cell-devolver,
+    .emp-cell-status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 13px;
+    }
+
+    .emp-cell-aluno::before,
+    .emp-cell-data::before,
+    .emp-cell-devolver::before,
+    .emp-cell-status::before {
+        content: attr(data-label);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .05em;
+        color: var(--faint);
+        text-transform: uppercase;
+        flex-shrink: 0;
+    }
+
+    .emp-cell-acoes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-start;
+        margin-top: 4px;
+    }
+
+    .emp-cell-acoes button {
+        flex: 1;
+        min-width: 100px;
+        justify-content: center;
+    }
+
+    .emp-controles {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .emp-filtros {
+        flex-wrap: wrap;
+    }
+    .emp-busca-wrap {
+        width: 100%;
+    }
+}
 </style>
 
 <script>
@@ -858,28 +940,37 @@
     const GRID_HISTORICO = '1.7fr 1.7fr 1.1fr 1.5fr 1.2fr 0.8fr';
 
     function aplicarGrid(abaAtiva) {
-        const isHist = abaAtiva === 'historico';
-        const grid = isHist ? GRID_HISTORICO : GRID_ATIVO;
+            // Em telas pequenas o CSS assume o controle (layout em cards) — não forçamos grid inline
+            if (window.matchMedia('(max-width: 768px)').matches) return;
 
-        const header = document.getElementById('emp-tabela-header');
-        if (header) {
-            header.style.cssText += `; grid-template-columns: ${grid} !important`;
+            const isHist = abaAtiva === 'historico';
+            const grid = isHist ? GRID_HISTORICO : GRID_ATIVO;
+
+            const header = document.getElementById('emp-tabela-header');
+            if (header) {
+                header.style.cssText += `; grid-template-columns: ${grid} !important`;
+            }
+
+            document.querySelectorAll(
+                '#conteudo-dinamico-emprestimo .emp-linha:not(.emp-linha-historico)'
+            ).forEach(l => {
+                l.style.cssText += `; grid-template-columns: ${GRID_ATIVO} !important`;
+            });
+
+            document.querySelectorAll(
+                '#conteudo-dinamico-emprestimo .emp-linha-historico:not(.emp-gaveta)'
+            ).forEach(l => {
+                l.style.cssText += `; grid-template-columns: ${GRID_HISTORICO} !important`;
+            });
         }
 
-        document.querySelectorAll(
-            '#conteudo-dinamico-emprestimo .emp-linha:not(.emp-linha-historico)'
-        ).forEach(l => {
-            l.style.cssText += `; grid-template-columns: ${GRID_ATIVO} !important`;
-        });
+        aplicarGrid('ativos');
 
-        document.querySelectorAll(
-            '#conteudo-dinamico-emprestimo .emp-linha-historico:not(.emp-gaveta)'
-        ).forEach(l => {
-            l.style.cssText += `; grid-template-columns: ${GRID_HISTORICO} !important`;
+        // Reaplica o grid (ou remove) quando a tela é redimensionada / rotacionada
+        window.addEventListener('resize', () => {
+            const abaAtiva = document.querySelector('.emp-aba.ativa')?.dataset.aba || 'ativos';
+            aplicarGrid(abaAtiva);
         });
-    }
-
-    aplicarGrid('ativos');
 
     // ═══════════════════════════════════════════════════════════
     // ESTADO DO MODAL
@@ -1453,7 +1544,7 @@
                     <div class="emp-livro-codigo">${data.codigo_completo || ''}</div>
                 </div>
             </div>
-            <div class="emp-cell-aluno">
+            <div class="emp-cell-aluno" data-label="Aluno">
                 <div class="emp-av" style="background:${cor};">${ini}</div>
                 <div>
                     <div class="emp-aluno-nome">${data.usuario}</div>
@@ -1461,13 +1552,13 @@
                 </div>
             </div>
             <div class="emp-cell-data">${formatarData(data.data_emprestimo)}</div>
-            <div class="emp-cell-devolver">
+            <div class="emp-cell-devolver" data-label="Devolução">
                 <span class="emp-data-ok">
                     ${formatarData(data.data_devolucao_prevista)}
                     <span class="emp-days-badge emp-badge-green">+15d</span>
                 </span>
             </div>
-            <div class="emp-cell-status">
+            <div class="emp-cell-status" data-label="Status">
                 <span class="emp-status emp-status-ok"><i class="fa-solid fa-check"></i> EM DIA</span>
             </div>
             <div class="emp-cell-acoes">
