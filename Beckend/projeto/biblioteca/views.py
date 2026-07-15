@@ -39,6 +39,7 @@ from calendar import monthrange
 from django.db.models import Count
 from django.db.models.functions import TruncWeek, TruncMonth
 from datetime import date, datetime, timedelta
+from .models import Notificacao
 
 # ──────────────────────────────────────────
 # AUTENTICAÇÃO
@@ -727,7 +728,82 @@ def salvar_notif(request):
     # Por enquanto apenas confirma — lógica de notificação real vem depois
     return JsonResponse({'sucesso': True})
 
+# ──────────────────────────────────────────
+# NOTIFICAÇÕES
+# ──────────────────────────────────────────
 
+@login_required
+def notificacoes_listar(request):
+    """Lista as últimas 50 notificações do usuário logado, mais recentes primeiro."""
+    notifs = Notificacao.objects.filter(destinatario=request.user).order_by('-criada_em')[:50]
+
+    resultado = [{
+        'id':           n.pk,
+        'tipo':         n.tipo,
+        'titulo':       n.titulo,
+        'mensagem':     n.mensagem,
+        'lida':         n.lida,
+        'requer_acao':  n.requer_acao,
+        'acao_tomada':  n.acao_tomada,
+        'criada_em':    n.criada_em.strftime('%d/%m/%Y %H:%M'),
+        'reserva_id':   n.reserva_id,
+    } for n in notifs]
+
+    nao_lidas = Notificacao.objects.filter(destinatario=request.user, lida=False).count()
+
+    return JsonResponse({'notificacoes': resultado, 'nao_lidas': nao_lidas})
+
+
+@login_required
+def notificacoes_nao_lidas(request):
+    """Endpoint leve, só pro sininho atualizar o número do badge periodicamente."""
+    total = Notificacao.objects.filter(destinatario=request.user, lida=False).count()
+    return JsonResponse({'total': total})
+
+
+@require_POST
+@login_required
+def notificacoes_marcar_lida(request, pk):
+    notif = get_object_or_404(Notificacao, pk=pk, destinatario=request.user)
+    notif.lida = True
+    notif.save(update_fields=['lida'])
+    return JsonResponse({'sucesso': True})
+
+
+@require_POST
+@login_required
+def notificacoes_marcar_todas_lidas(request):
+    Notificacao.objects.filter(destinatario=request.user, lida=False).update(lida=True)
+    return JsonResponse({'sucesso': True})
+
+
+@require_POST
+@login_required
+def notificacoes_responder(request, pk):
+    """
+    Responde uma notificação do tipo "sim/não" (ex: aceitar/recusar reserva).
+    Payload: { "resposta": "aceita" | "recusada" }
+
+    NOTA: por enquanto isso só registra a resposta na notificação.
+    Quando o sistema de Reservas for implementado, este é o ponto onde vamos
+    plugar a lógica real (ex: se for tipo 'reserva_pendente' e resposta
+    'aceita' -> criar o vínculo no acervo do aluno e notificar ele de volta).
+    """
+    notif = get_object_or_404(Notificacao, pk=pk, destinatario=request.user)
+    resposta = json.loads(request.body).get('resposta', '').strip()
+
+    if resposta not in ('aceita', 'recusada'):
+        return JsonResponse({'erro': 'Resposta inválida.'}, status=400)
+    if not notif.requer_acao:
+        return JsonResponse({'erro': 'Esta notificação não requer ação.'}, status=400)
+    if notif.acao_tomada:
+        return JsonResponse({'erro': 'Esta notificação já foi respondida.'}, status=400)
+
+    notif.acao_tomada = resposta
+    notif.lida = True
+    notif.save(update_fields=['acao_tomada', 'lida'])
+
+    return JsonResponse({'sucesso': True, 'acao_tomada': notif.acao_tomada})
 # ──────────────────────────────────────────
 # ADMIN / BIBLIOTECÁRIA
 # ──────────────────────────────────────────

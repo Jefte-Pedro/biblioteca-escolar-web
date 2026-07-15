@@ -270,3 +270,51 @@ class LivroLido(models.Model):
 
     def __str__(self):
         return f'{self.usuario} – {self.livro.titulo}'
+    
+# ──────────────────────────────────────────
+# NOTIFICAÇÃO
+# ──────────────────────────────────────────
+
+class Notificacao(models.Model):
+    TIPO_CHOICES = [
+        ('reserva_pendente',      'Reserva Pendente'),        # → bibliotecária
+        ('reserva_aceita',        'Reserva Aceita'),          # → aluno
+        ('reserva_recusada',      'Reserva Recusada'),        # → aluno
+        ('reserva_disponivel',    'Reserva Disponível'),      # → aluno (retirar em 2 dias)
+        ('reserva_expirada',      'Reserva Expirada'),        # → aluno
+        ('fila_posicao',          'Posição na Fila'),         # → aluno
+        ('devolucao_com_reserva', 'Devolução com Reserva'),   # → bibliotecária
+        ('prazo_2dias',           'Prazo em 2 dias'),
+        ('prazo_amanha',          'Prazo Amanhã'),
+        ('prazo_hoje',            'Prazo Hoje'),
+        ('atraso',                'Atraso'),
+    ]
+
+    destinatario = models.ForeignKey(
+        'Usuario', on_delete=models.CASCADE, related_name='notificacoes'
+    )
+    tipo      = models.CharField(max_length=30, choices=TIPO_CHOICES)
+    titulo    = models.CharField(max_length=200)
+    mensagem  = models.TextField()
+
+    lida         = models.BooleanField(default=False)
+    criada_em    = models.DateTimeField(auto_now_add=True)
+    enviado_email = models.BooleanField(default=False)
+
+    # ── Ação (sim/não) ──
+    requer_acao = models.BooleanField(default=False)
+    acao_tomada = models.CharField(
+        max_length=20, blank=True, null=True,
+        choices=[('aceita', 'Aceita'), ('recusada', 'Recusada')],
+    )
+
+    # ── Referências opcionais ──
+    reserva    = models.ForeignKey('Reserva', null=True, blank=True, on_delete=models.CASCADE, related_name='notificacoes')
+    emprestimo = models.ForeignKey('Emprestimo', null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        db_table = 'biblioteca_notificacao'
+        ordering = ['-criada_em']
+
+    def __str__(self):
+        return f'{self.tipo} → {self.destinatario} ({self.titulo})'

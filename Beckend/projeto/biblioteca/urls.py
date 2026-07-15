@@ -65,6 +65,12 @@ urlpatterns = [
     path('configuracoes/alterar-senha/', views.alterar_senha, name='alterar_senha'),
     path('configuracoes/salvar-notif/', views.salvar_notif, name='salvar_notif'),
 
+    path('notificacoes/', views.notificacoes_listar, name='notificacoes_listar'),
+    path('notificacoes/nao-lidas/', views.notificacoes_nao_lidas, name='notificacoes_nao_lidas'),
+    path('notificacoes/<int:pk>/marcar-lida/', views.notificacoes_marcar_lida, name='notificacoes_marcar_lida'),
+    path('notificacoes/marcar-todas-lidas/', views.notificacoes_marcar_todas_lidas, name='notificacoes_marcar_todas_lidas'),
+    path('notificacoes/<int:pk>/responder/', views.notificacoes_responder, name='notificacoes_responder'),  
+    
     path('cancelar-reserva/<int:pk>/', views.cancelar_reserva, name='cancelar_reserva'),
 
     path('alunos/', views.alunos, name='alunos'),

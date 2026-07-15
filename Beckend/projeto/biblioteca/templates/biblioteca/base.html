@@ -40,7 +40,8 @@
                     <div class="nl">
                         <a href="{% url 'inicio' %}"
                             class="nl-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                                 <polyline points="9 22 9 12 15 12 15 22" />
                             </svg>
@@ -62,36 +63,36 @@
                 <div class="ns">
                     <div class="ns-title">MINHA BIBLIOTECA</div>
                     <div class="nl">
-                        <a href="{% url 'minha_lista' %}" {% if not user.is_authenticated %}onclick="event.preventDefault(); abrirModalLogin('Faça login para acessar sua lista.');" {% endif %}
-                            class="nl-link {% if request.resolver_match.url_name == 'minha_lista' %}active{% endif %}">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
+                        <a href="{% url 'minha_lista' %}" {% if not user.is_authenticated %}onclick="event.preventDefault(); abrirModalLogin('Faça login para acessar sua lista.');"{% endif %} class="nl-link {% if request.resolver_match.url_name == 'minha_lista' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path
                                     d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                             </svg>
                             <span data-i18n="lista">Minha Lista</span>
                         </a>
-                        <a href="{% url 'reservados' %}" {% if not user.is_authenticated
-                            %}onclick="event.preventDefault(); abrirModalLogin('Faça login para ver seus livros reservados.');" {% endif
-                            %} class="nl-link {% if request.resolver_match.url_name == 'reservados' %}active{% endif %}">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
+                        <a href="{% url 'reservados' %}" {% if not user.is_authenticated %}onclick="event.preventDefault(); abrirModalLogin('Faça login para ver seus livros reservados.');" {% endif %} class="nl-link {% if request.resolver_match.url_name == 'reservados' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
                             </svg>
                             <span data-i18n="reservados">Livros Reservados</span>
                         </a>
-                        <a href="{% url 'lidos' %}" {% if not user.is_authenticated %}onclick="event.preventDefault(); abrirModalLogin('Faça login para ver seus livros lidos.');" {% endif %}
-                            class="nl-link {% if request.resolver_match.url_name == 'lidos' %}active{% endif %}">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
+                        <a href="{% url 'lidos' %}" {% if not user.is_authenticated %}onclick="event.preventDefault(); abrirModalLogin('Faça login para ver seus livros lidos.');"
+                            {% endif %} class="nl-link {% if request.resolver_match.url_name == 'lidos' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                                 <polyline points="22 4 12 14.01 9 11.01" />
                             </svg>
                             <span data-i18n="lidos">Livros Lidos</span>
                         </a>
-                        <a href="{% url 'prazos' %}" {% if not user.is_authenticated %}onclick="event.preventDefault(); abrirModalLogin('Faça login para ver seus prazos.');" {% endif %} class="nl-link {% if request.resolver_match.url_name == 'prazos' %}active{% endif %}">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
+                        <a href="{% url 'prazos' %}" {% if not user.is_authenticated
+                            %}onclick="event.preventDefault(); abrirModalLogin('Faça login para ver seus prazos.');" {%
+                            endif %}
+                            class="nl-link {% if request.resolver_match.url_name == 'prazos' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10" />
                                 <polyline points="12 6 12 12 16 14" />
                             </svg>
@@ -154,7 +155,8 @@
                         {% if 'relatorios' in abas %}
                         <a href="{% url 'relatorios' %}"
                             class="nl-link {% if request.resolver_match.url_name == 'relatorios' %}active{% endif %}">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M3 3v18h18" />
                                 <path d="M18 17V9" />
                                 <path d="M13 17V5" />
@@ -274,6 +276,19 @@
                         </svg>
                     </button>
 
+                    <!-- ═══════════ SINO DE NOTIFICAÇÕES ═══════════ -->
+                    {% if user.is_authenticated %}
+                    <button class="icon-btn" id="notif-btn" onclick="toggleNotifPanel()" aria-label="Notificações"
+                        style="position:relative;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                        <span id="notif-badge" class="notif-badge" style="display:none;">0</span>
+                    </button>
+                    {% endif %}
+
                     <div class="lang-container" id="lang-container">
                         <button class="lang-btn" id="lang-btn" onclick="toggleLangMenu()">
                             <span id="lang-texto">PT</span>
@@ -314,6 +329,67 @@
                 </button>
             </div>
         </div>
+
+        <!-- ═══════════ PAINEL DE NOTIFICAÇÕES ═══════════ -->
+        {% if user.is_authenticated %}
+        <div id="notif-overlay" class="notif-overlay" onclick="fecharNotifPanelFora(event)">
+            <aside id="notif-panel" class="notif-panel">
+
+                <!-- ── TELA: LISTA ── -->
+                <div id="notif-view-lista" class="notif-view">
+                    <div class="notif-panel-header">
+                        <span class="notif-panel-titulo">Notificações</span>
+                        <button class="icon-btn sm" onclick="fecharNotifPanel()" aria-label="Fechar">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
+                    </div>
+                    <button id="notif-marcar-todas" class="notif-marcar-todas" onclick="marcarTodasNotifLidas()">
+                        Marcar todas como lidas
+                    </button>
+                    <div id="notif-lista-itens" class="notif-lista-itens">
+                        <div class="notif-carregando">Carregando...</div>
+                    </div>
+                </div>
+
+                <!-- ── TELA: DETALHE ── -->
+                <div id="notif-view-detalhe" class="notif-view" style="display:none;">
+                    <div class="notif-panel-header">
+                        <button class="icon-btn sm" onclick="voltarNotifLista()" aria-label="Voltar">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12" />
+                                <polyline points="12 19 5 12 12 5" />
+                            </svg>
+                        </button>
+                        <span class="notif-panel-titulo" id="notif-detalhe-titulo">—</span>
+                        <button class="icon-btn sm" onclick="fecharNotifPanel()" aria-label="Fechar">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="notif-detalhe-body">
+                        <span class="notif-detalhe-data" id="notif-detalhe-data">—</span>
+                        <p class="notif-detalhe-mensagem" id="notif-detalhe-mensagem">—</p>
+
+                        <div id="notif-detalhe-acoes" class="notif-detalhe-acoes" style="display:none;">
+                            <button class="notif-btn-nao" onclick="responderNotifAtual('recusada')">Não</button>
+                            <button class="notif-btn-sim" onclick="responderNotifAtual('aceita')">Sim</button>
+                        </div>
+                        <div id="notif-detalhe-status" class="notif-detalhe-status" style="display:none;"></div>
+                    </div>
+                </div>
+
+            </aside>
+        </div>
+        {% endif %}
+
     </div>
 
     <div class="lang-menu" id="lang-menu">
@@ -321,6 +397,319 @@
         <button onclick="setLang('en')"><span>🇺🇸</span> English</button>
         <button onclick="setLang('es')"><span>🇪🇸</span> Español</button>
     </div>
+
+    <style>
+        /* ── Badge do sino ── */
+        .notif-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            min-width: 16px;
+            height: 16px;
+            padding: 0 4px;
+            border-radius: 99px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            box-shadow: 0 0 0 2px var(--sidebar-bg, var(--surface));
+        }
+
+        /* ── Overlay + painel lateral ── */
+        .notif-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            backdrop-filter: blur(2px);
+            z-index: 500;
+        }
+
+        .notif-overlay.aberto {
+            display: block;
+        }
+
+        .notif-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 380px;
+            max-width: 92vw;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border);
+            box-shadow: -12px 0 40px rgba(0, 0, 0, .35);
+            transform: translateX(100%);
+            transition: transform .28s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        [data-theme="dark"] .notif-panel {
+            background: #0f1f35;
+        }
+
+        [data-theme="light"] .notif-panel {
+            background: #fff;
+        }
+
+        .notif-overlay.aberto .notif-panel {
+            transform: translateX(0);
+        }
+
+        .notif-view {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+        }
+
+        .notif-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 18px 18px 14px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .notif-panel-titulo {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            flex: 1;
+            text-align: left;
+        }
+
+        .notif-marcar-todas {
+            margin: 10px 18px 4px;
+            align-self: flex-start;
+            background: none;
+            border: none;
+            color: var(--accent-lt);
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .notif-marcar-todas:hover {
+            text-decoration: underline;
+        }
+
+        .notif-lista-itens {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 6px 8px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .notif-carregando,
+        .notif-vazio {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--faint);
+            font-size: 13px;
+        }
+
+        .notif-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 11px 10px;
+            border-radius: var(--r-md, 10px);
+            cursor: pointer;
+            transition: background .15s;
+            text-align: left;
+            width: 100%;
+        }
+
+        .notif-item:hover {
+            background: var(--hover, rgba(148, 163, 184, .1));
+        }
+
+        .notif-item-ico {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            background: rgba(79, 148, 214, .12);
+            color: var(--accent-lt);
+        }
+
+        .notif-item.tipo-alerta .notif-item-ico {
+            background: rgba(245, 158, 11, .14);
+            color: #f59e0b;
+        }
+
+        .notif-item.tipo-perigo .notif-item-ico {
+            background: rgba(239, 68, 68, .14);
+            color: #ef4444;
+        }
+
+        .notif-item.tipo-sucesso .notif-item-ico {
+            background: rgba(34, 197, 94, .14);
+            color: #22c55e;
+        }
+
+        .notif-item-corpo {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notif-item-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .notif-item-titulo {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .notif-item-hora {
+            font-size: 10px;
+            color: var(--faint);
+            flex-shrink: 0;
+        }
+
+        .notif-item-snippet {
+            font-size: 11.5px;
+            color: var(--muted);
+            margin-top: 2px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .notif-item-footer {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 5px;
+        }
+
+        .notif-item-tag-acao {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 7px;
+            border-radius: 99px;
+            background: rgba(124, 58, 237, .12);
+            color: #7c3aed;
+        }
+
+        .notif-item-nao-lida {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        /* ── Tela de detalhe ── */
+        .notif-detalhe-body {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        .notif-detalhe-data {
+            font-size: 11px;
+            color: var(--faint);
+        }
+
+        .notif-detalhe-mensagem {
+            font-size: 14px;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .notif-detalhe-acoes {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .notif-btn-sim,
+        .notif-btn-nao {
+            flex: 1;
+            height: 40px;
+            border-radius: var(--r-md, 10px);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: opacity .2s;
+        }
+
+        .notif-btn-sim {
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .notif-btn-nao {
+            background: transparent;
+            border: 1px solid #ef4444;
+            color: #ef4444;
+        }
+
+        .notif-btn-sim:hover,
+        .notif-btn-nao:hover {
+            opacity: .85;
+        }
+
+        .notif-detalhe-status {
+            margin-top: 10px;
+            padding: 10px 14px;
+            border-radius: var(--r-md, 10px);
+            font-size: 12.5px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notif-detalhe-status.aceita {
+            background: rgba(34, 197, 94, .1);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, .3);
+        }
+
+        .notif-detalhe-status.recusada {
+            background: rgba(239, 68, 68, .1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, .3);
+        }
+
+        @media (max-width: 480px) {
+            .notif-panel {
+                width: 100vw;
+                max-width: 100vw;
+            }
+        }
+    </style>
 
     <script src="{% static 'biblioteca/js/traducoes.js' %}"></script>
     <script src="{% static 'biblioteca/js/script.js' %}"></script>
@@ -346,6 +735,210 @@
             document.getElementById('modal-login').style.display = 'none';
         }
     </script>
+
+    <!-- ═══════════ SCRIPT DO PAINEL DE NOTIFICAÇÕES ═══════════ -->
+    {% if user.is_authenticated %}
+    <script>
+        (function () {
+            const URL_LISTAR = "{% url 'notificacoes_listar' %}";
+            const URL_NAO_LIDAS = "{% url 'notificacoes_nao_lidas' %}";
+            const URL_MARCAR_LIDA = "{% url 'notificacoes_marcar_lida' pk=0 %}";
+            const URL_MARCAR_TODAS = "{% url 'notificacoes_marcar_todas_lidas' %}";
+            const URL_RESPONDER = "{% url 'notificacoes_responder' pk=0 %}";
+
+            const ICONES_TIPO = {
+                reserva_pendente: { classe: 'tipo-alerta', ico: '🔖' },
+                reserva_aceita: { classe: 'tipo-sucesso', ico: '✅' },
+                reserva_recusada: { classe: 'tipo-perigo', ico: '❌' },
+                reserva_disponivel: { classe: 'tipo-sucesso', ico: '📚' },
+                reserva_expirada: { classe: 'tipo-perigo', ico: '⏳' },
+                fila_posicao: { classe: '', ico: '🔢' },
+                devolucao_com_reserva: { classe: 'tipo-alerta', ico: '📦' },
+                prazo_2dias: { classe: '', ico: '📅' },
+                prazo_amanha: { classe: 'tipo-alerta', ico: '⏰' },
+                prazo_hoje: { classe: 'tipo-alerta', ico: '⚠️' },
+                atraso: { classe: 'tipo-perigo', ico: '🚨' },
+            };
+
+            let notifCache = [];
+            let notifAtualId = null;
+
+            window.toggleNotifPanel = function () {
+                const overlay = document.getElementById('notif-overlay');
+                if (overlay.classList.contains('aberto')) fecharNotifPanel();
+                else abrirNotifPanel();
+            };
+
+            window.abrirNotifPanel = function () {
+                document.getElementById('notif-overlay').classList.add('aberto');
+                mostrarListaNotif();
+                carregarNotificacoes();
+            };
+
+            window.fecharNotifPanel = function () {
+                document.getElementById('notif-overlay').classList.remove('aberto');
+            };
+
+            window.fecharNotifPanelFora = function (e) {
+                if (e.target === document.getElementById('notif-overlay')) fecharNotifPanel();
+            };
+
+            function mostrarListaNotif() {
+                document.getElementById('notif-view-lista').style.display = '';
+                document.getElementById('notif-view-detalhe').style.display = 'none';
+            }
+
+            window.voltarNotifLista = function () {
+                mostrarListaNotif();
+                carregarNotificacoes();
+            };
+
+            async function carregarNotificacoes() {
+                const container = document.getElementById('notif-lista-itens');
+                try {
+                    const res = await fetch(URL_LISTAR);
+                    const data = await res.json();
+                    notifCache = data.notificacoes || [];
+                    atualizarBadge(data.nao_lidas || 0);
+                    renderizarListaNotif();
+                } catch (err) {
+                    container.innerHTML = '<div class="notif-carregando">Erro ao carregar notificações.</div>';
+                }
+            }
+
+            function renderizarListaNotif() {
+                const container = document.getElementById('notif-lista-itens');
+                if (!notifCache.length) {
+                    container.innerHTML = '<div class="notif-vazio">Nenhuma notificação por aqui ainda.</div>';
+                    return;
+                }
+                container.innerHTML = '';
+                notifCache.forEach(n => {
+                    const meta = ICONES_TIPO[n.tipo] || { classe: '', ico: '🔔' };
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'notif-item ' + meta.classe;
+                    item.innerHTML = `
+                        <div class="notif-item-ico">${meta.ico}</div>
+                        <div class="notif-item-corpo">
+                            <div class="notif-item-top">
+                                <span class="notif-item-titulo">${n.titulo}</span>
+                                <span class="notif-item-hora">${n.criada_em.split(' ')[0]}</span>
+                            </div>
+                            <div class="notif-item-snippet">${n.mensagem}</div>
+                            <div class="notif-item-footer">
+                                ${n.requer_acao && !n.acao_tomada ? '<span class="notif-item-tag-acao">Aguardando resposta</span>' : ''}
+                            </div>
+                        </div>
+                        ${!n.lida ? '<span class="notif-item-nao-lida"></span>' : ''}
+                    `;
+                    item.addEventListener('click', () => abrirDetalheNotif(n.id));
+                    container.appendChild(item);
+                });
+            }
+
+            async function abrirDetalheNotif(id) {
+                const n = notifCache.find(x => x.id === id);
+                if (!n) return;
+                notifAtualId = id;
+
+                document.getElementById('notif-view-lista').style.display = 'none';
+                document.getElementById('notif-view-detalhe').style.display = '';
+
+                document.getElementById('notif-detalhe-titulo').textContent = n.titulo;
+                document.getElementById('notif-detalhe-data').textContent = n.criada_em;
+                document.getElementById('notif-detalhe-mensagem').textContent = n.mensagem;
+
+                const acoes = document.getElementById('notif-detalhe-acoes');
+                const status = document.getElementById('notif-detalhe-status');
+
+                if (n.requer_acao && !n.acao_tomada) {
+                    acoes.style.display = 'flex';
+                    status.style.display = 'none';
+                } else if (n.acao_tomada) {
+                    acoes.style.display = 'none';
+                    status.style.display = 'flex';
+                    status.className = 'notif-detalhe-status ' + n.acao_tomada;
+                    status.textContent = n.acao_tomada === 'aceita' ? '✓ Você respondeu: Sim' : '✕ Você respondeu: Não';
+                } else {
+                    acoes.style.display = 'none';
+                    status.style.display = 'none';
+                }
+
+                if (!n.lida) {
+                    await fetch(URL_MARCAR_LIDA.replace('/0/', `/${id}/`), {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    });
+                    n.lida = true;
+                    atualizarBadgeContagem();
+                }
+            }
+
+            window.responderNotifAtual = async function (resposta) {
+                if (!notifAtualId) return;
+                try {
+                    const res = await fetch(URL_RESPONDER.replace('/0/', `/${notifAtualId}/`), {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                        body: JSON.stringify({ resposta }),
+                    });
+                    const data = await res.json();
+                    if (data.sucesso) {
+                        const n = notifCache.find(x => x.id === notifAtualId);
+                        if (n) n.acao_tomada = data.acao_tomada;
+                        abrirDetalheNotif(notifAtualId);
+                    } else {
+                        alert(data.erro || 'Erro ao responder.');
+                    }
+                } catch {
+                    alert('Erro de conexão.');
+                }
+            };
+
+            window.marcarTodasNotifLidas = async function () {
+                try {
+                    await fetch(URL_MARCAR_TODAS, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    });
+                    notifCache.forEach(n => n.lida = true);
+                    renderizarListaNotif();
+                    atualizarBadge(0);
+                } catch { }
+            };
+
+            function atualizarBadge(total) {
+                const badge = document.getElementById('notif-badge');
+                if (total > 0) {
+                    badge.textContent = total > 99 ? '99+' : total;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+
+            function atualizarBadgeContagem() {
+                const restantes = notifCache.filter(n => !n.lida).length;
+                atualizarBadge(restantes);
+            }
+
+            // ── Atualiza o contador do sino periodicamente, mesmo com o painel fechado ──
+            async function pollNaoLidas() {
+                try {
+                    const res = await fetch(URL_NAO_LIDAS);
+                    const data = await res.json();
+                    if (!document.getElementById('notif-overlay').classList.contains('aberto')) {
+                        atualizarBadge(data.total || 0);
+                    }
+                } catch { }
+            }
+
+            pollNaoLidas();
+            setInterval(pollNaoLidas, 30000);
+        })();
+    </script>
+    {% endif %}
 
     {% block extra_js %}{% endblock %}
 </body>
