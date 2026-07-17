@@ -71,6 +71,10 @@ urlpatterns = [
     path('notificacoes/marcar-todas-lidas/', views.notificacoes_marcar_todas_lidas, name='notificacoes_marcar_todas_lidas'),
     path('notificacoes/<int:pk>/responder/', views.notificacoes_responder, name='notificacoes_responder'),  
     
+    path('livro/<int:livro_id>/reservar/', views.reservar_livro, name='reservar_livro'),
+    path('reservas/<int:pk>/confirmar-retirada/', views.reserva_confirmar_retirada, name='reserva_confirmar_retirada'),
+    path('notificacoes/<int:pk>/excluir/', views.notificacoes_excluir, name='notificacoes_excluir'),
+    path('notificacoes/excluir-todas/', views.notificacoes_excluir_todas, name='notificacoes_excluir_todas'),
     path('cancelar-reserva/<int:pk>/', views.cancelar_reserva, name='cancelar_reserva'),
 
     path('alunos/', views.alunos, name='alunos'),

@@ -16,7 +16,12 @@ import json
 import random
 from collections import defaultdict
 from datetime import date
-
+from .reservas import (
+    criar_reserva, aceitar_reserva, recusar_reserva,
+    confirmar_disponibilidade, confirmar_retirada,
+    cancelar_reserva_usuario, verificar_devolucao_com_reserva,
+    ReservaError,
+)   
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -476,7 +481,9 @@ def _acervo_counts(user):
     return {
         'listas_count':  Lista.objects.filter(usuario=user).count(),
         'lidos_count':   LivroLido.objects.filter(usuario=user).count(),
-        'reservas_count': Reserva.objects.filter(usuario=user, status='pendente').count(),
+        'reservas_count': Reserva.objects.filter(
+            usuario=user, status__in=['pendente', 'fila', 'aceita', 'aguardando_retirada']
+        ).count(),
     }
 
 @login_required
@@ -499,6 +506,42 @@ def lista(request):
         listas.append(l)
 
     return render(request, 'biblioteca/acervo.html', {'aba': 'lista', 'listas': listas, **_acervo_counts(request.user),})
+
+@require_POST
+@login_required
+def reservar_livro(request, livro_id):
+    livro = get_object_or_404(Livro, id_livro=livro_id)
+    try:
+        reserva, entrou_fila = criar_reserva(request.user, livro)
+    except ReservaError as e:
+        return JsonResponse({'erro': str(e)}, status=400)
+
+    if entrou_fila:
+        return JsonResponse({
+            'sucesso': True,
+            'fila': True,
+            'posicao_fila': reserva.posicao_fila,
+            'mensagem': (
+                f'Este livro já foi reservado por outro aluno. Você entrou na fila '
+                f'na posição {reserva.posicao_fila} de no máximo 3.'
+            ),
+        })
+    return JsonResponse({
+        'sucesso': True,
+        'fila': False,
+        'mensagem': 'Reserva enviada! Aguarde a aprovação da bibliotecária.',
+    })
+
+
+@require_POST
+@staff_member_required
+def reserva_confirmar_retirada(request, pk):
+    reserva = get_object_or_404(Reserva, pk=pk)
+    try:
+        emprestimo = confirmar_retirada(reserva)
+    except ReservaError as e:
+        return JsonResponse({'erro': str(e)}, status=400)
+    return JsonResponse({'sucesso': True, 'emprestimo_id': emprestimo.pk})
 
 @login_required
 def lidos(request):
@@ -529,8 +572,21 @@ def lidos(request):
 
 @login_required
 def reservados(request):
-    return render(request, 'biblioteca/acervo.html', {'aba': 'reservados', **_acervo_counts(request.user),})
+    reservas_ativas = Reserva.objects.filter(
+        usuario=request.user,
+        status__in=['pendente', 'fila', 'aceita', 'aguardando_retirada'],
+    ).select_related('livro').order_by('-data_reserva')
 
+    for r in reservas_ativas:
+        r.livro.cover_from = '#1e5aa8'
+        r.livro.cover_to   = '#0b1526'
+        r.livro.autor_sobrenome = r.livro.autor.split()[-1] if r.livro.autor else ''
+
+    return render(request, 'biblioteca/acervo.html', {
+        'aba': 'reservados',
+        'reservas': reservas_ativas,
+        **_acervo_counts(request.user),
+    })
 
 # ──────────────────────────────────────────
 # LISTAS
@@ -780,15 +836,6 @@ def notificacoes_marcar_todas_lidas(request):
 @require_POST
 @login_required
 def notificacoes_responder(request, pk):
-    """
-    Responde uma notificação do tipo "sim/não" (ex: aceitar/recusar reserva).
-    Payload: { "resposta": "aceita" | "recusada" }
-
-    NOTA: por enquanto isso só registra a resposta na notificação.
-    Quando o sistema de Reservas for implementado, este é o ponto onde vamos
-    plugar a lógica real (ex: se for tipo 'reserva_pendente' e resposta
-    'aceita' -> criar o vínculo no acervo do aluno e notificar ele de volta).
-    """
     notif = get_object_or_404(Notificacao, pk=pk, destinatario=request.user)
     resposta = json.loads(request.body).get('resposta', '').strip()
 
@@ -799,11 +846,34 @@ def notificacoes_responder(request, pk):
     if notif.acao_tomada:
         return JsonResponse({'erro': 'Esta notificação já foi respondida.'}, status=400)
 
+    if notif.reserva_id:
+        try:
+            if notif.tipo == 'reserva_pendente':
+                aceitar_reserva(notif.reserva) if resposta == 'aceita' else recusar_reserva(notif.reserva)
+            elif notif.tipo == 'devolucao_com_reserva' and resposta == 'aceita':
+                confirmar_disponibilidade(notif.reserva)
+        except ReservaError as e:
+            return JsonResponse({'erro': str(e)}, status=400)
+
     notif.acao_tomada = resposta
     notif.lida = True
     notif.save(update_fields=['acao_tomada', 'lida'])
 
     return JsonResponse({'sucesso': True, 'acao_tomada': notif.acao_tomada})
+
+@require_POST
+@login_required
+def notificacoes_excluir(request, pk):
+    notif = get_object_or_404(Notificacao, pk=pk, destinatario=request.user)
+    notif.delete()
+    return JsonResponse({'sucesso': True})
+
+
+@require_POST
+@login_required
+def notificacoes_excluir_todas(request):
+    Notificacao.objects.filter(destinatario=request.user).delete()
+    return JsonResponse({'sucesso': True})
 # ──────────────────────────────────────────
 # ADMIN / BIBLIOTECÁRIA
 # ──────────────────────────────────────────
@@ -1036,8 +1106,17 @@ def devolver_emprestimo(request, pk):
     emprestimo = get_object_or_404(Emprestimo, pk=pk)
     emprestimo.data_devolucao_real = timezone.now().date()
     emprestimo.save()
-    emprestimo.exemplar.status = 'disponivel'
+
+    tem_reserva_aceita = Reserva.objects.filter(
+        livro=emprestimo.exemplar.livro, status='aceita'
+    ).exists()
+
+    emprestimo.exemplar.status = 'reservado' if tem_reserva_aceita else 'disponivel'
     emprestimo.exemplar.save()
+
+    if tem_reserva_aceita:
+        verificar_devolucao_com_reserva(emprestimo)
+
     return JsonResponse({'sucesso': 'Livro devolvido com sucesso.'})
 
 
@@ -1066,15 +1145,14 @@ def excluir_historico(request, pk):
 
 
 @require_POST
+@login_required
 def cancelar_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
-    if reserva.usuario != request.user:
-        return JsonResponse({'erro': 'Sem permissão.'}, status=403)
-    if reserva.status != 'pendente':
-        return JsonResponse({'erro': 'Reserva não pode ser cancelada.'}, status=400)
-    reserva.status = 'cancelada'
-    reserva.save()
-    return JsonResponse({'sucesso': 'Reserva cancelada com sucesso.'})
+    try:
+        cancelar_reserva_usuario(reserva, request.user)
+    except ReservaError as e:
+        return JsonResponse({'erro': str(e)}, status=403)
+    return JsonResponse({'sucesso': 'Reserva cancelada com sucesso.'})  
 
 
 # ──────────────────────────────────────────

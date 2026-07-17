@@ -51,7 +51,7 @@
             <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
         </svg>
         <span data-i18n="aba_reservados">Reservados</span>
-        <span class="aba-count">{{ reservados_count }}</span>
+        <span class="aba-count">{{ reservas_count }}</span>
     </a>
     <a href="{% url 'lidos' %}" class="aba {% if aba == 'lidos' %}active{% endif %}">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -164,24 +164,43 @@
 </div>
 {% endif %}
 
+<!-- ═══════════ Reserva ═══════════ -->
+
 {% if aba == 'reservados' %}
 <div class="loans-col" style="margin-top:24px">
     {% for reserva in reservas %}
     <div class="loan-card">
         <div class="loan-top">
             <div class="bc sm"
-                style="background:linear-gradient(135deg,{{ reserva.livro.cover_from }},{{ reserva.livro.cover_to }})">
+                style="background:linear-gradient(135deg,{{ reserva.livro.cover_from }},{{ reserva.livro.cover_to }});position:relative;overflow:hidden;">
+                {% if reserva.livro.capa_url %}
+                <img src="{{ reserva.livro.capa_url }}" alt="{{ reserva.livro.titulo }}"
+                    style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;">
+                {% else %}
                 <div class="bc-inner">
                     <div class="bc-title">{{ reserva.livro.titulo|truncatechars:22 }}</div>
                     <div class="bc-author">{{ reserva.livro.autor_sobrenome }}</div>
                 </div>
+                {% endif %}
             </div>
             <div class="loan-info">
                 <div class="loan-title">{{ reserva.livro.titulo }}</div>
                 <div class="loan-author">{{ reserva.livro.autor }}</div>
-                <div class="loan-status ok">🔖 <span data-i18n="reservado_em">Reservado em</span> {{
-                    reserva.data_reserva|date:"d/m/Y" }}</div>
+                <div class="loan-status ok">🔖
+                    {% if reserva.status == 'pendente' %}Aguardando aprovação da bibliotecária
+                    {% elif reserva.status == 'fila' %}Na fila de espera (posição {{ reserva.posicao_fila }})
+                    {% elif reserva.status == 'aceita' %}Aguardando o livro voltar
+                    {% elif reserva.status == 'aguardando_retirada' %}Disponível — retire até {{
+                    reserva.data_expiracao|date:"d/m/Y" }}
+                    {% endif %}
+                    · reservado em {{ reserva.data_reserva|date:"d/m/Y" }}
+                </div>
             </div>
+            <button onclick="cancelarReserva({{ reserva.id }}, this)"
+                style="height:32px;padding:0 14px;border-radius:8px;border:1px solid #ef4444;background:transparent;
+                       color:#ef4444;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;align-self:center;">
+                Cancelar
+            </button>
         </div>
     </div>
     {% empty %}
@@ -195,16 +214,18 @@
 </div>
 {% endif %}
 
+<!-- ═══════════ Lidos ═══════════ -->
+
 {% if aba == 'lidos' %}
 <div class="carousel-wrap" style="margin-top:24px">
     <div class="carousel hide-scroll">
         {% for lido in livros_lidos %}
         <div class="bcard" style="cursor:pointer;position:relative;"
             onclick="window.location.href='/biblioteca/livro/{{ lido.livro.id_livro }}/'">
-        
+
             <!-- Botão X para desmarcar -->
-            <button onclick="event.stopPropagation(); desmarcarLido({{ lido.livro.id_livro }}, this)" title="Remover dos lidos"
-                style="position:absolute;top:6px;right:6px;z-index:10;
+            <button onclick="event.stopPropagation(); desmarcarLido({{ lido.livro.id_livro }}, this)"
+                title="Remover dos lidos" style="position:absolute;top:6px;right:6px;z-index:10;
                        width:22px;height:22px;border-radius:50%;
                        background:rgba(0,0,0,0.55);border:none;cursor:pointer;
                        display:flex;align-items:center;justify-content:center;color:#fff;">
@@ -214,7 +235,7 @@
                     <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
             </button>
-        
+
             <div class="bcard-cover-wrap">
                 <div class="bcard-cover"
                     style="background:linear-gradient(135deg,{{ lido.livro.cover_from }},{{ lido.livro.cover_to }});position:relative;overflow:hidden;">
@@ -321,6 +342,22 @@
     </div>
 </div>
 
+<!-- ── MODAL CONFIRMAR CANCELAMENTO DE RESERVA ────────────────── -->
+<div id="modal-confirmar-cancelamento" class="modal-overlay" style="display:none">
+    <div class="modal-box" style="max-width:360px;text-align:center;gap:12px">
+        <div style="font-size:36px">🔖</div>
+        <div class="modal-titulo" style="font-size:16px;font-weight:700" data-i18n="modal_cancelar_reserva_titulo">
+            Cancelar reserva?</div>
+        <p class="modal-sub" style="margin:0" data-i18n="modal_cancelar_reserva_sub">Essa ação não pode ser desfeita.
+            Você perderá sua posição na fila ou sua reserva atual.</p>
+        <div class="modal-btns" style="justify-content:center;gap:12px;margin-top:8px">
+            <button onclick="fecharModalCancelamento()" class="modal-btn-cancel" data-i18n="btn_voltar">Voltar</button>
+            <button onclick="executarCancelamentoReserva()" class="modal-btn-confirm" style="background:#ef4444"
+                data-i18n="btn_confirmar_cancelamento">Sim, cancelar</button>
+        </div>
+    </div>
+</div>
+
 {% block extra_js %}
 <script>
     (function () {
@@ -413,9 +450,45 @@
                     }
                 });
                 if (res.ok) {
-                    window.location.reload(); 
+                    window.location.reload();
                 } else {
                     alert('Erro ao remover.');
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                alert('Erro de conexão.');
+                btn.disabled = false;
+            }
+        };
+
+        // ── MODAL CONFIRMAR CANCELAMENTO DE RESERVA ────────────────
+        let _reservaCancelarPendente = null;
+
+        window.cancelarReserva = function (reservaId, btn) {
+            _reservaCancelarPendente = { id: reservaId, btn: btn };
+            document.getElementById('modal-confirmar-cancelamento').style.display = 'flex';
+        };
+
+        window.fecharModalCancelamento = function () {
+            document.getElementById('modal-confirmar-cancelamento').style.display = 'none';
+            _reservaCancelarPendente = null;
+        };
+
+        window.executarCancelamentoReserva = async function () {
+            if (!_reservaCancelarPendente) return;
+            const { id: reservaId, btn } = _reservaCancelarPendente;
+            fecharModalCancelamento();
+            btn.disabled = true;
+            try {
+                const res = await fetch(`/biblioteca/cancelar-reserva/${reservaId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert(data.erro || 'Erro ao cancelar reserva.');
                     btn.disabled = false;
                 }
             } catch (err) {

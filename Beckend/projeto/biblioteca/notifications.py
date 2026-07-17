@@ -159,3 +159,100 @@ def _notificar_prazo_unico(emp, tipo, titulo, mensagem):
         mensagem=mensagem,
         emprestimo=emp,
     )
+    
+    # ──────────────────────────────────────────
+# RESERVAS
+# ──────────────────────────────────────────
+
+def notificar_reserva_pendente(reserva):
+    aluno = reserva.usuario.get_full_name() or reserva.usuario.username
+    data_str = reserva.data_reserva.strftime('%d/%m/%Y')
+    notificar_bibliotecarios(
+        tipo='reserva_pendente',
+        titulo=f'Nova reserva: "{reserva.livro.titulo}"',
+        mensagem=f'O aluno {aluno} reservou o livro "{reserva.livro.titulo}" em {data_str}. Aceitar a reserva?',
+        requer_acao=True,
+        reserva=reserva,
+    )
+
+
+def notificar_reserva_aceita(reserva):
+    criar_notificacao(
+        destinatario=reserva.usuario,
+        tipo='reserva_aceita',
+        titulo=f'Reserva confirmada: "{reserva.livro.titulo}"',
+        mensagem=(
+            f'Sua reserva para "{reserva.livro.titulo}" foi aceita! '
+            f'Assim que o livro estiver disponível, você será avisado para retirá-lo.'
+        ),
+        reserva=reserva,
+    )
+
+
+def notificar_reserva_recusada(reserva):
+    criar_notificacao(
+        destinatario=reserva.usuario,
+        tipo='reserva_recusada',
+        titulo=f'Reserva não aprovada: "{reserva.livro.titulo}"',
+        mensagem=(
+            f'Poxa, sua reserva para "{reserva.livro.titulo}" não pôde ser aprovada no momento. '
+            f'Fique de olho no acervo — em breve tem novidade por lá!'
+        ),
+        reserva=reserva,
+    )
+
+
+def notificar_fila_posicao(reserva):
+    criar_notificacao(
+        destinatario=reserva.usuario,
+        tipo='fila_posicao',
+        titulo=f'Você entrou na fila: "{reserva.livro.titulo}"',
+        mensagem=(
+            f'O livro "{reserva.livro.titulo}" já tinha reserva de outro aluno. '
+            f'Você está na posição {reserva.posicao_fila} da fila de espera (máx. 3). '
+            f'Assim que chegar sua vez, você será notificado.'
+        ),
+        reserva=reserva,
+    )
+
+
+def notificar_devolucao_com_reserva(emprestimo, reserva):
+    notificar_bibliotecarios(
+        tipo='devolucao_com_reserva',
+        titulo=f'Devolução com reserva pendente: "{reserva.livro.titulo}"',
+        mensagem=(
+            f'O livro "{reserva.livro.titulo}" foi devolvido e tem uma reserva registrada para '
+            f'{reserva.usuario.get_full_name() or reserva.usuario.username}. '
+            f'Confirmar disponibilidade e avisar o aluno?'
+        ),
+        requer_acao=True,
+        reserva=reserva,
+        emprestimo=emprestimo,
+    )
+
+
+def notificar_reserva_disponivel(reserva):
+    criar_notificacao(
+        destinatario=reserva.usuario,
+        tipo='reserva_disponivel',
+        titulo=f'Seu livro chegou: "{reserva.livro.titulo}"',
+        mensagem=(
+            f'O livro "{reserva.livro.titulo}" está disponível para retirada! '
+            f'Você tem até {reserva.data_expiracao.strftime("%d/%m/%Y")} '
+            f'(2 dias) para buscá-lo na biblioteca. Depois disso a reserva expira.'
+        ),
+        reserva=reserva,
+    )
+
+
+def notificar_reserva_expirada(reserva):
+    criar_notificacao(
+        destinatario=reserva.usuario,
+        tipo='reserva_expirada',
+        titulo=f'Reserva expirada: "{reserva.livro.titulo}"',
+        mensagem=(
+            f'O prazo de 2 dias para retirar "{reserva.livro.titulo}" expirou e o livro voltou a '
+            f'ficar disponível para todos. Você pode reservá-lo de novo se ainda tiver interesse.'
+        ),
+        reserva=reserva,
+    )

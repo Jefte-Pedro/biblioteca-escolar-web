@@ -63,7 +63,9 @@
                 <div class="ns">
                     <div class="ns-title">MINHA BIBLIOTECA</div>
                     <div class="nl">
-                        <a href="{% url 'minha_lista' %}" {% if not user.is_authenticated %}onclick="event.preventDefault(); abrirModalLogin('Faça login para acessar sua lista.');"{% endif %} class="nl-link {% if request.resolver_match.url_name == 'minha_lista' %}active{% endif %}">
+                        <a href="{% url 'minha_lista' %}" {% if not user.is_authenticated %}onclick="event.preventDefault(); abrirModalLogin('Faça login para acessar sua lista.');"
+                            {% endif %}
+                            class="nl-link {% if request.resolver_match.url_name == 'minha_lista' %}active{% endif %}">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path
@@ -71,7 +73,9 @@
                             </svg>
                             <span data-i18n="lista">Minha Lista</span>
                         </a>
-                        <a href="{% url 'reservados' %}" {% if not user.is_authenticated %}onclick="event.preventDefault(); abrirModalLogin('Faça login para ver seus livros reservados.');" {% endif %} class="nl-link {% if request.resolver_match.url_name == 'reservados' %}active{% endif %}">
+                        <a href="{% url 'reservados' %}" {% if not user.is_authenticated %}onclick="event.preventDefault(); abrirModalLogin('Faça login para ver seus livros reservados.');"
+                            {% endif %}
+                            class="nl-link {% if request.resolver_match.url_name == 'reservados' %}active{% endif %}">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
@@ -79,7 +83,8 @@
                             <span data-i18n="reservados">Livros Reservados</span>
                         </a>
                         <a href="{% url 'lidos' %}" {% if not user.is_authenticated %}onclick="event.preventDefault(); abrirModalLogin('Faça login para ver seus livros lidos.');"
-                            {% endif %} class="nl-link {% if request.resolver_match.url_name == 'lidos' %}active{% endif %}">
+                            {% endif %}
+                            class="nl-link {% if request.resolver_match.url_name == 'lidos' %}active{% endif %}">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
@@ -87,10 +92,7 @@
                             </svg>
                             <span data-i18n="lidos">Livros Lidos</span>
                         </a>
-                        <a href="{% url 'prazos' %}" {% if not user.is_authenticated
-                            %}onclick="event.preventDefault(); abrirModalLogin('Faça login para ver seus prazos.');" {%
-                            endif %}
-                            class="nl-link {% if request.resolver_match.url_name == 'prazos' %}active{% endif %}">
+                        <a href="{% url 'prazos' %}" {% if not user.is_authenticated %}onclick="event.preventDefault(); abrirModalLogin('Faça login para ver seus prazos.');" {% endif %} class="nl-link {% if request.resolver_match.url_name == 'prazos' %}active{% endif %}">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10" />
@@ -330,6 +332,23 @@
             </div>
         </div>
 
+        <!-- ═══════════ MODAL CONFIRMAR EXCLUSÃO DE TODAS AS NOTIFICAÇÕES ═══════════ -->
+        {% if user.is_authenticated %}
+        <div id="modal-confirmar-excluir-notif" class="modal-overlay" style="display:none;z-index:999">
+            <div class="modal-box" style="max-width:360px;text-align:center;gap:12px">
+                <div style="font-size:36px">🗑️</div>
+                <div class="modal-titulo" style="font-size:16px;font-weight:700">Excluir todas as notificações?</div>
+                <p class="modal-sub" style="margin:0">Essa ação não pode ser desfeita. Todas as notificações serão
+                    removidas permanentemente.</p>
+                <div class="modal-btns" style="justify-content:center;gap:12px;margin-top:8px">
+                    <button onclick="fecharModalExcluirNotif()" class="modal-btn-cancel">Cancelar</button>
+                    <button onclick="executarExcluirTodasNotif()" class="modal-btn-confirm"
+                        style="background:#ef4444">Excluir todas</button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- ═══════════ PAINEL DE NOTIFICAÇÕES ═══════════ -->
         {% if user.is_authenticated %}
         <div id="notif-overlay" class="notif-overlay" onclick="fecharNotifPanelFora(event)">
@@ -347,9 +366,16 @@
                             </svg>
                         </button>
                     </div>
-                    <button id="notif-marcar-todas" class="notif-marcar-todas" onclick="marcarTodasNotifLidas()">
-                        Marcar todas como lidas
-                    </button>
+                    <div style="display:flex;gap:8px;margin:10px 18px 4px;flex-shrink:0;">
+                        <button id="notif-marcar-todas" class="notif-marcar-todas" onclick="marcarTodasNotifLidas()"
+                            style="margin:0;">
+                            Marcar todas como lidas
+                        </button>
+                        <button class="notif-marcar-todas" onclick="excluirTodasNotif()"
+                            style="margin:0;color:#ef4444;">
+                            Excluir todas
+                        </button>
+                    </div>
                     <div id="notif-lista-itens" class="notif-lista-itens">
                         <div class="notif-carregando">Carregando...</div>
                     </div>
@@ -383,6 +409,10 @@
                             <button class="notif-btn-sim" onclick="responderNotifAtual('aceita')">Sim</button>
                         </div>
                         <div id="notif-detalhe-status" class="notif-detalhe-status" style="display:none;"></div>
+                        <button onclick="excluirNotifDetalheAtual()"
+                            style="margin-top:6px;height:36px;border-radius:10px;border:1px solid #ef4444;background:transparent;color:#ef4444;font-size:12.5px;font-weight:600;cursor:pointer;">
+                            Excluir esta notificação
+                        </button>
                     </div>
                 </div>
 
@@ -703,6 +733,33 @@
             border: 1px solid rgba(239, 68, 68, .3);
         }
 
+        .notif-item {
+            position: relative;
+            padding-right: 30px;
+        }
+
+        .notif-item-excluir {
+            position: absolute;
+            top: 8px;
+            right: 6px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--faint);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background .15s, color .15s;
+        }
+
+        .notif-item-excluir:hover {
+            background: rgba(239, 68, 68, .12);
+            color: #ef4444;
+        }
+
         @media (max-width: 480px) {
             .notif-panel {
                 width: 100vw;
@@ -745,6 +802,8 @@
             const URL_MARCAR_LIDA = "{% url 'notificacoes_marcar_lida' pk=0 %}";
             const URL_MARCAR_TODAS = "{% url 'notificacoes_marcar_todas_lidas' %}";
             const URL_RESPONDER = "{% url 'notificacoes_responder' pk=0 %}";
+            const URL_EXCLUIR = "{% url 'notificacoes_excluir' pk=0 %}";
+            const URL_EXCLUIR_TODAS = "{% url 'notificacoes_excluir_todas' %}";
 
             const ICONES_TIPO = {
                 reserva_pendente: { classe: 'tipo-alerta', ico: '🔖' },
@@ -831,6 +890,11 @@
                             </div>
                         </div>
                         ${!n.lida ? '<span class="notif-item-nao-lida"></span>' : ''}
+                        <button class="notif-item-excluir" title="Excluir" onclick="event.stopPropagation(); excluirNotifItem(${n.id})">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </button>
                     `;
                     item.addEventListener('click', () => abrirDetalheNotif(n.id));
                     container.appendChild(item);
@@ -908,6 +972,46 @@
                 } catch { }
             };
 
+            window.excluirNotifItem = async function (id) {
+                try {
+                    await fetch(URL_EXCLUIR.replace('/0/', `/${id}/`), {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    });
+                    notifCache = notifCache.filter(n => n.id !== id);
+                    renderizarListaNotif();
+                    atualizarBadgeContagem();
+                } catch { }
+            };
+
+            window.excluirNotifDetalheAtual = async function () {
+                if (!notifAtualId) return;
+                await excluirNotifItem(notifAtualId);
+                voltarNotifLista();
+            };
+
+            // ── MODAL CONFIRMAR EXCLUSÃO DE TODAS AS NOTIFICAÇÕES ─────
+            window.fecharModalExcluirNotif = function () {
+                document.getElementById('modal-confirmar-excluir-notif').style.display = 'none';
+            };
+
+            window.excluirTodasNotif = function () {
+                document.getElementById('modal-confirmar-excluir-notif').style.display = 'flex';
+            };
+
+            window.executarExcluirTodasNotif = async function () {
+                fecharModalExcluirNotif();
+                try {
+                    await fetch(URL_EXCLUIR_TODAS, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    });
+                    notifCache = [];
+                    renderizarListaNotif();
+                    atualizarBadge(0);
+                } catch { }
+            };
+
             function atualizarBadge(total) {
                 const badge = document.getElementById('notif-badge');
                 if (total > 0) {
@@ -934,8 +1038,18 @@
                 } catch { }
             }
 
+            // Exposto globalmente pra outras páginas (ex: acervo.html) forçarem
+            // a atualização do badge assim que uma ação relevante acontece,
+            // sem precisar esperar o próximo ciclo de 30s.
+            window.atualizarNotifBadge = pollNaoLidas;
+
             pollNaoLidas();
             setInterval(pollNaoLidas, 30000);
+
+            // Se o usuário voltar pra aba (ex: trocou de janela e voltou), atualiza na hora
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) pollNaoLidas();
+            });
         })();
     </script>
     {% endif %}

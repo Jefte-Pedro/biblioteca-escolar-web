@@ -97,7 +97,9 @@
                     <button class="btn-secundario" id="btn-marcar-lido" onclick="toggleMarcarLido()">
                         <span id="label-marcar-lido" data-i18n="btn_lido">Marcar Como Lido</span>
                     </button>
-                    <button class="btn-secundario" data-i18n="btn_reservar">🔖 Reservar</button>
+                    {% if not disponivel %}
+                    <button class="btn-secundario" id="btn-reservar" onclick="reservarLivro()" data-i18n="btn_reservar">🔖 Reservar</button>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -1049,6 +1051,28 @@
             btn.style.opacity = '1';
         }
     }
+    async function reservarLivro() {
+            if (!USUARIO_LOGADO) { alert('Faça login para reservar livros.'); return; }
+            const btn = document.getElementById('btn-reservar');
+            btn.disabled = true;
+            try {
+                const res = await fetch(`/biblioteca/livro/${LIVRO_ID}/reservar/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.mensagem);
+                    btn.textContent = data.fila ? `Na fila (posição ${data.posicao_fila})` : 'Reserva enviada ✓';
+                } else {
+                    alert(data.erro || 'Não foi possível reservar este livro.');
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                alert('Erro de conexão.');
+                btn.disabled = false;
+            }
+        }
 
     function abrirModalLista() {
         if (!USUARIO_LOGADO) { alert('Faça login para adicionar livros às suas listas.'); return; }

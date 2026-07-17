@@ -1,6 +1,4 @@
 """
-biblioteca/management/commands/verificar_prazos.py
-
 Comando para rodar 1x por dia (cron / Agendador de Tarefas do Windows):
 
     python manage.py verificar_prazos

@@ -1,17 +1,19 @@
+"""
+Comando para rodar 1x por dia (cron / Agendador de Tarefas do Windows):
+
+    python manage.py verificar_reservas
+
+Expira reservas 'aguardando_retirada' cujo prazo de 2 dias passou,
+libera o exemplar pra estante geral e promove o próximo da fila (se houver).
+"""
+
 from django.core.management.base import BaseCommand
-from biblioteca.models import Reserva
-from django.utils import timezone
-from datetime import timedelta
+from biblioteca.reservas import expirar_reservas_vencidas
+
 
 class Command(BaseCommand):
-    help = 'Verifica as reservas vencendo em 1 dia e envia mensagem para o Whatsapp do usuário'
+    help = 'Expira reservas vencidas (prazo de retirada de 2 dias) e promove a fila.'
 
-    def handle(self, *args, **kwargs):
-        amanha =timezone.now().date() + timedelta(days=1)
-        # Filtra as reservas que estão vencendo em 1 dia e ainda não foram notificadas
-        reservas_quase_vencendo =Reserva.models.filter(data_expiracao__date=amanha, lembrete_enviado=False)
-
-        for reserva in reservas_quase_vencendo:
-            telefone = reserva.usuario.telefone
-            mensagem = f"Olá {reserva.usuario.nome}, sua reserva do livro '{reserva.livro.titulo}' está vencendo amanhã. Por favor, devolva o livro ou renove a reserva."
-            
+    def handle(self, *args, **options):
+        expirar_reservas_vencidas()
+        self.stdout.write(self.style.SUCCESS('Verificação de reservas concluída com sucesso.'))

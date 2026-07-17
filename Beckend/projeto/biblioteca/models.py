@@ -214,24 +214,33 @@ class Emprestimo(models.Model):
 # ──────────────────────────────────────────
 
 class Reserva(models.Model):
+    STATUS_CHOICES = [
+        ('pendente',            'Pendente'),
+        ('aceita',              'Aceita'),
+        ('aguardando_retirada', 'Aguardando Retirada'),
+        ('concluida',           'Concluída'),
+        ('recusada',            'Recusada'),
+        ('cancelada',           'Cancelada'),
+        ('expirada',            'Expirada'),
+        ('fila',                'Na Fila'),
+    ]
+
     livro            = models.ForeignKey(Livro, on_delete=models.CASCADE)
     usuario          = models.ForeignKey('Usuario', on_delete=models.CASCADE)
     data_reserva     = models.DateTimeField(auto_now_add=True)
     data_expiracao   = models.DateTimeField(blank=True, null=True)
     data_notificacao = models.DateTimeField(null=True, blank=True)
-    status           = models.CharField(max_length=20, choices=[
-        ('pendente',  'Pendente'),
-        ('cancelada', 'Cancelada'),
-        ('concluida', 'Concluída'),
-    ], default='pendente')
+    status           = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pendente')
+    posicao_fila     = models.IntegerField(null=True, blank=True)
     lembrete_enviado = models.BooleanField(default=False)
     observacoes      = models.TextField(blank=True)
 
     class Meta:
         db_table = 'biblioteca_reserva'
+        ordering = ['posicao_fila', 'data_reserva']
 
     def __str__(self):
-        return f"Reserva: {self.livro.titulo} para {self.usuario}"
+        return f"Reserva: {self.livro.titulo} para {self.usuario} ({self.status})"
 
 
 # ──────────────────────────────────────────
