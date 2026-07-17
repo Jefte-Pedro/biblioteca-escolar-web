@@ -190,8 +190,7 @@
                     {% if reserva.status == 'pendente' %}Aguardando aprovação da bibliotecária
                     {% elif reserva.status == 'fila' %}Na fila de espera (posição {{ reserva.posicao_fila }})
                     {% elif reserva.status == 'aceita' %}Aguardando o livro voltar
-                    {% elif reserva.status == 'aguardando_retirada' %}Disponível — retire até {{
-                    reserva.data_expiracao|date:"d/m/Y" }}
+                    {% elif reserva.status == 'aguardando_retirada' %}Disponível — retire até {{ reserva.data_expiracao|date:"d/m/Y" }}
                     {% endif %}
                     · reservado em {{ reserva.data_reserva|date:"d/m/Y" }}
                 </div>

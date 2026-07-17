@@ -196,7 +196,7 @@ def notificar_reserva_recusada(reserva):
         titulo=f'Reserva não aprovada: "{reserva.livro.titulo}"',
         mensagem=(
             f'Poxa, sua reserva para "{reserva.livro.titulo}" não pôde ser aprovada no momento. '
-            f'Fique de olho no acervo — em breve tem novidade por lá!'
+            f'Fique de olho no nosso Acervo em breve tem novidade por lá!'
         ),
         reserva=reserva,
     )

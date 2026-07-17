@@ -22,6 +22,10 @@ DIAS_RETIRADA = 2
 
 STATUS_ATIVOS = ['pendente', 'aceita', 'aguardando_retirada', 'fila']
 
+# Status de reserva em que um Exemplar já pode ter sido reservado
+# especificamente para o usuário (ver devolver_emprestimo/confirmar_disponibilidade).
+STATUS_COM_EXEMPLAR_RESERVADO = ['aceita', 'aguardando_retirada']
+
 
 class ReservaError(Exception):
     """Erro de regra de negócio — vira mensagem amigável pro usuário, não um 500."""
@@ -148,15 +152,39 @@ def confirmar_retirada(reserva):
     return emprestimo
 
 
+def _liberar_exemplar_reservado(livro):
+    """
+    Libera de volta para 'disponivel' o exemplar que estava guardado
+    especificamente para uma reserva (status 'reservado').
+    Chamada sempre que uma reserva nesse estágio é cancelada/recusada,
+    pra evitar que o exemplar fique "preso" indefinidamente.
+    """
+    from .models import Exemplar
+
+    exemplar = Exemplar.objects.filter(livro=livro, status='reservado').first()
+    if exemplar:
+        exemplar.status = 'disponivel'
+        exemplar.save(update_fields=['status'])
+    return exemplar
+
+
 def cancelar_reserva_usuario(reserva, usuario):
     if reserva.usuario_id != usuario.pk:
         raise ReservaError('Sem permissão para cancelar esta reserva.')
     if reserva.status not in STATUS_ATIVOS:
         raise ReservaError('Esta reserva não pode mais ser cancelada.')
 
-    era_cabeca_de_fila = reserva.status != 'fila'
+    status_anterior = reserva.status
+    era_cabeca_de_fila = status_anterior != 'fila'
+
     reserva.status = 'cancelada'
     reserva.save(update_fields=['status'])
+
+    # ── Correção: se a reserva já tinha um exemplar reservado especificamente
+    # pra ela (aceita/aguardando_retirada), precisa devolvê-lo pro estoque
+    # disponível — senão o livro fica marcado como indisponível pra sempre.
+    if status_anterior in STATUS_COM_EXEMPLAR_RESERVADO:
+        _liberar_exemplar_reservado(reserva.livro)
 
     if era_cabeca_de_fila:
         promover_proximo_da_fila(reserva.livro)
@@ -165,16 +193,13 @@ def cancelar_reserva_usuario(reserva, usuario):
 
 def expirar_reservas_vencidas():
     """Chamada 1x/dia via management command `verificar_reservas`."""
-    from .models import Reserva, Exemplar
+    from .models import Reserva
 
     vencidas = Reserva.objects.filter(
         status='aguardando_retirada', data_expiracao__lt=timezone.now(),
     )
     for reserva in vencidas:
-        exemplar = Exemplar.objects.filter(livro=reserva.livro, status='reservado').first()
-        if exemplar:
-            exemplar.status = 'disponivel'
-            exemplar.save(update_fields=['status'])
+        _liberar_exemplar_reservado(reserva.livro)
 
         reserva.status = 'expirada'
         reserva.save(update_fields=['status'])
