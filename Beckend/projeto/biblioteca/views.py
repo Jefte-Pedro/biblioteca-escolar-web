@@ -4,7 +4,7 @@
 
 import io
 from datetime import date
-
+import secrets
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -33,7 +33,6 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 from .gmail import enviar_email
-from .whatsapp import enviar_whatsapp
 from rest_framework import filters, viewsets
 from .models import Emprestimo, Exemplar, Lista, Livro, LivroLido, Reserva, Usuario
 from .serializers import LivroSerializer
@@ -105,7 +104,6 @@ def primeiro_acesso(request):
     matricula = data.get('matricula', '').strip()
     senha = data.get('senha', '').strip()
     email = data.get('email', '').strip()
-    telefone = data.get('telefone', '').strip()
 
     try:
         usuario = Usuario.objects.get(matricula=matricula)
@@ -116,14 +114,11 @@ def primeiro_acesso(request):
         return JsonResponse({'erro': 'Essa conta já foi ativada.'}, status=400)
     if len(senha) < 8:
         return JsonResponse({'erro': 'Senha deve ter pelo menos 8 caracteres.'}, status=400)
-    if not email and not telefone:
-        return JsonResponse({'erro': 'Informe ao menos um canal de contato.'}, status=400)
+    if not email:
+        return JsonResponse({'erro': 'Informe um e-mail.'}, status=400)
 
     usuario.set_password(senha)
-    if email:
-        usuario.email = email
-    if telefone:
-        usuario.telefone = telefone
+    usuario.email = email
     usuario.primeiro_acesso = False
     usuario.save()
 
@@ -166,37 +161,68 @@ def cadastro(request):
 
 
 def recuperar_senha(request):
-    metodo = None
-    if request.method == 'POST':
-        matricula = request.POST.get('matricula')
-        usuario = Usuario.objects.filter(matricula=matricula).first()
-        if usuario:
-            metodo = usuario.telefone or usuario.email
-    return render(request, 'registration/recuperar_senha.html', {'metodo': metodo})
+    return render(request, 'registration/recuperar_senha.html')
 
+def _mascarar_email(email):
+    try:
+        user, dominio = email.split('@')
+    except ValueError:
+        return '***'
+    prefixo = user[0] + '*' if len(user) <= 2 else user[:2] + '*' * (len(user) - 2)
+    return f'{prefixo}@{dominio}'
+
+
+@require_POST
+def recuperar_buscar_contato(request):
+    data = json.loads(request.body)
+    matricula = data.get('matricula', '').strip()
+
+    try:
+        usuario = Usuario.objects.get(matricula=matricula)
+    except Usuario.DoesNotExist:
+        return JsonResponse({'existe': False, 'erro': 'Matrícula não encontrada.'}, status=404)
+
+    if usuario.primeiro_acesso:
+        return JsonResponse({
+            'existe': False,
+            'erro': 'Essa matrícula ainda não tem senha cadastrada. Use "Criar minha senha" na tela de login.',
+        }, status=400)
+
+    if not usuario.email:
+        return JsonResponse({
+            'existe': False,
+            'erro': 'Nenhum e-mail cadastrado para esta matrícula. Fale com a bibliotecária.',
+        }, status=400)
+
+    return JsonResponse({'existe': True, 'email_mascarado': _mascarar_email(usuario.email)})
 
 @require_POST
 def enviar_codigo(request):
     data = json.loads(request.body)
     matricula = data.get('matricula', '').strip()
-    contato = data.get('contato', '').strip()
-    tipo = data.get('tipo', '').strip()  # 'email' ou 'telefone'
+    fluxo = data.get('fluxo', 'cadastro').strip()
 
     try:
         usuario = Usuario.objects.get(matricula=matricula)
     except Usuario.DoesNotExist:
         return JsonResponse({'erro': 'Usuário não encontrado.'}, status=404)
 
-    codigo = str(random.randint(100000, 999999))
-    cache_key = f"codigo_verificacao_{matricula}"
-    cache.set(cache_key, codigo, timeout=600)  # expira em 10 minutos
-
-
-    if tipo == 'telefone':
-        enviar_whatsapp(contato, f"Seu código de acesso à Biblioteca é: {codigo}")
+    if fluxo == 'recuperacao':
+        # Recuperação: o e-mail vem do banco, nunca do cliente.
+        email = usuario.email
+        if not email:
+            return JsonResponse({'erro': 'Nenhum e-mail cadastrado para esta matrícula.'}, status=400)
     else:
-        from .gmail import enviar_codigo_verificacao
-        enviar_codigo_verificacao(contato, codigo)
+        # Cadastro (primeiro acesso): o e-mail ainda não existe no banco.
+        email = data.get('email', '').strip()
+        if not email:
+            return JsonResponse({'erro': 'Informe um e-mail.'}, status=400)
+
+    codigo = str(random.randint(100000, 999999))
+    cache.set(f"codigo_verificacao_{matricula}", codigo, timeout=600)
+
+    from .gmail import enviar_codigo_verificacao
+    enviar_codigo_verificacao(email, codigo)
 
     return JsonResponse({'sucesso': True})
 
@@ -206,6 +232,7 @@ def verificar_codigo(request):
     data = json.loads(request.body)
     matricula = data.get('matricula', '').strip()
     codigo_digitado = data.get('codigo', '').strip()
+    fluxo = data.get('fluxo', 'cadastro').strip()
 
     cache_key = f"codigo_verificacao_{matricula}"
     codigo_salvo = cache.get(cache_key)
@@ -216,13 +243,47 @@ def verificar_codigo(request):
         return JsonResponse({'erro': 'Código incorreto.'}, status=400)
 
     cache.delete(cache_key)
+
+    if fluxo == 'recuperacao':
+        # Gera um token de curta duração para autorizar a troca de senha na próxima tela.
+        token = secrets.token_urlsafe(32)
+        cache.set(f"reset_token_{matricula}", token, timeout=600)
+        return JsonResponse({'sucesso': True, 'reset_token': token})
+
     return JsonResponse({'sucesso': True})
 
+@require_POST
+def redefinir_senha_recuperacao(request):
+    data = json.loads(request.body)
+    matricula = data.get('matricula', '').strip()
+    token = data.get('token', '').strip()
+    nova_senha = data.get('senha_nova', '').strip()
+
+    if not matricula or not token or not nova_senha:
+        return JsonResponse({'erro': 'Dados incompletos.'}, status=400)
+    if len(nova_senha) < 8:
+        return JsonResponse({'erro': 'A nova senha deve ter pelo menos 8 caracteres.'}, status=400)
+
+    cache_key = f"reset_token_{matricula}"
+    token_salvo = cache.get(cache_key)
+    if not token_salvo or token_salvo != token:
+        return JsonResponse({'erro': 'Sessão de redefinição expirada. Solicite um novo código.'}, status=400)
+
+    try:
+        usuario = Usuario.objects.get(matricula=matricula)
+    except Usuario.DoesNotExist:
+        return JsonResponse({'erro': 'Usuário não encontrado.'}, status=404)
+
+    usuario.set_password(nova_senha)
+    usuario.save()
+    cache.delete(cache_key)
+
+    return JsonResponse({'sucesso': True, 'redirect': '/biblioteca/login/'})
 
 def verificar_codigo_page(request):
     matricula = request.GET.get('matricula', '').strip()
     contato = request.GET.get('contato', '').strip()
-    tipo = request.GET.get('tipo', '').strip()
+    fluxo = request.GET.get('fluxo', 'cadastro').strip()
 
     if not matricula or not contato:
         return redirect('login')
@@ -230,9 +291,14 @@ def verificar_codigo_page(request):
     return render(request, 'registration/verificar_codigo.html', {
         'matricula': matricula,
         'contato':   contato,
-        'tipo':      tipo,
+        'fluxo':     fluxo,
     })
 
+def nova_senha_page(request):
+    matricula = request.GET.get('matricula', '').strip()
+    if not matricula:
+        return redirect('login')
+    return render(request, 'registration/nova_senha.html', {'matricula': matricula})
 
 # ──────────────────────────────────────────
 # PÁGINAS PRINCIPAIS

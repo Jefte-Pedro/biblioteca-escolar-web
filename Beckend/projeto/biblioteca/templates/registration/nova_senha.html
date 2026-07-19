@@ -1,0 +1,123 @@
+{% extends 'registration/base_auth.html' %}
+{% load static %}
+
+{% block title %}Nova Senha — Biblioteca{% endblock %}
+
+{% block content %}
+<div style="min-height:80vh; display:flex; align-items:center; justify-content:center; padding:2rem;">
+    <div
+        style="background:var(--card); border:1px solid var(--border); border-radius:16px; padding:2.5rem; width:100%; max-width:420px;">
+
+        <div
+            style="width:56px; height:56px; background:rgba(79,148,214,0.15); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4F94D6" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+        </div>
+
+        <h2 style="font-size:1.4rem; font-weight:700; margin-bottom:.5rem; text-align:center;">Defina sua nova senha
+        </h2>
+        <p style="color:var(--text-muted); font-size:.9rem; margin-bottom:2rem; text-align:center;">
+            Escolha uma senha com pelo menos 8 caracteres.
+        </p>
+
+        <div class="field" style="margin-bottom:16px">
+            <label class="field-label" for="nova-senha">Nova senha</label>
+            <div class="field-wrap">
+                <span class="field-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                </span>
+                <input class="field-input" id="nova-senha" type="password" placeholder="••••••••"
+                    autocomplete="new-password" />
+            </div>
+        </div>
+
+        <div class="field" style="margin-bottom:8px">
+            <label class="field-label" for="confirmar-senha">Confirmar nova senha</label>
+            <div class="field-wrap">
+                <span class="field-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                </span>
+                <input class="field-input" id="confirmar-senha" type="password" placeholder="••••••••"
+                    autocomplete="new-password" />
+            </div>
+        </div>
+
+        <div id="erro-msg" style="display:none; color:#ef4444; font-size:.85rem; margin:8px 0 4px"></div>
+
+        <button id="btn-salvar" onclick="salvarNovaSenha()"
+            style="width:100%; padding:.85rem; background:#4F94D6; color:#fff; border:none; border-radius:10px; font-size:.95rem; font-weight:600; cursor:pointer; margin-top:12px;">
+            Salvar nova senha
+        </button>
+
+    </div>
+</div>
+
+<script>
+    const matricula = "{{ matricula }}";
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    function mostrarErro(msg) {
+        const el = document.getElementById('erro-msg');
+        el.textContent = msg; el.style.display = 'block';
+    }
+    function esconderErro() { document.getElementById('erro-msg').style.display = 'none'; }
+
+    // Sem token válido não tem como redefinir — manda de volta pro início da recuperação.
+    const token = sessionStorage.getItem('reset_token');
+    if (!token) {
+        window.location.href = "{% url 'recuperar_senha' %}";
+    }
+
+    async function salvarNovaSenha() {
+        esconderErro();
+        const senha = document.getElementById('nova-senha').value.trim();
+        const confirmar = document.getElementById('confirmar-senha').value.trim();
+
+        if (senha.length < 8) { mostrarErro('A senha deve ter pelo menos 8 caracteres.'); return; }
+        if (senha !== confirmar) { mostrarErro('As senhas não coincidem.'); return; }
+
+        const btn = document.getElementById('btn-salvar');
+        btn.disabled = true;
+        btn.textContent = 'Salvando...';
+
+        try {
+            const res = await fetch('/biblioteca/login/redefinir-senha/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ matricula, token, senha_nova: senha })
+            });
+            const data = await res.json();
+
+            if (!data.sucesso) {
+                mostrarErro(data.erro || 'Erro ao redefinir senha.');
+                btn.disabled = false;
+                btn.textContent = 'Salvar nova senha';
+                return;
+            }
+
+            sessionStorage.removeItem('reset_token');
+            window.location.href = data.redirect;
+
+        } catch (err) {
+            mostrarErro('Erro de conexão. Tente novamente.');
+            btn.disabled = false;
+            btn.textContent = 'Salvar nova senha';
+        }
+    }
+</script>
+{% endblock %}

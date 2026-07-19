@@ -95,5 +95,9 @@ urlpatterns = [
     path('exportar/emprestimos/', views.exportar_emprestimos,  name='exportar_emprestimos'),
     path('exportar/alunos/', views.exportar_alunos,      name='exportar_alunos'),
     
+    path('login/recuperar-buscar-contato/', views.recuperar_buscar_contato, name='recuperar_buscar_contato'),
+    path('login/redefinir-senha/', views.redefinir_senha_recuperacao, name='redefinir_senha_recuperacao'),
+    path('login/nova-senha/', views.nova_senha_page, name='nova_senha_page'),
+    
     path('api/', include(router.urls)),
 ]   

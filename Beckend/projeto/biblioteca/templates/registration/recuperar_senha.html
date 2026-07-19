@@ -28,7 +28,7 @@
             </div>
             <h1 class="lp-hero-h" style="margin-top:20px">Esqueceu<br>sua senha?</h1>
             <p class="lp-hero-p">
-                Sem problema. Vamos mandar um código para o canal que você cadastrou.
+                Sem problema. Vamos mandar um código para o e-mail que você cadastrou.
             </p>
         </div>
 
@@ -50,7 +50,7 @@
 
             <!-- Role toggle -->
             <div class="role-toggle" id="rec-role-toggle">
-                <button class="role-btn active" id="rec-btn-aluno" onclick="recSetRole('aluno')">
+                <button type="button" class="role-btn active" id="rec-btn-aluno" onclick="recSetRole('aluno')">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -58,7 +58,7 @@
                     </svg>
                     Aluno
                 </button>
-                <button class="role-btn" id="rec-btn-func" onclick="recSetRole('funcionario')">
+                <button type="button" class="role-btn" id="rec-btn-func" onclick="recSetRole('funcionario')">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
@@ -70,9 +70,8 @@
 
             <!-- Formulário aluno -->
             <div id="rec-form-aluno">
-                <form method="POST" action="{% url 'recuperar_senha' %}">
+                <form id="form-recuperar" onsubmit="return false;">
                     {% csrf_token %}
-                    <input type="hidden" name="role" value="aluno">
 
                     <!-- Matrícula -->
                     <div class="field">
@@ -92,29 +91,11 @@
                         </div>
                     </div>
 
-                    <!-- Canais (aparecem após digitar matrícula válida) -->
+                    <!-- E-mail cadastrado (aparece após matrícula válida) -->
                     <div class="field" id="rec-channels-wrap" style="display:none">
-                        <label class="field-label">Enviar código para</label>
+                        <label class="field-label">Enviaremos o código para</label>
 
-                        <!-- WhatsApp -->
-                        <label class="rec-channel-option" id="rec-opt-wa">
-                            <input type="radio" name="canal" value="whatsapp" checked />
-                            <div class="rec-channel-icon" style="background:rgba(34,197,94,.12)">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path
-                                        d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.11 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="rec-channel-title">WhatsApp cadastrado</div>
-                                <div class="rec-channel-sub" id="rec-wa-hint">(81) 9 8000-·· ·89</div>
-                            </div>
-                        </label>
-
-                        <!-- E-mail -->
-                        <label class="rec-channel-option" id="rec-opt-email">
-                            <input type="radio" name="canal" value="email" />
+                        <div class="rec-channel-option rec-channel-option-info" id="rec-opt-email">
                             <div class="rec-channel-icon" style="background:rgba(79,148,214,.15)">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4F94D6"
                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -125,12 +106,16 @@
                             </div>
                             <div>
                                 <div class="rec-channel-title">E-mail cadastrado</div>
-                                <div class="rec-channel-sub" id="rec-email-hint">m••ia@email.com</div>
+                                <div class="rec-channel-sub" id="rec-email-hint">—</div>
                             </div>
-                        </label>
+                        </div>
                     </div>
 
-                    <button type="submit" class="submit-btn" id="rec-submit-btn">
+                    <!-- Erro -->
+                    <div id="rec-erro" style="display:none;color:#ef4444;font-size:.85rem;margin:8px 0 4px"></div>
+
+                    <button type="button" class="submit-btn" id="rec-submit-btn" onclick="enviarCodigoRecuperacao()"
+                        disabled>
                         Enviar código de recuperação
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -140,7 +125,7 @@
                     </button>
 
                     <div class="rec-no-access">
-                        Não tem acesso a nenhum dos canais?<br>
+                        Não tem acesso ao e-mail cadastrado?<br>
                         <a href="#" class="rf-forgot">Fale com a bibliotecária para redefinir seu acesso.</a>
                     </div>
 
@@ -184,10 +169,104 @@
         document.getElementById('rec-form-func').style.display = role === 'funcionario' ? 'block' : 'none';
     }
 
-    /* Mostra canais após digitar matrícula com 7+ dígitos */
-    document.getElementById('rec-matricula').addEventListener('input', function () {
-        const show = this.value.replace(/\D/g, '').length >= 7;
-        document.getElementById('rec-channels-wrap').style.display = show ? 'block' : 'none';
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    let recMatriculaValida = null;
+
+    function recMostrarErro(msg) {
+        const el = document.getElementById('rec-erro');
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+    function recEsconderErro() {
+        document.getElementById('rec-erro').style.display = 'none';
+    }
+
+    async function recBuscarContato(matricula) {
+        try {
+            const res = await fetch('/biblioteca/login/recuperar-buscar-contato/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ matricula })
+            });
+            const data = await res.json();
+
+            if (!data.existe) {
+                recMostrarErro(data.erro || 'Matrícula não encontrada.');
+                document.getElementById('rec-channels-wrap').style.display = 'none';
+                document.getElementById('rec-submit-btn').disabled = true;
+                recMatriculaValida = null;
+                return;
+            }
+
+            recEsconderErro();
+            document.getElementById('rec-email-hint').textContent = data.email_mascarado;
+            document.getElementById('rec-channels-wrap').style.display = 'block';
+            document.getElementById('rec-submit-btn').disabled = false;
+            recMatriculaValida = matricula;
+
+        } catch (err) {
+            recMostrarErro('Erro de conexão. Tente novamente.');
+        }
+    }
+
+    /* Busca o e-mail cadastrado após digitar matrícula */
+    document.getElementById('rec-matricula').addEventListener('blur', function () {
+            const matricula = this.value.replace(/\D/g, '');
+            if (!matricula) return;
+            recBuscarContato(matricula);
+        });
+
+    document.getElementById('rec-matricula').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            this.blur(); // dispara o mesmo fluxo do blur acima
+        }
     });
+    /* Se o usuário editar a matrícula depois, invalida o estado anterior */
+    document.getElementById('rec-matricula').addEventListener('input', function () {
+        recMatriculaValida = null;
+        document.getElementById('rec-channels-wrap').style.display = 'none';
+        document.getElementById('rec-submit-btn').disabled = true;
+        recEsconderErro();
+    });
+
+    async function enviarCodigoRecuperacao() {
+        if (!recMatriculaValida) return;
+
+        const btn = document.getElementById('rec-submit-btn');
+        const textoOriginal = btn.innerHTML;
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+
+        try {
+            const res = await fetch('/biblioteca/login/enviar-codigo/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ matricula: recMatriculaValida, fluxo: 'recuperacao' })
+            });
+            const data = await res.json();
+
+            if (!data.sucesso) {
+                recMostrarErro(data.erro || 'Erro ao enviar código.');
+                btn.disabled = false;
+                btn.innerHTML = textoOriginal;
+                return;
+            }
+
+            const contato = document.getElementById('rec-email-hint').textContent;
+            const params = new URLSearchParams({ matricula: recMatriculaValida, contato, fluxo: 'recuperacao' });
+            window.location.href = `/biblioteca/login/verificar/?${params.toString()}`;
+
+        } catch (err) {
+            recMostrarErro('Erro de conexão. Tente novamente.');
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+        }
+    }
 </script>
 {% endblock %}

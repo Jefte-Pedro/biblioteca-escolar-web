@@ -7,7 +7,6 @@ notificacoes_enviadas = set()
 
 def verificar_prazos():
     from .models import Emprestimo
-    from .whatsapp import enviar_whatsapp
     from .gmail import enviar_aviso_atraso, enviar_aviso_prazo
 
     print("Verificando prazos...")
@@ -36,22 +35,6 @@ def verificar_prazos():
         chave = (e.pk, tipo, str(e.data_devolucao_prevista))
         if chave in notificacoes_enviadas:
             continue
-
-        # WhatsApp
-        if usuario.telefone:
-            if tipo == "prazo":
-                msg_zap = (
-                    f"Olá {nome}!\n\n"
-                    f"Seu empréstimo do livro *{titulo}* vence em 2 dias.\n"
-                    f"Por favor, realize a devolução dentro do prazo."
-                )
-            else:
-                msg_zap = (
-                    f"Olá {nome}!\n\n"
-                    f"Seu empréstimo do livro *{titulo}* está atrasado.\n"
-                    f"Por favor, regularize a devolução."
-                )
-            enviar_whatsapp(usuario.telefone, msg_zap)
 
         # E-mail
         if usuario.email:

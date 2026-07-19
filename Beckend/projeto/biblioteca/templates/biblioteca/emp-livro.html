@@ -166,8 +166,8 @@
                         <span class="emp-tag-renovado">Renovado ({{ emp.renovacoes_concluidas }}x)</span>
                         {% endif %}
                     </div>
-                        
-                        <!-- AÇÕES -->
+
+                    <!-- AÇÕES -->
                     <div class="emp-cell-acoes">
                         {% if emp.esta_atrasado %}
                         <button class="emp-btn-notificar" title="Notificar aluno">
@@ -858,78 +858,79 @@
     /* ══════════════════════════════════════════
    RESPONSIVO — layout em cards no mobile
 ═══════════════════════════════════════════ */
-@media (max-width: 768px) {
+    @media (max-width: 768px) {
 
-    .emp-tabela-header {
-        display: none !important;
-    }
+        .emp-tabela-header {
+            display: none !important;
+        }
 
-    #conteudo-dinamico-emprestimo .emp-linha,
-    #conteudo-dinamico-emprestimo .emp-linha-historico {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 10px;
-        padding: 14px;
-        border-bottom: 1px solid var(--border);
-    }
+        #conteudo-dinamico-emprestimo .emp-linha,
+        #conteudo-dinamico-emprestimo .emp-linha-historico {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px;
+            padding: 14px;
+            border-bottom: 1px solid var(--border);
+        }
 
-    .emp-cell-livro {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
+        .emp-cell-livro {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-    .emp-cell-aluno,
-    .emp-cell-data,
-    .emp-cell-devolver,
-    .emp-cell-status {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        font-size: 13px;
-    }
+        .emp-cell-aluno,
+        .emp-cell-data,
+        .emp-cell-devolver,
+        .emp-cell-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 13px;
+        }
 
-    .emp-cell-aluno::before,
-    .emp-cell-data::before,
-    .emp-cell-devolver::before,
-    .emp-cell-status::before {
-        content: attr(data-label);
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: .05em;
-        color: var(--faint);
-        text-transform: uppercase;
-        flex-shrink: 0;
-    }
+        .emp-cell-aluno::before,
+        .emp-cell-data::before,
+        .emp-cell-devolver::before,
+        .emp-cell-status::before {
+            content: attr(data-label);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .05em;
+            color: var(--faint);
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
 
-    .emp-cell-acoes {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        justify-content: flex-start;
-        margin-top: 4px;
-    }
+        .emp-cell-acoes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-start;
+            margin-top: 4px;
+        }
 
-    .emp-cell-acoes button {
-        flex: 1;
-        min-width: 100px;
-        justify-content: center;
-    }
+        .emp-cell-acoes button {
+            flex: 1;
+            min-width: 100px;
+            justify-content: center;
+        }
 
-    .emp-controles {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
+        .emp-controles {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
 
-    .emp-filtros {
-        flex-wrap: wrap;
+        .emp-filtros {
+            flex-wrap: wrap;
+        }
+
+        .emp-busca-wrap {
+            width: 100%;
+        }
     }
-    .emp-busca-wrap {
-        width: 100%;
-    }
-}
 </style>
 
 <script>
@@ -940,37 +941,37 @@
     const GRID_HISTORICO = '1.7fr 1.7fr 1.1fr 1.5fr 1.2fr 0.8fr';
 
     function aplicarGrid(abaAtiva) {
-            // Em telas pequenas o CSS assume o controle (layout em cards) — não forçamos grid inline
-            if (window.matchMedia('(max-width: 768px)').matches) return;
+        // Em telas pequenas o CSS assume o controle (layout em cards) — não forçamos grid inline
+        if (window.matchMedia('(max-width: 768px)').matches) return;
 
-            const isHist = abaAtiva === 'historico';
-            const grid = isHist ? GRID_HISTORICO : GRID_ATIVO;
+        const isHist = abaAtiva === 'historico';
+        const grid = isHist ? GRID_HISTORICO : GRID_ATIVO;
 
-            const header = document.getElementById('emp-tabela-header');
-            if (header) {
-                header.style.cssText += `; grid-template-columns: ${grid} !important`;
-            }
-
-            document.querySelectorAll(
-                '#conteudo-dinamico-emprestimo .emp-linha:not(.emp-linha-historico)'
-            ).forEach(l => {
-                l.style.cssText += `; grid-template-columns: ${GRID_ATIVO} !important`;
-            });
-
-            document.querySelectorAll(
-                '#conteudo-dinamico-emprestimo .emp-linha-historico:not(.emp-gaveta)'
-            ).forEach(l => {
-                l.style.cssText += `; grid-template-columns: ${GRID_HISTORICO} !important`;
-            });
+        const header = document.getElementById('emp-tabela-header');
+        if (header) {
+            header.style.cssText += `; grid-template-columns: ${grid} !important`;
         }
 
-        aplicarGrid('ativos');
-
-        // Reaplica o grid (ou remove) quando a tela é redimensionada / rotacionada
-        window.addEventListener('resize', () => {
-            const abaAtiva = document.querySelector('.emp-aba.ativa')?.dataset.aba || 'ativos';
-            aplicarGrid(abaAtiva);
+        document.querySelectorAll(
+            '#conteudo-dinamico-emprestimo .emp-linha:not(.emp-linha-historico)'
+        ).forEach(l => {
+            l.style.cssText += `; grid-template-columns: ${GRID_ATIVO} !important`;
         });
+
+        document.querySelectorAll(
+            '#conteudo-dinamico-emprestimo .emp-linha-historico:not(.emp-gaveta)'
+        ).forEach(l => {
+            l.style.cssText += `; grid-template-columns: ${GRID_HISTORICO} !important`;
+        });
+    }
+
+    aplicarGrid('ativos');
+
+    // Reaplica o grid (ou remove) quando a tela é redimensionada / rotacionada
+    window.addEventListener('resize', () => {
+        const abaAtiva = document.querySelector('.emp-aba.ativa')?.dataset.aba || 'ativos';
+        aplicarGrid(abaAtiva);
+    });
 
     // ═══════════════════════════════════════════════════════════
     // ESTADO DO MODAL
@@ -1262,6 +1263,15 @@
             .then(data => renderAcLivro(data.livros));
     }
 
+    // Monta o conteúdo da capa: se o livro tem capa_url, usa a imagem;
+    // caso contrário, cai no fallback (letra inicial do título) — igual à tabela principal.
+    function conteudoCapaLivro(livro) {
+        if (livro.capa_url) {
+            return `<img src="${livro.capa_url}" alt="${livro.titulo}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`;
+        }
+        return livro.titulo[0];
+    }
+
     function renderAcLivro(livros) {
         const lista = document.getElementById('ac-livro');
         lista.innerHTML = '';
@@ -1278,7 +1288,7 @@
                 ? `<span class="emp-ac-badge emp-ac-badge-green">${livro.qtd_disponivel} disponível</span>`
                 : `<span class="emp-ac-badge emp-ac-badge-red">Indisponível</span>`;
             item.innerHTML = `
-                <div class="emp-ac-mini-capa" style="background:linear-gradient(135deg,${cor},#0b1526);">${livro.titulo[0]}</div>
+                <div class="emp-ac-mini-capa" style="background:linear-gradient(135deg,${cor},#0b1526);position:relative;overflow:hidden;">${conteudoCapaLivro(livro)}</div>
                 <div class="emp-ac-info">
                     <div class="emp-ac-nome">${livro.titulo}</div>
                     <div class="emp-ac-sub">${livro.autor || 'Autor desconhecido'} · Prateleira ${livro.prateleira || '—'}</div>
@@ -1296,8 +1306,11 @@
         document.getElementById('emp-titulo').style.display = 'none';
         document.getElementById('ac-livro').style.display = 'none';
         const cor = corAvatar(livro.id);
-        document.getElementById('preview-livro-capa').style.background = `linear-gradient(135deg,${cor},#0b1526)`;
-        document.getElementById('preview-livro-capa').textContent = livro.titulo[0];
+        const capaEl = document.getElementById('preview-livro-capa');
+        capaEl.style.background = `linear-gradient(135deg,${cor},#0b1526)`;
+        capaEl.style.position = 'relative';
+        capaEl.style.overflow = 'hidden';
+        capaEl.innerHTML = conteudoCapaLivro(livro);
         document.getElementById('preview-livro-titulo').textContent = livro.titulo;
         document.getElementById('preview-livro-sub').textContent = `${livro.autor || 'Autor desconhecido'} · Prateleira ${livro.prateleira || '—'}`;
         const badges = document.getElementById('preview-livro-badges');

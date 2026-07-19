@@ -299,18 +299,15 @@
         }
     }
 
-    // Verifica ao sair do campo (blur) — só se tiver 7+ dígitos
-    document.getElementById('matricula').addEventListener('blur', function () {
+    // Verifica ao sair do campo (blur) 
+   document.getElementById('matricula').addEventListener('blur', function () {
         const matricula = this.value.trim();
-        if (matricula.length < 4) return;
+        if (!matricula) return;
         esconderErro();
-
-        // Esconde senha se mudou a matrícula
         if (!matriculaVerificada) {
             document.getElementById('campo-senha').style.display = 'none';
             document.getElementById('campo-remember').style.display = 'none';
         }
-
         verificarMatricula(matricula);
     });
 
