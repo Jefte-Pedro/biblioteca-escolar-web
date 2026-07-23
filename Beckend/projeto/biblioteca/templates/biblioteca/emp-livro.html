@@ -170,7 +170,8 @@
                     <!-- AÇÕES -->
                     <div class="emp-cell-acoes">
                         {% if emp.esta_atrasado %}
-                        <button class="emp-btn-notificar" title="Notificar aluno">
+                        <button class="emp-btn-notificar" onclick="notificarAtraso({{ emp.pk }}, this)"
+                            title="Notificar aluno">
                             <i class="fa-solid fa-bell"></i> Notificar
                         </button>
                         {% else %}
@@ -695,7 +696,11 @@
         color: #fff;
     }
 
-    /* ── Date picker customizado ── */
+    /* ── Date picker customizado ──
+       position: fixed (não mais absolute) para que o calendário escape
+       de qualquer overflow:hidden do modal/container pai e possa ser
+       posicionado dinamicamente pelo JS conforme o espaço disponível
+       na tela (posicionarDropdown). */
     .dp-wrap {
         position: relative;
         display: flex;
@@ -735,16 +740,15 @@
     }
 
     .dp-dropdown {
-        position: absolute;
-        top: calc(100% + 8px);
-        left: 0;
+        position: fixed;
         width: 260px;
+        max-width: calc(100vw - 16px);
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: var(--r-md, 10px);
         box-shadow: 0 14px 30px rgba(0, 0, 0, .3);
         padding: 12px;
-        z-index: 60;
+        z-index: 3000;
         display: none;
         cursor: default;
     }
@@ -930,6 +934,11 @@
         .emp-busca-wrap {
             width: 100%;
         }
+
+        /* No mobile o calendário fica mais estreito para nunca estourar a tela */
+        .dp-dropdown {
+            width: min(260px, calc(100vw - 24px));
+        }
     }
 </style>
 
@@ -1010,6 +1019,43 @@
         document.querySelectorAll('.cs-wrap.aberto, .dp-wrap.aberto').forEach(w => w.classList.remove('aberto'));
     }
     document.addEventListener('click', fecharTodosDropdownsCustom);
+
+    // Como os calendários (.dp-dropdown) agora usam position:fixed, a posição
+    // calculada fica errada se a página rolar ou a janela for redimensionada
+    // enquanto o calendário está aberto. Mais simples e seguro: fechar tudo.
+    window.addEventListener('scroll', (e) => {
+        const dentroDropdown = e.target.closest && (e.target.closest('.cs-dropdown') || e.target.closest('.dp-dropdown'));
+        if (!dentroDropdown) fecharTodosDropdownsCustom();
+    }, true);
+    window.addEventListener('resize', fecharTodosDropdownsCustom);
+
+    // Calcula a melhor posição para um dropdown fixed, considerando as
+    // bordas da tela (abre para cima se não couber embaixo, e alinha pela
+    // direita se não couber pela esquerda).
+    function posicionarDropdown(wrap, dropdown) {
+        const rect = wrap.getBoundingClientRect();
+        const margem = 8;
+        const dw = dropdown.offsetWidth || 260;
+        const dh = dropdown.offsetHeight || 320;
+
+        let top = rect.bottom + margem;
+        let left = rect.left;
+
+        // Estoura embaixo da tela? Abre para cima do campo.
+        if (top + dh > window.innerHeight - margem) {
+            const topAcima = rect.top - dh - margem;
+            top = topAcima < margem ? margem : topAcima;
+        }
+
+        // Estoura à direita da tela? Alinha pela direita do campo.
+        if (left + dw > window.innerWidth - margem) {
+            left = rect.right - dw;
+        }
+        if (left < margem) left = margem;
+
+        dropdown.style.top = `${top}px`;
+        dropdown.style.left = `${left}px`;
+    }
 
     function initCustomSelect(wrapId) {
         const wrap = document.getElementById(wrapId);
@@ -1156,9 +1202,11 @@
 
         dropdown.querySelector('[data-nav="-1"]').addEventListener('click', () => {
             mesExibido--; if (mesExibido < 0) { mesExibido = 11; anoExibido--; } render();
+            posicionarDropdown(wrap, dropdown);
         });
         dropdown.querySelector('[data-nav="1"]').addEventListener('click', () => {
             mesExibido++; if (mesExibido > 11) { mesExibido = 0; anoExibido++; } render();
+            posicionarDropdown(wrap, dropdown);
         });
         dropdown.querySelector('[data-acao="hoje"]').addEventListener('click', () => {
             const iso = hoje.toISOString().split('T')[0];
@@ -1184,6 +1232,9 @@
                 else { anoExibido = hoje.getFullYear(); mesExibido = hoje.getMonth(); }
                 render();
                 wrap.classList.add('aberto');
+                // Posiciona o calendário conforme o espaço disponível na tela
+                // (evita que ele seja cortado perto das bordas do modal/viewport).
+                posicionarDropdown(wrap, dropdown);
             }
         });
         dropdown.addEventListener('click', e => e.stopPropagation());
@@ -1703,6 +1754,36 @@
                 }
             })
             .catch(() => { btn.disabled = false; btn.style.opacity = '1'; alert('Erro de conexão.'); });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // NOTIFICAR ATRASO
+    // ═══════════════════════════════════════════════════════════
+    function notificarAtraso(pk, btn) {
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+
+        fetch(`/biblioteca/emprestimos/notificar-atraso/${pk}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.sucesso) {
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Notificado';
+                    setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2500);
+                } else {
+                    alert('Erro: ' + (data.erro || 'Não foi possível notificar.'));
+                    btn.innerHTML = original;
+                    btn.disabled = false;
+                }
+            })
+            .catch(() => {
+                alert('Erro de conexão.');
+                btn.innerHTML = original;
+                btn.disabled = false;
+            });
     }
 
     // ═══════════════════════════════════════════════════════════

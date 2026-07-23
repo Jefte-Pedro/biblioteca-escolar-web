@@ -1229,6 +1229,39 @@ def cancelar_reserva(request, pk):
         return JsonResponse({'erro': str(e)}, status=403)
     return JsonResponse({'sucesso': 'Reserva cancelada com sucesso.'})  
 
+@require_POST
+@login_required
+def notificar_atraso(request, pk):
+    """
+    Envia notificação (sininho + e-mail) para o aluno de um empréstimo
+    atrasado. Chamado pelo botão "Notificar" na tela de Empréstimos.
+    """
+    emprestimo = get_object_or_404(Emprestimo, pk=pk)
+
+    if not emprestimo.esta_atrasado():
+        return JsonResponse({'erro': 'Este empréstimo não está atrasado.'}, status=400)
+
+    usuario = emprestimo.usuario
+    if not usuario:
+        return JsonResponse({'erro': 'Empréstimo sem aluno vinculado.'}, status=400)
+
+    titulo_livro = emprestimo.exemplar.livro.titulo if emprestimo.exemplar and emprestimo.exemplar.livro else 'o livro'
+    dias_atraso = abs((emprestimo.data_devolucao_prevista - date.today()).days)
+
+    from .notifications import criar_notificacao
+    criar_notificacao(
+        destinatario=usuario,
+        tipo='atraso',
+        titulo=f'"{titulo_livro}" está atrasado',
+        mensagem=(
+            f'O livro "{titulo_livro}" está atrasado há {dias_atraso} '
+            f'dia{"s" if dias_atraso != 1 else ""}. Devolva o quanto antes '
+            f'para regularizar sua situação na biblioteca.'
+        ),
+        emprestimo=emprestimo,
+    )
+
+    return JsonResponse({'sucesso': True, 'enviado_email': bool(usuario.email)})
 
 # ──────────────────────────────────────────
 # ALUNOS

@@ -89,7 +89,7 @@ urlpatterns = [
     path('alunos/atribuir-cargo/<int:pk>/', views.atribuir_cargo, name='atribuir_cargo'),
 
     path('emprestimos/excluir-historico/<int:pk>/', views.excluir_historico, name='excluir-historico'),
-    
+    path('emprestimos/notificar-atraso/<int:pk>/', views.notificar_atraso, name='notificar_atraso'),
     path('exportar/', views.exportar, name='exportar'),
     path('exportar/acervo/', views.exportar_acervo,      name='exportar_acervo'),
     path('exportar/emprestimos/', views.exportar_emprestimos,  name='exportar_emprestimos'),

@@ -6,37 +6,29 @@ from django.conf import settings
 
 # ──────────────────────────────────────────
 # E-MAIL (Gmail via SMTP)
+#
+# Este arquivo cuida só do "COMO enviar": conexão SMTP, montagem do
+# HTML/texto e o template visual. O "O QUE dizer" em cada notificação
+# (prazos, atrasos, reservas etc.) fica centralizado em notifications.py,
+# que é quem decide o assunto/mensagem de cada caso e chama enviar_email()
+# diretamente. Isso evita ter o mesmo texto duplicado em dois lugares.
+#
+# Única exceção: o código de verificação (login/recuperação de senha),
+# que não passa pelo sistema de notificações — por isso a função
+# enviar_codigo_verificacao() continua aqui.
 # ──────────────────────────────────────────
 
 def enviar_codigo_verificacao(endereco, codigo):
     assunto = "Seu Código de Verificação para Acessar sua Conta"
     mensagem = (
         f"Olá!\n\n"
-        f"Seu código de verificação para acessar a Biblioteca da EREM Dr. Jaime Monteiro é:\n\n"
+        f"Recebemos uma solicitação para acessar sua conta na Biblioteca da EREM Dr. Jaime Monteiro.\n\n"
+        f"Utilize o código abaixo para concluir o acesso:\n\n"
         f"🔑  {codigo}\n\n"
-        f"Este código é válido por 10 minutos.\n"
-        f"Se você não solicitou este código, ignore este e-mail."
-    )
-    return enviar_email(endereco, assunto, mensagem)
-
-
-def enviar_aviso_atraso(endereco, nome, titulo_livro, dias_atraso):
-    assunto = "⚠️ Livro com devolução em atraso."
-    mensagem = (
-        f"Olá, {nome}!\n\n"
-        f"O livro \"{titulo_livro}\" está com {dias_atraso} dia(s) de atraso.\n\n"
-        f"Por favor, procure a bibliotecária para devolvê-lo ou renová-lo.\n\n"
-        f"Evite bloqueios na sua conta!"
-    )
-    return enviar_email(endereco, assunto, mensagem)
-
-
-def enviar_aviso_prazo(endereco, nome, titulo_livro, dias_restantes):
-    assunto = "📅 Seu livro vence em breve."
-    mensagem = (
-        f"Olá, {nome}!\n\n"
-        f"O livro \"{titulo_livro}\" deve ser devolvido em {dias_restantes} dia(s).\n\n"
-        f"Se precisar de mais tempo, procure a bibliotecária para renovar."
+        f"Este código é válido por 10 minutos e pode ser utilizado apenas uma vez.\n"
+        f"Se você não solicitou este código, desconsidere este e-mail. Nenhuma ação adicional será necessária.\n\n"
+        f"Atenciosamente,\n"
+        f"Biblioteca da EREM Dr. Jaime Monteiro"
     )
     return enviar_email(endereco, assunto, mensagem)
 
@@ -60,9 +52,11 @@ def enviar_email(endereco, assunto, mensagem):
         msg.attach(MIMEText(mensagem, "plain", "utf-8"))
         msg.attach(MIMEText(_template_html(assunto, mensagem), "html", "utf-8"))
 
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as smtp:
             smtp.login(host_user, host_pass)
-            smtp.sendmail(host_user, endereco, msg.as_string())
+            # Usa o mesmo endereço do "From" também no envelope (evita
+            # inconsistência entre remetente autenticado e remetente exibido).
+            smtp.sendmail(remetente, endereco, msg.as_string())
 
         print(f"✅ E-mail enviado para {endereco}")
         return True
@@ -73,6 +67,18 @@ def enviar_email(endereco, assunto, mensagem):
 
 
 def _template_html(assunto, mensagem):
+    # ── Nota importante ──────────────────────────────────────────
+    # NÃO usar a tag <hr> aqui. O Gmail interpreta <hr> como um
+    # separador de "conteúdo citado" (igual ao que aparece antes de
+    # texto encaminhado/respondido) e esconde tudo que vem depois
+    # atrás de um botão "...", mesmo em e-mails novos sem histórico.
+    # Por isso as linhas divisórias abaixo são feitas com <div> +
+    # background-color, que têm o mesmo efeito visual sem disparar
+    # esse comportamento de "clipping" do Gmail.
+    divisor_estilo = (
+        "height:1px;line-height:1px;font-size:1px;"
+        "background-color:#e8eef6;border:none;"
+    )
     return f"""
     <html>
       <body style="font-family: Arial, sans-serif; background: #f4f7fb; padding: 32px;">
@@ -87,7 +93,7 @@ def _template_html(assunto, mensagem):
             </p>
           </div>
 
-          <hr style="border: none; border-top: 1px solid #e8eef6; margin: 0 0 24px;">
+          <div style="{divisor_estilo} margin: 0 0 24px;">&nbsp;</div>
 
           <h3 style="color: #1e3a5f; margin: 0 0 16px;">{assunto}</h3>
 
@@ -95,7 +101,7 @@ def _template_html(assunto, mensagem):
             {mensagem}
           </p>
 
-          <hr style="border: none; border-top: 1px solid #e8eef6; margin: 24px 0 16px;">
+          <div style="{divisor_estilo} margin: 24px 0 16px;">&nbsp;</div>
 
           <p style="color: #999; font-size: 12px; text-align: center;">
             Este é um e-mail automático, por favor não responda.
