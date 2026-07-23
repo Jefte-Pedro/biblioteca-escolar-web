@@ -21,7 +21,7 @@ def enviar_codigo_verificacao(endereco, codigo):
 
 
 def enviar_aviso_atraso(endereco, nome, titulo_livro, dias_atraso):
-    assunto = "⚠️ Livro com devolução em atraso — Biblioteca"
+    assunto = "⚠️ Livro com devolução em atraso."
     mensagem = (
         f"Olá, {nome}!\n\n"
         f"O livro \"{titulo_livro}\" está com {dias_atraso} dia(s) de atraso.\n\n"
@@ -32,7 +32,7 @@ def enviar_aviso_atraso(endereco, nome, titulo_livro, dias_atraso):
 
 
 def enviar_aviso_prazo(endereco, nome, titulo_livro, dias_restantes):
-    assunto = "📅 Seu livro vence em breve — Biblioteca"
+    assunto = "📅 Seu livro vence em breve."
     mensagem = (
         f"Olá, {nome}!\n\n"
         f"O livro \"{titulo_livro}\" deve ser devolvido em {dias_restantes} dia(s).\n\n"

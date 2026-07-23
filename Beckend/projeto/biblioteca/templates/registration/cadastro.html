@@ -227,7 +227,7 @@
             </form>
         </div>
 
-        <!-- ─── COLUNA 3 — Canais ─── -->
+        <!-- ─── COLUNA 3 — Canal de aviso ─── -->
         <div class="cad-col inactive" id="cad-col-3">
             <div class="cad-col-badge next-badge">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -238,14 +238,11 @@
             </div>
             <h2 class="cad-col-h">Onde receber avisos?</h2>
             <p class="cad-col-p">
-                Avisamos quando seu livro vencer, quando uma reserva chegou ou quando há novidades.
+                Usaremos esse e-mail para prazos, reservas, recuperação de senha e novidades da biblioteca.
             </p>
 
             <!-- E-mail -->
-            <div class="channel-card selected" id="ch-card-email"
-                onclick="document.getElementById('ch-check-email').click()">
-                <input type="checkbox" id="ch-check-email" checked onchange="cadToggleChannel('email')"
-                    onclick="event.stopPropagation()" />
+            <div class="channel-card selected" id="ch-card-email">
                 <div class="channel-icon" style="background:rgba(79,148,214,.15)">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4F94D6" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -255,64 +252,24 @@
                 </div>
                 <div style="flex:1">
                     <div class="channel-title">E-mail</div>
-                    <div class="channel-sub">Informe seu e-mail</div>
-                    <div class="channel-input-wrap" id="ch-input-email">
+                    <div class="channel-sub">Obrigatório</div>
+                    <div class="channel-input-wrap" id="ch-input-email" style="display:block">
                         <div class="channel-input-inner">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4F94D6"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                                 <polyline points="22,6 12,13 2,6" />
                             </svg>
-                            <input type="email" id="input-email" placeholder="seu@email.com"
-                                onclick="event.stopPropagation()" />
+                            <input type="email" id="input-email" placeholder="seu@email.com">
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- WhatsApp -->
-            <div class="channel-card selected" id="ch-card-wa" onclick="document.getElementById('ch-check-wa').click()">
-                <input type="checkbox" id="ch-check-wa" checked onchange="cadToggleChannel('wa')"
-                    onclick="event.stopPropagation()" />
-                <div class="channel-icon" style="background:rgba(34,197,94,.12)">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path
-                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.11 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z" />
-                    </svg>
-                </div>
-                <div style="flex:1">
-                    <div class="channel-title">WhatsApp</div>
-                    <div class="channel-sub">Informe seu número</div>
-                    <div class="channel-input-wrap" id="ch-input-wa">
-                        <div class="channel-input-inner">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22C55E"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path
-                                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.11 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z" />
-                            </svg>
-                            <input type="tel" id="input-whatsapp" placeholder="(81) 9 0000-0000"
-                                onclick="event.stopPropagation()" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div id="escolha-canal" style="display:none; margin-bottom:1rem;">
-                <p style="font-size:.85rem; color:var(--text-muted); margin-bottom:.5rem;">
-                    Onde prefere receber o código de verificação?
-                </p>
-                <div style="display:flex; gap:.5rem;">
-                    <button type="button" id="btn-canal-zap" onclick="selecionarCanal('telefone')"
-                        class="canal-escolha selected-canal">
-                        📱 WhatsApp
-                    </button>
-                    <button type="button" id="btn-canal-email" onclick="selecionarCanal('email')" class="canal-escolha">
-                        ✉️ E-mail
-                    </button>
-                </div>
-            </div>
+            <div id="cad-email-erro" style="display:none;color:#ef4444;font-size:.8rem;margin:8px 0 0"></div>
+
             <div class="warning-box">
-                ⚠ Escolha pelo menos 1 canal. Você pode mudar depois nas configurações.
+                ⚠ <strong>Cadastre um e-mail válido.</strong> É através dele que você recupera seu acesso e recebe atualizações importantes sobre seu Acervo.
             </div>
 
             <button type="button" class="finalizar-btn ready" id="finalizar-btn" onclick="finalizarCadastro()">
@@ -328,100 +285,64 @@
 {% block extra_js %}
 <script>
     const CAD_MATRICULA = '{{ matricula }}';
-    let canalEscolhido = 'telefone';
 
     CAD.step = 1;
     _cadRenderStepper();
     _cadRenderCols();
-
-    function selecionarCanal(canal) {
-        canalEscolhido = canal;
-        document.getElementById('btn-canal-zap').classList.toggle('selected-canal', canal === 'telefone');
-        document.getElementById('btn-canal-email').classList.toggle('selected-canal', canal === 'email');
-    }
-
-    function cadToggleChannel(ch) {
-        const emailSel = document.getElementById('ch-check-email').checked;
-        const waSel = document.getElementById('ch-check-wa').checked;
-
-        // Toggle visual do card
-        document.getElementById('ch-card-email').classList.toggle('selected', emailSel);
-        document.getElementById('ch-card-wa').classList.toggle('selected', waSel);
-
-        // Mostra/esconde input dentro do card
-        document.getElementById('ch-input-email').style.display = emailSel ? 'block' : 'none';
-        document.getElementById('ch-input-wa').style.display = waSel ? 'block' : 'none';
-
-        // Mostra escolha de canal só quando os dois estão selecionados
-        const escolha = document.getElementById('escolha-canal');
-        if (emailSel && waSel) {
-            escolha.style.display = 'block';
-            canalEscolhido = 'telefone';
-            selecionarCanal('telefone');
-        } else {
-            escolha.style.display = 'none';
-            canalEscolhido = emailSel ? 'email' : 'telefone';
-        }
-    }
-
-    async function finalizarCadastro() {
-            const senha = document.getElementById('cad-pwd').value;
-            const email = document.getElementById('input-email').value.trim();
-            const whatsapp = document.getElementById('input-whatsapp').value.trim();
-            const emailSelecionado = document.getElementById('ch-check-email').checked;
-            const waSelecionado = document.getElementById('ch-check-wa').checked;
-
-            if (!emailSelecionado && !waSelecionado) {
-                alert('Escolha pelo menos 1 canal de contato.');
-                return;
-            }
-            if (emailSelecionado && !email) { alert('Preencha o e-mail.'); return; }
-            if (waSelecionado && !whatsapp) { alert('Preencha o número de WhatsApp.'); return; }
-
-            // Determina canal e contato para envio do código
-            let tipo, contato;
-            if (emailSelecionado && waSelecionado) {
-                // Os dois selecionados — usa a escolha do botão
-                tipo = canalEscolhido;
-                contato = tipo === 'telefone' ? whatsapp : email;
-            } else if (emailSelecionado) {
-                tipo = 'email';
-                contato = email;
-            } else {
-                tipo = 'telefone';
-                contato = whatsapp;
-            }
-
-            const btn = document.getElementById('finalizar-btn');
-            btn.disabled = true;
-            btn.textContent = 'Enviando código...';
-
-            sessionStorage.setItem('senha_temp', senha);
-            sessionStorage.setItem('email_temp', emailSelecionado ? email : '');
-            sessionStorage.setItem('telefone_temp', waSelecionado ? whatsapp : '');
-
-            const res = await fetch('/biblioteca/login/enviar-codigo/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify({ matricula: CAD_MATRICULA, contato, tipo })
-            });
-
-            const data = await res.json();
-
-            if (data.sucesso) {
-                const params = new URLSearchParams({ matricula: CAD_MATRICULA, contato, tipo });
-                window.location.href = `/biblioteca/login/verificar/?${params.toString()}`;
-            } else {
-                alert(data.erro || 'Erro ao enviar código.');
-                btn.disabled = false;
-                btn.textContent = 'Finalizar cadastro ✓';
-            }
-        }
 
     function getCookie(name) {
         const value = `; ${document.cookie}`;
         const parts = value.split(`; ${name}=`);
         if (parts.length === 2) return parts.pop().split(';').shift();
     }
+
+    function cadMostrarErroEmail(msg) {
+        const el = document.getElementById('cad-email-erro');
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+    function cadEsconderErroEmail() {
+        document.getElementById('cad-email-erro').style.display = 'none';
+    }
+
+    async function finalizarCadastro() {
+        cadEsconderErroEmail();
+        const senha = document.getElementById('cad-pwd').value;
+        const email = document.getElementById('input-email').value.trim();
+
+        if (!email) { cadMostrarErroEmail('Informe seu e-mail.'); return; }
+
+        const btn = document.getElementById('finalizar-btn');
+        btn.disabled = true;
+        btn.textContent = 'Enviando código...';
+
+        // Guarda temporariamente para finalizar o cadastro após a verificação do código.
+        sessionStorage.setItem('senha_temp', senha);
+        sessionStorage.setItem('email_temp', email);
+
+        try {
+            const res = await fetch('/biblioteca/login/enviar-codigo/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ matricula: CAD_MATRICULA, email, fluxo: 'cadastro' })
+            });
+            const data = await res.json();
+
+            if (data.sucesso) {
+                // O e-mail vai "cru" (sem máscara) — a tela de verificação
+                // mascara para exibição, mas precisa do valor real para reenviar código.
+                const params = new URLSearchParams({ matricula: CAD_MATRICULA, contato: email, fluxo: 'cadastro' });
+                window.location.href = `/biblioteca/login/verificar/?${params.toString()}`;
+            } else {
+                cadMostrarErroEmail(data.erro || 'Erro ao enviar código.');
+                btn.disabled = false;
+                btn.textContent = 'Finalizar cadastro ✓';
+            }
+        } catch (err) {
+            cadMostrarErroEmail('Erro de conexão. Tente novamente.');
+            btn.disabled = false;
+            btn.textContent = 'Finalizar cadastro ✓';
+        }
+    }
 </script>
-{% endblock %}  
+{% endblock %}

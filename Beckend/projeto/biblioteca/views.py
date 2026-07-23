@@ -81,6 +81,7 @@ def fazer_login(request):
     data = json.loads(request.body)
     matricula = data.get('matricula', '').strip()
     senha = data.get('senha', '').strip()
+    lembrar = bool(data.get('lembrar', False))
 
     try:
         usuario = Usuario.objects.get(matricula=matricula)
@@ -90,6 +91,14 @@ def fazer_login(request):
     user = authenticate(request, username=usuario.username, password=senha)
     if user is not None:
         login(request, user)
+
+        if lembrar:
+            # Sessão persiste por 30 dias, mesmo fechando o navegador.
+            request.session.set_expiry(60 * 60 * 24 * 30)
+        else:
+            # Expira assim que o navegador for fechado.
+            request.session.set_expiry(0)
+
         destino = '/biblioteca/emprestimos/' if user.is_bibliotecario else '/biblioteca/'
         return JsonResponse({'sucesso': True, 'redirect': destino})
 
