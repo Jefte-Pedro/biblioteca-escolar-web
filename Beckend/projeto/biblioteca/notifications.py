@@ -114,7 +114,7 @@ def verificar_prazos():
         if delta == 2:
             _notificar_prazo_unico(
                 emp, 'prazo_2dias',
-                f'"{titulo_livro}" vence em 2 dias',
+                f'"O livro {titulo_livro}" vence em 2 dias',
                 (
                     f'Olá, {nome}!\n\n'
                     f'Este é um lembrete de que o prazo de devolução do livro:\n\n'
@@ -198,6 +198,37 @@ def _notificar_prazo_unico(emp, tipo, titulo, mensagem):
         titulo=titulo,
         mensagem=mensagem,
         emprestimo=emp,
+    )
+    
+def notificar_atraso_avulso(emprestimo):
+    """
+    Envia a notificação de atraso para um empréstimo específico, sob
+    demanda (botão "Notificar" na tela de Empréstimos), usando o mesmo
+    texto que o job automático (verificar_prazos) já usa.
+    """
+    from datetime import date
+
+    usuario = emprestimo.usuario
+    titulo_livro = emprestimo.exemplar.livro.titulo if emprestimo.exemplar and emprestimo.exemplar.livro else 'seu livro'
+    nome = _nome_exibicao(usuario)
+    dias_atraso = abs((emprestimo.data_devolucao_prevista - date.today()).days)
+
+    return criar_notificacao(
+        destinatario=usuario,
+        tipo='atraso',
+        titulo=f'A devolução do livro: "{titulo_livro}" está em atraso.',
+        mensagem=(
+            f'Olá, <strong>{nome}!</strong>\n\n'
+            f'Identificamos que o livro:\n\n'
+            f'<strong>{titulo_livro}</strong>\n\n'
+            f'está com <strong>{dias_atraso}</strong> dia{"s" if dias_atraso != 1 else ""} de atraso na devolução.\n\n'
+            f'Pedimos, por gentileza, que procure a biblioteca para realizar a devolução ou, caso seja possível, solicitar a renovação do empréstimo.\n\n'
+            f'Caso o livro já tenha sido devolvido recentemente, desconsidere este e-mail. Em algumas situações, pode haver um intervalo entre a devolução do material e a atualização do sistema pela equipe da biblioteca.\n\n'
+            f'Em caso de dúvidas, entre em contato com a bibliotecária.\n\n'
+            f'Atenciosamente,\n'
+            f'<b>Biblioteca da EREM Dr. Jaime Monteiro</b>'
+        ),
+        emprestimo=emprestimo,
     )
     
 # ──────────────────────────────────────────
