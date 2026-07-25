@@ -12,27 +12,57 @@
     <nav class="cfg-sidebar">
         <div class="cfg-sidebar-title">Configurações</div>
 
-        <button class="cfg-tab active" onclick="cfgAba(this, 'perfil')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
+        <button class="cfg-tab active" onclick="cfgAba(this, 'perfil')" data-aba="perfil">
+            <svg class="cfg-tab-ico-desktop" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
             </svg>
-            Perfil
+            <span class="cfg-tab-label">Perfil</span>
+
+            <span class="cfg-tab-row-mobile">
+                <span class="cfg-tab-avatar-mini">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</span>
+                <span class="cfg-tab-row-text">
+                    <strong>{{ user.get_full_name }}</strong>
+                    <span class="cfg-tab-row-sub">Matrícula {{ user.matricula }}</span>
+                </span>
+                <svg class="cfg-tab-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                </svg>
+            </span>
         </button>
 
-        <button class="cfg-tab" onclick="cfgAba(this, 'notificacoes')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
+        <button class="cfg-tab" onclick="cfgAba(this, 'notificacoes')" data-aba="notificacoes">
+            <svg class="cfg-tab-ico-desktop" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
-            Notificações
+            <span class="cfg-tab-label">Notificações</span>
+
+            <span class="cfg-tab-row-mobile">
+                <span class="cfg-tab-icon-circle cfg-ico-amber">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                </span>
+                <span class="cfg-tab-row-text">
+                    <strong>Notificações</strong>
+                    <span class="cfg-tab-row-sub">E-mail</span>
+                </span>
+                <svg class="cfg-tab-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                </svg>
+            </span>
         </button>
 
-        <button class="cfg-tab" onclick="cfgAba(this, 'aparencia')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
+        <button class="cfg-tab" onclick="cfgAba(this, 'aparencia')" data-aba="aparencia">
+            <svg class="cfg-tab-ico-desktop" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="5" />
                 <line x1="12" y1="1" x2="12" y2="3" />
                 <line x1="12" y1="21" x2="12" y2="23" />
@@ -43,43 +73,121 @@
                 <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
                 <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
             </svg>
-            Aparência
+            <span class="cfg-tab-label">Aparência</span>
+
+            <span class="cfg-tab-row-mobile">
+                <span class="cfg-tab-icon-circle cfg-ico-purple">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                </span>
+                <span class="cfg-tab-row-text">
+                    <strong>Aparência</strong>
+                    <span class="cfg-tab-row-sub" id="cfg-subtitulo-aparencia">Escuro</span>
+                </span>
+                <svg class="cfg-tab-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                </svg>
+            </span>
         </button>
 
-        <button class="cfg-tab" onclick="cfgAba(this, 'seguranca')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
+        <button class="cfg-tab" onclick="cfgAba(this, 'seguranca')" data-aba="seguranca">
+            <svg class="cfg-tab-ico-desktop" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
-            Segurança
+            <span class="cfg-tab-label">Segurança</span>
+
+            <span class="cfg-tab-row-mobile">
+                <span class="cfg-tab-icon-circle cfg-ico-teal">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                </span>
+                <span class="cfg-tab-row-text">
+                    <strong>Segurança</strong>
+                    <span class="cfg-tab-row-sub">Senha e acesso</span>
+                </span>
+                <svg class="cfg-tab-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                </svg>
+            </span>
         </button>
 
-        <button class="cfg-tab" onclick="cfgAba(this, 'idioma')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
+        <button class="cfg-tab" onclick="cfgAba(this, 'idioma')" data-aba="idioma">
+            <svg class="cfg-tab-ico-desktop" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="2" y1="12" x2="22" y2="12" />
                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
             </svg>
-            Idioma
+            <span class="cfg-tab-label">Idioma</span>
+
+            <span class="cfg-tab-row-mobile">
+                <span class="cfg-tab-icon-circle cfg-ico-pink">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </svg>
+                </span>
+                <span class="cfg-tab-row-text">
+                    <strong>Idioma</strong>
+                    <span class="cfg-tab-row-sub" id="cfg-subtitulo-idioma">Português (Brasil)</span>
+                </span>
+                <svg class="cfg-tab-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                </svg>
+            </span>
         </button>
 
         <div class="cfg-tab-separator"></div>
 
         <a href="{% url 'logout' %}" class="cfg-tab cfg-tab-danger">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
+            <svg class="cfg-tab-ico-desktop" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                 <polyline points="16 17 21 12 16 7" />
                 <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            Sair
+            <span class="cfg-tab-label">Sair</span>
+
+            <span class="cfg-tab-row-mobile">
+                <span class="cfg-tab-row-text"><strong>Sair da conta</strong></span>
+            </span>
         </a>
     </nav>
 
     <!-- ════════════ CONTEÚDO ════════════ -->
-    <div class="cfg-content">
+    <div class="cfg-content" aria-hidden="true">
+
+        <!-- Cabeçalho exclusivo do modo "tela cheia" no mobile -->
+        <div class="cfg-mobile-header">
+            <button type="button" class="cfg-mobile-back" onclick="cfgVoltarMobile()" aria-label="Voltar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                </svg>
+            </button>
+            <span class="cfg-mobile-header-title" id="cfg-mobile-title">Perfil</span>
+        </div>
 
         <!-- ══ ABA PERFIL ══ -->
         <section class="cfg-panel active" id="cfg-perfil">
@@ -92,21 +200,13 @@
                 <!-- Avatar -->
                 <div class="cfg-avatar-row">
                     <div class="cfg-avatar">
-                        {% if user.foto %}
-                        <img src="{{ user.foto.url }}" alt="Foto de perfil">
-                        {% else %}
                         {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
-                        {% endif %}
                     </div>
                     <div class="cfg-avatar-info">
                         <h3>{{ user.get_full_name }}</h3>
                         <p>Matrícula {{ user.matricula }} ·
                             {% if user.is_bibliotecario %}Bibliotecária{% else %}{{ user.serie }} · Aluno{% endif %}
                         </p>
-                        <div class="cfg-avatar-btns">
-                            <button class="cfg-btn-outline">Trocar foto</button>
-                            <button class="cfg-btn-outline cfg-btn-danger-outline">Remover</button>
-                        </div>
                     </div>
                     <div class="cfg-badge-active">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -163,7 +263,7 @@
 
                     <div class="cfg-field">
                         <label>Como prefere ser chamado</label>
-                        <input class="cfg-input" type="text" id="campo-apelido" value="{{ user.apelido|default:'' }}"   
+                        <input class="cfg-input" type="text" id="campo-apelido" value="{{ user.apelido|default:'' }}"
                             placeholder="Apelido ou primeiro nome" oninput="cfgDirty()">
                     </div>
                 </div>
@@ -179,92 +279,37 @@
         <section class="cfg-panel" id="cfg-notificacoes">
             <div class="cfg-panel-header">
                 <h2>Notificações</h2>
-                <p>Onde avisamos sobre prazos, reservas e novidades.</p>
+                <p>Como a biblioteca avisa você sobre prazos, reservas e devoluções.</p>
             </div>
 
             <div class="cfg-card">
-                <div class="cfg-notif-title">Canais de notificação</div>
-
-                <!-- WhatsApp -->
-                <div class="cfg-notif-row">
-                    <div class="cfg-notif-icon green">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                        </svg>
-                    </div>
-                    <div class="cfg-notif-text">
-                        <strong>WhatsApp</strong>
-                        <span>
-                            {% if user.telefone %}
-                            {{ user.telefone }}
-                            <span style="color: var(--accent); margin-left:4px; font-size:11px;">✓ selecionado</span>
-                            {% else %}
-                            Nenhum número cadastrado
-                            {% endif %}
-                        </span>
-                    </div>
-                    {% if user.telefone %}
-                    <span class="cfg-notif-badge">Cadastrado</span>
-                    {% endif %}
-                    <label class="cfg-toggle">
-                        <input type="checkbox" id="notif-whatsapp" {% if user.telefone %}checked{% endif %}>
-                        <span class="cfg-toggle-slider"></span>
-                    </label>
-                </div>
-
-                <!-- E-mail -->
-                <div class="cfg-notif-row">
-                    <div class="cfg-notif-icon blue">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                
+                <div class="cfg-notif-info" style="display: flex; gap: 12px; align-items: flex-start; padding: 16px;">
+            
+                    <div class="cfg-notif-icon blue" style="flex-shrink: 0; margin-top: 2px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                             <polyline points="22,6 12,13 2,6" />
                         </svg>
                     </div>
-                    <div class="cfg-notif-text">
-                        <strong>E-mail</strong>
-                        <span>
-                            {% if user.email %}
-                            {{ user.email }}
-                            <span style="color: var(--accent); margin-left:4px; font-size:11px;">✓ selecionado</span>
-                            {% else %}
-                            Nenhum e-mail cadastrado
-                            {% endif %}
-                        </span>
-                    </div>
-                    {% if user.email %}
-                    <span class="cfg-notif-badge">Cadastrado</span>
-                    {% endif %}
-                    <label class="cfg-toggle">
-                        <input type="checkbox" id="notif-email" {% if user.email %}checked{% endif %}>
-                        <span class="cfg-toggle-slider"></span>
-                    </label>
-                </div>
 
-                <!-- Navegador -->
-                <div class="cfg-notif-row">
-                    <div class="cfg-notif-icon yellow">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="12" y1="8" x2="12" y2="12" />
-                            <line x1="12" y1="16" x2="12.01" y2="16" />
-                        </svg>
+                    <div>
+                        <strong style="display: block;padding-top: 10px; line-height: 1.2;">E-mail é o canal oficial de avisos</strong>
+                        <p style="margin: 6px 0 0; padding: 0 8px 0 2px; font-size: 13px; color: var(--muted);">
+                            Você recebe automaticamente um e-mail quando: seu prazo de devolução está próximo,
+                            seu livro está atrasado, ou uma reserva sua foi aceita ou ficou disponível para retirada.
+                            Esses avisos não podem ser desativados — eles existem pra te ajudar a não perder prazos e ficar informado sobre as novidades.
+                        </p>
                     </div>
-                    <div class="cfg-notif-text">
-                        <strong>Não pressione nenhum navegador</strong>
-                        <span>Aparece como notificação no Chrome/Firefox</span>
-                    </div>
-                    <label class="cfg-toggle">
-                        <input type="checkbox" id="notif-browser">
-                        <span class="cfg-toggle-slider"></span>
-                    </label>
                 </div>
-
-                <div class="cfg-save-bar visible">
-                    <button class="cfg-btn-ghost" onclick="cfgToast('Alterações descartadas.')">Cancelar</button>
-                    <button class="cfg-btn-accent" onclick="cfgSalvarNotif()">Salvar preferências</button>
+            
+                <div class="cfg-security-row" style="margin-top:18px">
+                    <div class="cfg-security-info">
+                        <strong>E-mail cadastrado</strong>
+                        <span>{{ user.email|default:"Nenhum e-mail cadastrado" }}</span>
+                    </div>
+                    <button class="cfg-btn-accent" onclick="abrirModalEmail()">Alterar e-mail</button>
                 </div>
             </div>
         </section>
@@ -395,12 +440,54 @@
 <div class="cfg-modal-overlay" id="cfg-modal-senha" onclick="fecharModalSenha(event)">
     <div class="cfg-modal">
         <h3>Alterar senha</h3>
-        <p>Crie uma nova senha com pelo menos 8 caracteres.</p>
-        <div class="cfg-modal-fields">
+
+        <!-- Passo: escolher método -->
+        <div id="senha-passo-metodo">
+            <p>Como você quer confirmar que é você?</p>
+            <div class="cfg-metodo-opcoes">
+                <button type="button" class="cfg-metodo-btn" onclick="senhaEscolherMetodo('atual')">
+                    <strong>Sei minha senha atual</strong>
+                    <span>Confirmo digitando a senha que uso hoje</span>
+                </button>
+                <button type="button" class="cfg-metodo-btn" onclick="senhaEscolherMetodo('codigo')">
+                    <strong>Esqueci minha senha atual</strong>
+                    <span>Confirmo com um código enviado por e-mail</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Passo: senha atual -->
+        <div id="senha-passo-atual" style="display:none">
             <div class="cfg-field">
                 <label>Senha atual</label>
                 <input class="cfg-input" type="password" id="senha-atual" placeholder="••••••••">
             </div>
+        </div>
+
+        <!-- Passo: confirmar envio de código -->
+        <div id="senha-passo-confirmar-envio" style="display:none">
+            <p>Vamos enviar um código de verificação para <strong>{{ user.email|default:"seu e-mail" }}</strong>.
+                Confirmar envio?</p>
+        </div>
+
+        <!-- Passo: digitar código -->
+        <div id="senha-passo-codigo" style="display:none">
+            <p>Digite o código de 6 dígitos que enviamos:</p>
+            <div class="cfg-code-digits" id="senha-code-digits">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+            </div>
+            <button type="button" class="cfg-link-voltar" style="display:inline-flex"
+                onclick="senhaReenviarCodigo()">Reenviar
+                código</button>
+        </div>
+
+        <!-- Passo: nova senha -->
+        <div id="senha-passo-nova" style="display:none">
             <div class="cfg-field">
                 <label>Nova senha</label>
                 <input class="cfg-input" type="password" id="senha-nova" placeholder="••••••••">
@@ -410,9 +497,78 @@
                 <input class="cfg-input" type="password" id="senha-confirma" placeholder="••••••••">
             </div>
         </div>
+
+        <div id="senha-erro" class="cfg-modal-erro" style="display:none"></div>
+
+        <button type="button" id="senha-btn-voltar" class="cfg-link-voltar" style="display:none"
+            onclick="senhaVoltar()">‹ Voltar</button>
+
         <div class="cfg-modal-actions">
             <button class="cfg-btn-ghost" onclick="fecharModalSenha()">Cancelar</button>
-            <button class="cfg-btn-accent" onclick="cfgSalvarSenha()">Salvar senha</button>
+            <button class="cfg-btn-accent" id="senha-btn-principal" style="display:none"
+                onclick="senhaAvancar()">Continuar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════ MODAL ALTERAR E-MAIL ════════════ -->
+<div class="cfg-modal-overlay" id="cfg-modal-email" onclick="fecharModalEmail(event)">
+    <div class="cfg-modal">
+        <h3>Alterar e-mail</h3>
+
+        <!-- Passo: confirmar identidade -->
+        <div id="email-passo-confirmar-atual">
+            <p>Pra sua segurança, primeiro confirmamos que você tem acesso ao e-mail atual:
+                <strong>{{ user.email|default:"—" }}</strong>.
+            </p>
+        </div>
+
+        <!-- Passo: código do e-mail atual -->
+        <div id="email-passo-codigo-atual" style="display:none">
+            <p>Digite o código enviado para <strong>{{ user.email|default:"seu e-mail" }}</strong>:</p>
+            <div class="cfg-code-digits" id="email-code-digits-atual">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+            </div>
+            <button type="button" class="cfg-link-voltar" style="display:inline-flex"
+                onclick="emailReenviarCodigo('atual')">Reenviar código</button>
+        </div>
+
+        <!-- Passo: novo e-mail -->
+        <div id="email-passo-novo" style="display:none">
+            <div class="cfg-field">
+                <label>Novo e-mail</label>
+                <input class="cfg-input" type="email" id="email-novo-input" placeholder="novo@email.com">
+            </div>
+        </div>
+
+        <!-- Passo: código do e-mail novo -->
+        <div id="email-passo-codigo-novo" style="display:none">
+            <p>Digite o código enviado para <strong id="email-novo-mascarado">—</strong>:</p>
+            <div class="cfg-code-digits" id="email-code-digits-novo">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+                <input type="text" maxlength="1" class="cfg-code-digit" inputmode="numeric">
+            </div>
+            <button type="button" class="cfg-link-voltar" style="display:inline-flex"
+                onclick="emailReenviarCodigo('novo')">Reenviar código</button>
+        </div>
+
+        <div id="email-erro" class="cfg-modal-erro" style="display:none"></div>
+
+        <button type="button" id="email-btn-voltar" class="cfg-link-voltar" style="display:none"
+            onclick="emailVoltar()">‹ Voltar</button>
+
+        <div class="cfg-modal-actions">
+            <button class="cfg-btn-ghost" onclick="fecharModalEmail()">Cancelar</button>
+            <button class="cfg-btn-accent" id="email-btn-principal" onclick="emailAvancar()">Enviar código</button>
         </div>
     </div>
 </div>
@@ -426,18 +582,444 @@
     <span id="cfg-toast-msg">Salvo com sucesso.</span>
 </div>
 
+<style>
+    /* ══════════════════════════════════════════════════════════
+       DESKTOP — pequenos ajustes de estrutura (não muda o visual)
+    ══════════════════════════════════════════════════════════ */
+
+    /* Elementos extras que só existem para o layout mobile ficam
+       ocultos por padrão; a media query abaixo os revela. */
+    .cfg-tab-row-mobile,
+    .cfg-mobile-header {
+        display: none;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       MOBILE — cada seção vira uma "tela" própria, como um app
+       nativo de configurações: lista de categorias → toque →
+       tela cheia com botão de voltar. Nada de pills horizontais
+       nem conteúdo aparecendo embaixo.
+    ══════════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+
+        .cfg-wrapper {
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* ── Título grande no topo, como "Ajustes" no iOS ── */
+        .cfg-sidebar-title {
+            display: block;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text);
+            padding: 18px 16px 14px;
+        }
+
+        /* ── Lista de categorias (a "tela raiz") ── */
+        .cfg-sidebar {
+            flex-direction: column;
+            gap: 5px;
+            padding: 0 12px 24px;
+            border: 80px;
+            border-bottom: none;
+        }
+
+        .cfg-tab {
+            width: 100%;
+            justify-content: flex-start;
+            gap: 0;
+            height: auto;
+            padding: 0;
+            border: none;
+            background: transparent;
+            border-radius: 0;
+            color: var(--text);
+        }
+
+        /* Some com o ícone/rótulo simples do desktop */
+        .cfg-tab-ico-desktop,
+        .cfg-tab>.cfg-tab-label {
+            display: none;
+        }
+
+        .cfg-tab.active {
+            background: transparent;
+            color: var(--text);
+        }
+
+        /* Linha de separação sutil entre as categorias (agrupadas
+           dentro de um "card" com cantos arredondados) */
+        .cfg-sidebar>.cfg-tab {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cfg-sidebar>.cfg-tab:first-of-type .cfg-tab-row-mobile {
+            border-top-left-radius: var(--r-lg, 14px);
+            border-top-right-radius: var(--r-lg, 14px);
+        }
+
+        /* ── A "linha" de cada categoria ── */
+        .cfg-tab-row-mobile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 13px 14px;
+            background: var(--surface);
+            text-align: left;
+        }
+
+        [data-theme="dark"] .cfg-tab-row-mobile {
+            background: #162b47;
+        }
+
+        [data-theme="light"] .cfg-tab-row-mobile {
+            background: #fff;
+        }
+
+        .cfg-tab:active .cfg-tab-row-mobile {
+            background: var(--hover);
+        }
+
+        .cfg-tab-icon-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #fff;
+        }
+
+        .cfg-ico-amber {
+            background: #f59e0b;
+        }
+
+        .cfg-ico-purple {
+            background: #7c3aed;
+        }
+
+        .cfg-ico-teal {
+            background: #0891b2;
+        }
+
+        .cfg-ico-pink {
+            background: #ec4899;
+        }
+
+        .cfg-tab-avatar-mini {
+            width: 44px;
+            height: 44px;
+            border-radius: 99px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 800;
+            color: #fff;
+            background: linear-gradient(135deg, var(--accent-lt, #4f94d6), #1e3a5f);
+        }
+
+        .cfg-tab-row-text {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .cfg-tab-row-text strong {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cfg-tab-row-sub {
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cfg-tab-chevron {
+            flex-shrink: 0;
+            color: var(--faint);
+        }
+
+        /* ── Sair: zona de perigo, separada do resto ── */
+        .cfg-tab-separator {
+            height: 20px;
+        }
+
+        .cfg-tab-danger {
+            border-bottom: none !important;
+        }
+
+        .cfg-tab-danger .cfg-tab-row-mobile {
+            border-radius: var(--r-lg, 14px);
+            justify-content: center;
+            background: var(--surface);
+        }
+
+        [data-theme="dark"] .cfg-tab-danger .cfg-tab-row-mobile {
+            background: #162b47;
+        }
+
+        [data-theme="light"] .cfg-tab-danger .cfg-tab-row-mobile {
+            background: #fff;
+        }
+
+        .cfg-tab-danger .cfg-tab-row-text strong {
+            color: #ef4444;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* ── A "tela" de detalhe: cobre 100% da viewport, desliza
+           da direita pra esquerda, e tem seu próprio cabeçalho
+           com botão de voltar. Some por completo quando fechada. ── */
+        .cfg-content {
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            transform: translateX(100%);
+            transition: transform .32s cubic-bezier(.32, .72, 0, 1);
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        [data-theme="dark"] .cfg-content {
+            background: #0b1626;
+        }
+
+        [data-theme="light"] .cfg-content {
+            background: #f4f7fb;
+        }
+
+        .cfg-wrapper.cfg-mostrando-detalhe .cfg-content {
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        .cfg-mobile-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+            padding: 14px 12px;
+            padding-top: max(14px, env(safe-area-inset-top));
+            border-bottom: 1px solid var(--border);
+        }
+
+        [data-theme="dark"] .cfg-mobile-header {
+            background: #0f1f35;
+        }
+
+        [data-theme="light"] .cfg-mobile-header {
+            background: #fff;
+        }
+
+        .cfg-mobile-back {
+            width: 34px;
+            height: 34px;
+            border-radius: 99px;
+            border: none;
+            background: var(--hover, rgba(148, 163, 184, .12));
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .cfg-mobile-header-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        /* A área rolável abaixo do cabeçalho fixo */
+        .cfg-content>.cfg-panel {
+            display: none;
+            padding: 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .cfg-content>.cfg-panel.active {
+            display: block;
+        }
+
+        /* Barra de salvar (perfil) grudada na base da tela cheia */
+        .cfg-save-bar {
+            position: sticky;
+            bottom: 0;
+            margin: 16px -16px -16px;
+            padding: 12px 16px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+        }
+
+        [data-theme="dark"] .cfg-save-bar.visible {
+            background: #0b1626;
+        }
+
+        [data-theme="light"] .cfg-save-bar.visible {
+            background: #f4f7fb;
+        }
+    }
+
+    /* ── Card informativo (Notificações) ── */
+    .cfg-notif-info {
+        display: flex;
+        gap: 140px;
+        align-items: flex-start;
+    }
+
+    .cfg-notif-info p {
+        line-height: 1.5;
+    }
+
+    /* ── Métodos de verificação (modal de senha) ── */
+    .cfg-metodo-opcoes {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: 16px 0;
+    }
+
+    .cfg-metodo-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        padding: 14px 16px;
+        border-radius: var(--r-md, 10px);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        cursor: pointer;
+        text-align: left;
+        transition: border-color .15s, background .15s;
+        width: 100%;
+    }
+
+    .cfg-metodo-btn:hover {
+        border-color: var(--accent);
+        background: rgba(79, 148, 214, .06);
+    }
+
+    .cfg-metodo-btn span {
+        font-size: 12.5px;
+        color: var(--muted);
+        font-weight: 400;
+    }
+
+    /* ── Código de verificação (inputs de 6 dígitos) ── */
+    .cfg-code-digits {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin: 16px 0;
+    }
+
+    .cfg-code-digit {
+        width: 42px;
+        height: 50px;
+        text-align: center;
+        font-size: 1.3rem;
+        font-weight: 700;
+        background: var(--input-bg, var(--surface));
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        color: var(--text);
+        outline: none;
+    }
+
+    .cfg-code-digit:focus {
+        border-color: var(--accent);
+    }
+
+    .cfg-link-voltar {
+        background: none;
+        border: none;
+        color: var(--accent);
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+        margin-bottom: 12px;
+        display: inline-flex;
+    }
+
+    .cfg-modal-erro {
+        color: #ef4444;
+        font-size: .85rem;
+        margin: 4px 0 8px;
+    }
+</style>
+
 {% endblock %}
 
 
 {% block extra_js %}
 <script>
     // ── Navegação entre abas ──
+    const CFG_TITULOS = {
+        perfil: 'Perfil',
+        notificacoes: 'Notificações',
+        aparencia: 'Aparência',
+        seguranca: 'Segurança',
+        idioma: 'Idioma',
+    };
+    const cfgEhMobile = () => window.matchMedia('(max-width: 768px)').matches;
+
     function cfgAba(btn, aba) {
         document.querySelectorAll('.cfg-tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.cfg-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('cfg-' + aba).classList.add('active');
+
+        if (cfgEhMobile()) cfgAbrirTelaMobile(aba);
     }
+
+    // No mobile, cada aba abre como uma tela cheia própria (com botão
+    // de voltar), em vez de mostrar o conteúdo embaixo da lista.
+    function cfgAbrirTelaMobile(aba) {
+        const wrapper = document.querySelector('.cfg-wrapper');
+        const conteudo = document.querySelector('.cfg-content');
+        const titulo = document.getElementById('cfg-mobile-title');
+        if (titulo) titulo.textContent = CFG_TITULOS[aba] || '';
+        wrapper.classList.add('cfg-mostrando-detalhe');
+        conteudo?.setAttribute('aria-hidden', 'false');
+        // Cria uma entrada no histórico só pra essa "tela" — assim o
+        // botão de voltar do celular fecha a tela em vez de sair do site.
+        history.pushState({ cfgTela: aba }, '', '');
+    }
+
+    function cfgVoltarMobile() {
+        const wrapper = document.querySelector('.cfg-wrapper');
+        const conteudo = document.querySelector('.cfg-content');
+        wrapper.classList.remove('cfg-mostrando-detalhe');
+        conteudo?.setAttribute('aria-hidden', 'true');
+    }
+
+    window.addEventListener('popstate', () => {
+        const wrapper = document.querySelector('.cfg-wrapper');
+        if (wrapper && wrapper.classList.contains('cfg-mostrando-detalhe')) {
+            cfgVoltarMobile();
+        }
+    });
 
     // ── Marca dirty (perfil) ──
     let cfgPending = false;
@@ -468,57 +1050,14 @@
                     document.getElementById('cfg-save-bar-perfil').classList.remove('visible');
                     cfgPending = false;
                     cfgToast('Perfil atualizado com sucesso.');
+
+                    // ── Atualiza na tela sem recarregar ──
+                    const nomeExibicao = apelido || '{{ user.first_name|escapejs }}';
+                    const sFootName = document.querySelector('.s-foot-name');
+                    if (sFootName) sFootName.textContent = nomeExibicao;
                 } else {
                     cfgToast(d.erro || 'Erro ao salvar.', true);
                 }
-            })
-            .catch(() => cfgToast('Erro de conexão.', true));
-    }
-
-    function cfgSalvarPerfil() {
-            const apelido = document.getElementById('campo-apelido').value.trim();
-            fetch('/biblioteca/configuracoes/salvar-perfil/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify({ apelido })
-            })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.sucesso) {
-                        document.getElementById('cfg-save-bar-perfil').classList.remove('visible');
-                        cfgPending = false;
-                        cfgToast('Perfil atualizado com sucesso.');
-
-                        // ── Atualiza na tela sem recarregar ──
-                        const nomeExibicao = apelido || '{{ user.first_name|escapejs }}';
-
-                        // Sidebar
-                        const sFootName = document.querySelector('.s-foot-name');
-                        if (sFootName) sFootName.textContent = nomeExibicao;
-
-                    } else {
-                        cfgToast(d.erro || 'Erro ao salvar.', true);
-                    }
-                })
-                .catch(() => cfgToast('Erro de conexão.', true));
-        }
-
-    // ── Salvar notificações ──
-    function cfgSalvarNotif() {
-        const payload = {
-            whatsapp: document.getElementById('notif-whatsapp').checked,
-            email: document.getElementById('notif-email').checked,
-            browser: document.getElementById('notif-browser').checked,
-        };
-        fetch('/biblioteca/configuracoes/salvar-notif/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-            body: JSON.stringify(payload)
-        })
-            .then(r => r.json())
-            .then(d => {
-                if (d.sucesso) cfgToast('Preferências salvas.');
-                else cfgToast(d.erro || 'Erro ao salvar.', true);
             })
             .catch(() => cfgToast('Erro de conexão.', true));
     }
@@ -531,65 +1070,33 @@
         cfgToast('Tema aplicado.');
     }
 
-    // Inicializar botão selecionado conforme o que já está salvo
     function cfgSyncBotaoTema() {
-            const salvo = localStorage.getItem('theme') || 'dark';
-            document.querySelectorAll('.cfg-theme-opt').forEach(b => b.classList.remove('selected'));
-            const btn = document.getElementById('tema-' + salvo);
-            if (btn) btn.classList.add('selected');
-        }
+        const salvo = localStorage.getItem('theme') || 'dark';
+        document.querySelectorAll('.cfg-theme-opt').forEach(b => b.classList.remove('selected'));
+        const btn = document.getElementById('tema-' + salvo);
+        if (btn) btn.classList.add('selected');
 
-        // Inicializa ao carregar
-        cfgSyncBotaoTema();
-
-        // Sincroniza quando o header muda o tema
-        window.addEventListener('themeChanged', cfgSyncBotaoTema);
+        const nomes = { dark: 'Escuro', light: 'Claro', auto: 'Sistema' };
+        const sub = document.getElementById('cfg-subtitulo-aparencia');
+        if (sub) sub.textContent = nomes[salvo] || 'Escuro';
+    }
+    cfgSyncBotaoTema();
+    window.addEventListener('themeChanged', cfgSyncBotaoTema);
 
     // ── Idioma ──
-        function cfgIdioma(row, lang) {
-            document.querySelectorAll('.cfg-lang-row').forEach(r => r.classList.remove('selected'));
-            row.classList.add('selected');
-            const langSimples = lang === 'pt-BR' ? 'pt' : lang;
-            setLang(langSimples);
-            cfgToast('Idioma salvo.');
-        }      
+    function cfgIdioma(row, lang) {
+        document.querySelectorAll('.cfg-lang-row').forEach(r => r.classList.remove('selected'));
+        row.classList.add('selected');
+        const langSimples = lang === 'pt-BR' ? 'pt' : lang;
+        setLang(langSimples);
+        cfgToast('Idioma salvo.');
+    }
 
-    // ── Modal senha ──
-    function abrirModalSenha() {
-        document.getElementById('cfg-modal-senha').classList.add('open');
-    }
-    function fecharModalSenha(e) {
-        if (!e || e.target === document.getElementById('cfg-modal-senha')) {
-            document.getElementById('cfg-modal-senha').classList.remove('open');
-            document.getElementById('senha-atual').value = '';
-            document.getElementById('senha-nova').value = '';
-            document.getElementById('senha-confirma').value = '';
-        }
-    }
-    function cfgSalvarSenha() {
-        const atual = document.getElementById('senha-atual').value;
-        const nova = document.getElementById('senha-nova').value;
-        const confirma = document.getElementById('senha-confirma').value;
-        if (!atual || !nova || !confirma) { cfgToast('Preencha todos os campos.', true); return; }
-        if (nova.length < 8) { cfgToast('A nova senha deve ter ao menos 8 caracteres.', true); return; }
-        if (nova !== confirma) { cfgToast('As senhas não coincidem.', true); return; }
-
-        fetch('/biblioteca/configuracoes/alterar-senha/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-            body: JSON.stringify({ senha_atual: atual, senha_nova: nova })
-        })
-            .then(r => r.json())
-            .then(d => {
-                if (d.sucesso) {
-                    fecharModalSenha();
-                    cfgToast('Senha alterada com sucesso.');
-                } else {
-                    cfgToast(d.erro || 'Erro ao alterar senha.', true);
-                }
-            })
-            .catch(() => cfgToast('Erro de conexão.', true));
-    }
+    window.addEventListener('langChanged', function (e) {
+        document.querySelectorAll('.cfg-lang-row').forEach(r => r.classList.remove('selected'));
+        const lang = e.detail === 'pt' ? 'pt-BR' : e.detail;
+        document.querySelector(`.cfg-lang-row[onclick*="${lang}"]`)?.classList.add('selected');
+    });
 
     // ── Toast ──
     function cfgToast(msg, erro = false) {
@@ -601,14 +1108,425 @@
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 3000);
     }
-    
-    // Sincroniza quando o header muda o idioma
-        window.addEventListener('langChanged', function (e) {
-            document.querySelectorAll('.cfg-lang-row').forEach(r => r.classList.remove('selected'));
-            const lang = e.detail === 'pt' ? 'pt-BR' : e.detail;
-            // seleciona a linha correspondente pelo onclick
-            document.querySelector(`.cfg-lang-row[onclick*="${lang}"]`)?.classList.add('selected');
+
+    // ═══════════════════════════════════════════════════════════
+    // CÓDIGO DE 6 DÍGITOS — infraestrutura compartilhada
+    // ═══════════════════════════════════════════════════════════
+    function wireCodeDigits(containerId) {
+        const digits = document.querySelectorAll('#' + containerId + ' .cfg-code-digit');
+        digits.forEach((input, idx) => {
+            input.addEventListener('input', () => {
+                input.value = input.value.replace(/\D/g, '').slice(0, 1);
+                if (input.value && idx < digits.length - 1) digits[idx + 1].focus();
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && idx > 0) digits[idx - 1].focus();
+            });
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const colado = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+                colado.split('').forEach((char, i) => { if (digits[i]) digits[i].value = char; });
+            });
         });
+    }
+    wireCodeDigits('senha-code-digits');
+    wireCodeDigits('email-code-digits-atual');
+    wireCodeDigits('email-code-digits-novo');
+
+    function getCodigoDe(containerId) {
+        return Array.from(document.querySelectorAll('#' + containerId + ' .cfg-code-digit')).map(d => d.value).join('');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // MODAL ALTERAR SENHA
+    // ═══════════════════════════════════════════════════════════
+    let senhaMetodo = null;        // 'atual' | 'codigo'
+    let senhaPasso = 'metodo';     // 'metodo' | 'atual' | 'confirmar-envio' | 'codigo' | 'nova'
+    let senhaAtualDigitada = '';
+    let senhaToken = null;
+
+    function senhaResetModal() {
+        senhaMetodo = null;
+        senhaAtualDigitada = '';
+        senhaToken = null;
+        document.getElementById('senha-atual').value = '';
+        document.getElementById('senha-nova').value = '';
+        document.getElementById('senha-confirma').value = '';
+        document.querySelectorAll('#senha-code-digits .cfg-code-digit').forEach(d => d.value = '');
+        senhaMostrarPasso('metodo');
+        esconderErroSenha();
+    }
+
+    function senhaMostrarPasso(passo) {
+        senhaPasso = passo;
+        ['metodo', 'atual', 'confirmar-envio', 'codigo', 'nova'].forEach(p => {
+            document.getElementById('senha-passo-' + p).style.display = (p === passo) ? 'block' : 'none';
+        });
+
+        const btn = document.getElementById('senha-btn-principal');
+        btn.style.display = (passo === 'metodo') ? 'none' : 'inline-flex';
+        btn.disabled = false;
+
+        if (passo === 'atual') btn.textContent = 'Continuar';
+        else if (passo === 'confirmar-envio') btn.textContent = 'Enviar código';
+        else if (passo === 'codigo') btn.textContent = 'Confirmar código';
+        else if (passo === 'nova') btn.textContent = 'Salvar nova senha';
+
+        document.getElementById('senha-btn-voltar').style.display = (passo === 'metodo') ? 'none' : 'inline-flex';
+    }
+
+    function senhaEscolherMetodo(metodo) {
+        senhaMetodo = metodo;
+        senhaMostrarPasso(metodo === 'atual' ? 'atual' : 'confirmar-envio');
+    }
+
+    function senhaVoltar() {
+        esconderErroSenha();
+        if (senhaPasso === 'atual' || senhaPasso === 'confirmar-envio') {
+            senhaMetodo = null;
+            senhaMostrarPasso('metodo');
+        } else if (senhaPasso === 'codigo') {
+            senhaMostrarPasso('confirmar-envio');
+        } else if (senhaPasso === 'nova') {
+            senhaMostrarPasso(senhaMetodo === 'atual' ? 'atual' : 'codigo');
+        }
+    }
+
+    function senhaAvancar() {
+        esconderErroSenha();
+        if (senhaPasso === 'atual') {
+            const atual = document.getElementById('senha-atual').value;
+            if (!atual) { mostrarErroSenha('Informe sua senha atual.'); return; }
+            senhaAtualDigitada = atual;
+            senhaMostrarPasso('nova');
+        } else if (senhaPasso === 'confirmar-envio') {
+            senhaEnviarCodigo();
+        } else if (senhaPasso === 'codigo') {
+            senhaVerificarCodigo();
+        } else if (senhaPasso === 'nova') {
+            senhaSalvarFinal();
+        }
+    }
+
+    async function senhaEnviarCodigo() {
+        const btn = document.getElementById('senha-btn-principal');
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+        try {
+            const res = await fetch('/biblioteca/configuracoes/enviar-codigo/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ contexto: 'senha' })
+            });
+            const d = await res.json();
+            btn.disabled = false;
+            if (d.sucesso) {
+                senhaMostrarPasso('codigo');
+                document.querySelector('#senha-code-digits .cfg-code-digit')?.focus();
+            } else {
+                mostrarErroSenha(d.erro || 'Erro ao enviar código.');
+                btn.textContent = 'Enviar código';
+            }
+        } catch (e) {
+            btn.disabled = false;
+            mostrarErroSenha('Erro de conexão.');
+            btn.textContent = 'Enviar código';
+        }
+    }
+
+    function senhaReenviarCodigo() { senhaEnviarCodigo(); }
+
+    async function senhaVerificarCodigo() {
+        const codigo = getCodigoDe('senha-code-digits');
+        if (codigo.length < 6) { mostrarErroSenha('Preencha todos os 6 dígitos.'); return; }
+
+        const btn = document.getElementById('senha-btn-principal');
+        btn.disabled = true;
+        btn.textContent = 'Verificando...';
+        try {
+            const res = await fetch('/biblioteca/configuracoes/verificar-codigo/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ contexto: 'senha', codigo })
+            });
+            const d = await res.json();
+            btn.disabled = false;
+            if (d.sucesso) {
+                senhaToken = d.token;
+                senhaMostrarPasso('nova');
+            } else {
+                mostrarErroSenha(d.erro || 'Código incorreto.');
+                btn.textContent = 'Confirmar código';
+            }
+        } catch (e) {
+            btn.disabled = false;
+            mostrarErroSenha('Erro de conexão.');
+            btn.textContent = 'Confirmar código';
+        }
+    }
+
+    async function senhaSalvarFinal() {
+        const nova = document.getElementById('senha-nova').value;
+        const confirma = document.getElementById('senha-confirma').value;
+        if (nova.length < 8) { mostrarErroSenha('A nova senha deve ter pelo menos 8 caracteres.'); return; }
+        if (nova !== confirma) { mostrarErroSenha('As senhas não coincidem.'); return; }
+
+        const payload = { senha_nova: nova };
+        if (senhaMetodo === 'atual') payload.senha_atual = senhaAtualDigitada;
+        else payload.token = senhaToken;
+
+        const btn = document.getElementById('senha-btn-principal');
+        btn.disabled = true;
+        btn.textContent = 'Salvando...';
+
+        try {
+            const res = await fetch('/biblioteca/configuracoes/alterar-senha/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify(payload)
+            });
+            const d = await res.json();
+            if (d.sucesso) {
+                fecharModalSenha();
+                cfgToast('Senha alterada com sucesso.');
+            } else {
+                btn.disabled = false;
+                mostrarErroSenha(d.erro || 'Erro ao alterar senha.');
+                btn.textContent = 'Salvar nova senha';
+            }
+        } catch (e) {
+            btn.disabled = false;
+            mostrarErroSenha('Erro de conexão.');
+            btn.textContent = 'Salvar nova senha';
+        }
+    }
+
+    function mostrarErroSenha(msg) {
+        const el = document.getElementById('senha-erro');
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+    function esconderErroSenha() {
+        document.getElementById('senha-erro').style.display = 'none';
+    }
+
+    function abrirModalSenha() {
+        senhaResetModal();
+        document.getElementById('cfg-modal-senha').classList.add('open');
+    }
+    function fecharModalSenha(e) {
+        if (!e || e.target === document.getElementById('cfg-modal-senha')) {
+            document.getElementById('cfg-modal-senha').classList.remove('open');
+            senhaResetModal();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // MODAL ALTERAR E-MAIL
+    // ═══════════════════════════════════════════════════════════
+    let emailPasso = 'confirmar-atual'; // 'confirmar-atual' -> 'codigo-atual' -> 'novo' -> 'codigo-novo'
+    let emailTokenAtual = null;
+    let emailTokenNovo = null;
+    let emailNovoValor = '';
+
+    function emailResetModal() {
+        emailPasso = 'confirmar-atual';
+        emailTokenAtual = null;
+        emailTokenNovo = null;
+        emailNovoValor = '';
+        document.getElementById('email-novo-input').value = '';
+        document.querySelectorAll('#email-code-digits-atual .cfg-code-digit, #email-code-digits-novo .cfg-code-digit')
+            .forEach(d => d.value = '');
+        emailMostrarPasso('confirmar-atual');
+        esconderErroEmail();
+    }
+
+    function emailMostrarPasso(passo) {
+        emailPasso = passo;
+        ['confirmar-atual', 'codigo-atual', 'novo', 'codigo-novo'].forEach(p => {
+            document.getElementById('email-passo-' + p).style.display = (p === passo) ? 'block' : 'none';
+        });
+
+        document.getElementById('email-btn-voltar').style.display = (passo === 'confirmar-atual') ? 'none' : 'inline-flex';
+
+        const btn = document.getElementById('email-btn-principal');
+        btn.disabled = false;
+        if (passo === 'confirmar-atual') btn.textContent = 'Enviar código';
+        else if (passo === 'codigo-atual') btn.textContent = 'Confirmar código';
+        else if (passo === 'novo') btn.textContent = 'Enviar código';
+        else if (passo === 'codigo-novo') btn.textContent = 'Confirmar e salvar';
+    }
+
+    function emailVoltar() {
+        esconderErroEmail();
+        if (emailPasso === 'codigo-atual') emailMostrarPasso('confirmar-atual');
+        else if (emailPasso === 'novo') emailMostrarPasso('codigo-atual');
+        else if (emailPasso === 'codigo-novo') emailMostrarPasso('novo');
+    }
+
+    function emailAvancar() {
+        esconderErroEmail();
+        if (emailPasso === 'confirmar-atual') emailEnviarCodigoAtual();
+        else if (emailPasso === 'codigo-atual') emailVerificarCodigoAtual();
+        else if (emailPasso === 'novo') emailEnviarCodigoNovo();
+        else if (emailPasso === 'codigo-novo') emailVerificarESalvar();
+    }
+
+    async function emailEnviarCodigoAtual() {
+        const btn = document.getElementById('email-btn-principal');
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+        try {
+            const res = await fetch('/biblioteca/configuracoes/enviar-codigo/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ contexto: 'email_atual' })
+            });
+            const d = await res.json();
+            btn.disabled = false;
+            if (d.sucesso) {
+                emailMostrarPasso('codigo-atual');
+                document.querySelector('#email-code-digits-atual .cfg-code-digit')?.focus();
+            } else {
+                mostrarErroEmail(d.erro || 'Erro ao enviar código.');
+                btn.textContent = 'Enviar código';
+            }
+        } catch (e) {
+            btn.disabled = false;
+            mostrarErroEmail('Erro de conexão.');
+            btn.textContent = 'Enviar código';
+        }
+    }
+
+    async function emailVerificarCodigoAtual() {
+        const codigo = getCodigoDe('email-code-digits-atual');
+        if (codigo.length < 6) { mostrarErroEmail('Preencha todos os 6 dígitos.'); return; }
+
+        const btn = document.getElementById('email-btn-principal');
+        btn.disabled = true;
+        btn.textContent = 'Verificando...';
+        try {
+            const res = await fetch('/biblioteca/configuracoes/verificar-codigo/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ contexto: 'email_atual', codigo })
+            });
+            const d = await res.json();
+            btn.disabled = false;
+            if (d.sucesso) {
+                emailTokenAtual = d.token;
+                emailMostrarPasso('novo');
+            } else {
+                mostrarErroEmail(d.erro || 'Código incorreto.');
+                btn.textContent = 'Confirmar código';
+            }
+        } catch (e) {
+            btn.disabled = false;
+            mostrarErroEmail('Erro de conexão.');
+            btn.textContent = 'Confirmar código';
+        }
+    }
+
+    async function emailEnviarCodigoNovo() {
+        const novo = document.getElementById('email-novo-input').value.trim();
+        if (!novo) { mostrarErroEmail('Informe o novo e-mail.'); return; }
+        emailNovoValor = novo;
+
+        const btn = document.getElementById('email-btn-principal');
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+        try {
+            const res = await fetch('/biblioteca/configuracoes/enviar-codigo/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ contexto: 'email_novo', email: novo, token_anterior: emailTokenAtual })
+            });
+            const d = await res.json();
+            btn.disabled = false;
+            if (d.sucesso) {
+                document.getElementById('email-novo-mascarado').textContent = d.email_mascarado || novo;
+                emailMostrarPasso('codigo-novo');
+                document.querySelector('#email-code-digits-novo .cfg-code-digit')?.focus();
+            } else {
+                mostrarErroEmail(d.erro || 'Erro ao enviar código.');
+                btn.textContent = 'Enviar código';
+            }
+        } catch (e) {
+            btn.disabled = false;
+            mostrarErroEmail('Erro de conexão.');
+            btn.textContent = 'Enviar código';
+        }
+    }
+
+    async function emailVerificarESalvar() {
+        const codigo = getCodigoDe('email-code-digits-novo');
+        if (codigo.length < 6) { mostrarErroEmail('Preencha todos os 6 dígitos.'); return; }
+
+        const btn = document.getElementById('email-btn-principal');
+        btn.disabled = true;
+        btn.textContent = 'Verificando...';
+        try {
+            const res = await fetch('/biblioteca/configuracoes/verificar-codigo/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ contexto: 'email_novo', codigo })
+            });
+            const d = await res.json();
+            if (!d.sucesso) {
+                btn.disabled = false;
+                mostrarErroEmail(d.erro || 'Código incorreto.');
+                btn.textContent = 'Confirmar e salvar';
+                return;
+            }
+            emailTokenNovo = d.token;
+
+            const res2 = await fetch('/biblioteca/configuracoes/alterar-email/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ token: emailTokenNovo, email: emailNovoValor })
+            });
+            const d2 = await res2.json();
+            btn.disabled = false;
+            if (d2.sucesso) {
+                fecharModalEmail();
+                cfgToast('E-mail atualizado com sucesso.');
+                const spanEmail = document.querySelector('#cfg-notificacoes .cfg-security-info span');
+                if (spanEmail) spanEmail.textContent = d2.novo_email;
+            } else {
+                mostrarErroEmail(d2.erro || 'Erro ao salvar novo e-mail.');
+                btn.textContent = 'Confirmar e salvar';
+            }
+        } catch (e) {
+            btn.disabled = false;
+            mostrarErroEmail('Erro de conexão.');
+            btn.textContent = 'Confirmar e salvar';
+        }
+    }
+
+    function emailReenviarCodigo(qual) {
+        if (qual === 'atual') emailEnviarCodigoAtual();
+        else emailEnviarCodigoNovo();
+    }
+
+    function mostrarErroEmail(msg) {
+        const el = document.getElementById('email-erro');
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+    function esconderErroEmail() {
+        document.getElementById('email-erro').style.display = 'none';
+    }
+
+    function abrirModalEmail() {
+        emailResetModal();
+        document.getElementById('cfg-modal-email').classList.add('open');
+    }
+    function fecharModalEmail(e) {
+        if (!e || e.target === document.getElementById('cfg-modal-email')) {
+            document.getElementById('cfg-modal-email').classList.remove('open');
+            emailResetModal();
+        }
+    }
 
     // getCookie() já está disponível via script.js
 </script>
