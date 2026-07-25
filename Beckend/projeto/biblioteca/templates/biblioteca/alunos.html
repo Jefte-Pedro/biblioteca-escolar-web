@@ -20,10 +20,6 @@
                 <i class="fa-solid fa-user-shield"></i>
                 <span>Gerenciar Cargos</span>
             </button>
-            <button class="al-btn-limpar" id="btn-abrir-modal-limpar">
-                <i class="fa-solid fa-trash-can"></i>
-                <span>Limpar alunos</span>
-            </button>
             <button class="al-btn-add" id="btn-abrir-modal-individual">
                 <i class="fa-solid fa-user-plus"></i>
                 <span data-i18n="al_btn_add"></span>
@@ -31,6 +27,10 @@
             <button class="al-btn-importar" id="btn-abrir-modal">
                 <i class="fa-solid fa-file-arrow-up"></i>
                 <span data-i18n="al_btn_importar"></span>
+            </button>
+            <button class="al-btn-limpar" id="btn-abrir-modal-limpar">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>Limpar alunos</span>
             </button>
         </div>
     </div>
@@ -59,10 +59,13 @@
             <div class="al-search-wrap" style="position:relative;">
                 <svg class="al-search-ico" width="16" height="16" viewBox="0 0 16 16" fill="none"
                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                    <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" />
                 </svg>
-                <input type="text" id="al-search" class="al-search" placeholder="Busque o Nome do Aluno ou Turma" autocomplete="off">
+                <input type="text" id="al-search" class="al-search" placeholder="Busque o Nome do Aluno ou Turma"
+                    autocomplete="off">
             </div>
             <div class="al-filtros" id="al-filtros">
                 <button class="al-filtro-btn ativo" data-turma="todas">Todas</button>
@@ -123,7 +126,8 @@
                                     </a>
                                     {% endif %}
                                     {% if aluno.telefone %}
-                                    <a class="al-contato-item al-contato-tel" href="tel:{{ aluno.telefone }}" title="{{ aluno.telefone }}">
+                                    <a class="al-contato-item al-contato-tel" href="tel:{{ aluno.telefone }}"
+                                        title="{{ aluno.telefone }}">
                                         <i class="fa-solid fa-phone"></i>
                                         <span>{{ aluno.telefone }}</span>
                                     </a>
@@ -147,7 +151,8 @@
                                         <i class="fa-solid fa-user-shield"></i> Atribuir cargo
                                     </button>
                                     <div class="al-dropdown-divider"></div>
-                                    <button class="al-dropdown-item al-dropdown-excluir" data-id="{{ aluno.pk }}" data-nome="{{ aluno.get_full_name }}">
+                                    <button class="al-dropdown-item al-dropdown-excluir" data-id="{{ aluno.pk }}"
+                                        data-nome="{{ aluno.get_full_name }}">
                                         <i class="fa-solid fa-trash-can"></i> Excluir aluno
                                     </button>
                                 </div>
@@ -280,8 +285,7 @@
             </div>
             <div class="al-resultado" id="al-resultado-cargo" style="display:none"></div>
             <div style="display:flex;gap:8px;margin-top:4px;">
-                <button class="al-btn-cancelar" id="btn-cancelar-cargo-form" style="display:none;">Cancelar
-                    edição</button>
+                <button class="al-btn-cancelar" id="btn-cancelar-cargo-form" style="display:none;">Cancelar edição</button>
                 <button class="al-btn-confirmar" id="btn-salvar-cargo" style="flex:1;">
                     <i class="fa-solid fa-floppy-disk"></i><span>Salvar cargo</span>
                 </button>
@@ -378,8 +382,7 @@
             <i class="fa-solid fa-circle-check" style="color:#22c55e"></i>
             <div>
                 <strong>Formato SIEP detectado automaticamente</strong>
-                <span>Ao importar a planilha gerada pelo SIEP, a turma é lida e normalizada automaticamente (ex: "1ANO -
-                    I - EM1I-A" → "1° A"). Nenhuma configuração necessária.</span>
+                <span>Ao importar a planilha gerada pelo SIEP, a turma é lida e normalizada automaticamente (ex: "1ANO - I - EM1I-A" → "1° A"). Nenhuma configuração necessária.</span>
             </div>
         </div>
         <div class="al-formatos">
@@ -410,8 +413,7 @@
             <div class="al-preview-table-wrap" id="al-preview-table-wrap"></div>
         </div>
         <div class="al-mapeamento" id="al-mapeamento" style="display:none">
-            <div class="al-map-titulo">Mapeie as colunas <span class="al-map-hint">— escolha quais colunas correspondem
-                    a cada campo</span></div>
+            <div class="al-map-titulo">Mapeie as colunas <span class="al-map-hint">— escolha quais colunas correspondem a cada campo</span></div>
             <div class="al-map-grid">
                 <div class="al-map-row"><label class="al-map-label">Nome</label><select class="al-map-select"
                         id="map-nome"></select></div>
@@ -438,8 +440,7 @@
         <div class="al-modal-header">
             <div>
                 <h3 class="al-modal-titulo" style="color:#ef4444">
-                    <i class="fa-solid fa-triangle-exclamation" style="font-size:14px;margin-right:6px;"></i>Limpar
-                    alunos
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:14px;margin-right:6px;"></i>Limpar alunos
                 </h3>
                 <p class="al-modal-sub">Selecione quais turmas deseja remover. Essa ação não pode ser desfeita.</p>
             </div>
@@ -475,8 +476,7 @@
         <div id="limpar-painel-todos" style="display:none">
             <div class="al-limpar-aviso">
                 <i class="fa-solid fa-circle-exclamation" style="color:#ef4444;font-size:18px;flex-shrink:0;"></i>
-                <p>Isso removerá <strong>todos os {{ total_alunos }} alunos</strong> cadastrados no sistema. O histórico
-                    de empréstimos será preservado.</p>
+                <p>Isso removerá <strong>todos os {{ total_alunos }} alunos</strong> cadastrados no sistema. O histórico de empréstimos será preservado.</p>
             </div>
             <label class="al-limpar-confirm-check">
                 <input type="checkbox" id="limpar-todos-confirm-cb">
@@ -499,15 +499,14 @@
         <div class="al-modal-header">
             <div>
                 <h3 class="al-modal-titulo" style="color:#ef4444">
-                    <i class="fa-solid fa-triangle-exclamation" style="font-size:14px;margin-right:6px;"></i>Excluir
-                    cargo
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:14px;margin-right:6px;"></i>Excluir cargo
                 </h3>
                 <p class="al-modal-sub">Usuários com esse cargo ficarão sem cargo.</p>
             </div>
             <button class="al-modal-close" id="btn-fechar-modal-excluir-cargo"><i
                     class="fa-solid fa-xmark"></i></button>
         </div>
-        <p style="font-size:14px;color:var(--text);line-height:1.6;">
+        <p style="font-size:14px;color:var(--text);line-height:1.6;"> 
             Tem certeza que deseja excluir o cargo <strong id="excluir-nome-cargo"></strong>?
         </p>
         <div class="al-modal-footer">
@@ -1293,11 +1292,14 @@
     .al-table-wrap {
         border-radius: var(--r-lg);
         border: 1px solid var(--border);
-        overflow: hidden;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
     }
 
     .al-table {
         width: 100%;
+        min-width: 640px;
         border-collapse: collapse;
         font-size: 13px;
     }
@@ -1954,6 +1956,133 @@
         border-bottom: 1px solid var(--border);
         color: var(--muted);
     }
+
+    /* ══════════════════════════════════════════════════════════
+       RESPONSIVIDADE MOBILE
+       Reorganiza header, toolbar, modais e dropdowns pra caber
+       na tela sem forçar zoom nem cortar conteúdo.
+    ══════════════════════════════════════════════════════════ */
+
+    /* Trava qualquer overflow horizontal acidental na página */
+    #pag-alunos {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    @media (max-width: 860px) {
+
+        /* ── Header: título em cima, ações em baixo, empilhadas ── */
+        .al-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 14px;
+        }
+
+        .al-header-acoes {
+            flex-direction: column;
+            align-items: stretch;
+            width: 100%;
+            gap: 8px;
+        }
+
+        .al-header-acoes button {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* ── Cards de resumo: 2 colunas até 480px, 1 coluna abaixo disso ── */
+        .al-resumo-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        /* ── Toolbar: busca em cima, filtros abaixo como chips roláveis ── */
+        .al-toolbar-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .al-search-wrap {
+            width: 100%;
+            min-width: unset;
+        }
+
+        .al-filtros {
+            width: 100%;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px;
+            scrollbar-width: thin;
+        }
+
+        .al-filtro-btn {
+            flex-shrink: 0;
+        }
+
+        /* ── Modais: encostam mais no topo (não centralizam no meio
+           da tela) pra sobrar espaço quando o teclado abrir, e
+           ocupam a largura útil sem estourar ── */
+        .al-modal-overlay {
+            align-items: flex-start;
+            padding: 12px;
+            padding-top: max(16px, env(safe-area-inset-top));
+            /* Reserva espaço na base pro teclado virtual, ajustado via JS */
+            padding-bottom: calc(16px + var(--kb-inset, 0px));
+        }
+
+        .al-modal {
+            padding: 18px;
+            gap: 16px;
+            max-height: calc(100vh - 32px - var(--kb-inset, 0px));
+            border-radius: var(--r-lg);
+        }
+
+        .al-form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .al-cargo-abas-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .al-modal-footer {
+            flex-direction: column-reverse;
+        }
+
+        .al-modal-footer button {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .al-limpar-escopo {
+            flex-direction: column;
+        }
+
+        .al-map-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 4px;
+        }
+
+        .al-map-label {
+            width: auto;
+        }
+
+        .al-turma-add-wrap {
+            flex-direction: column;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .al-resumo-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .al-table th,
+        .al-table td {
+            padding: 10px 12px;
+        }
+    }
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1963,6 +2092,46 @@
         const OPCOES_ESPECIAIS = ['Sem turma', 'Funcionário'];
         let turmasAtuais = [];
         let cargosAtuais = [];
+
+        /* ══════════════════════════════════════════════
+           TECLADO VIRTUAL (mobile) — evita o teclado cobrir
+           o campo que está sendo digitado dentro de um modal.
+
+           O navegador mobile não redimensiona o layout quando o
+           teclado abre (o viewport "visual" encolhe, mas o CSS
+           continua pensando que tem o tamanho todo). Usamos a
+           VisualViewport API pra saber quanto o teclado tomou de
+           espaço, expor isso como uma variável CSS (--kb-inset)
+           que o modal usa pra reservar espaço na base, e ainda
+           rolamos o campo focado pra dentro da área visível.
+        ══════════════════════════════════════════════ */
+        if (window.visualViewport) {
+            const vv = window.visualViewport;
+
+            function ajustarInsetTeclado() {
+                const kbHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+                document.documentElement.style.setProperty('--kb-inset', `${kbHeight}px`);
+            }
+
+            vv.addEventListener('resize', ajustarInsetTeclado);
+            vv.addEventListener('scroll', ajustarInsetTeclado);
+            ajustarInsetTeclado();
+        }
+
+        // Quando um campo dentro de um modal aberto ganha foco,
+        // espera o teclado terminar de abrir e então rola esse
+        // campo pra ficar visível (nem por trás do teclado, nem
+        // colado na borda de cima).
+        document.addEventListener('focusin', e => {
+            const campo = e.target;
+            if (!campo.matches('input, select, textarea')) return;
+            const modalAberto = campo.closest('.al-modal-overlay.aberto');
+            if (!modalAberto) return;
+
+            setTimeout(() => {
+                campo.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }, 300);
+        });
 
         /* ══════════════════════════════════════════════
            TURMAS — carrega do banco
@@ -2224,7 +2393,14 @@
         ══════════════════════════════════════════════ */
         function posicionarDropdown(btnMenu, dropdown) {
             const rect = btnMenu.getBoundingClientRect();
-            const dropW = dropdown.offsetWidth || 180;
+
+            // Em telas estreitas, limita a largura do menu ao espaço
+            // disponível na viewport (evita vazar pra fora em mobile).
+            const larguraMax = window.innerWidth - 16;
+            const dropWNatural = dropdown.offsetWidth || 180;
+            const dropW = Math.min(dropWNatural, larguraMax);
+            dropdown.style.width = dropW < dropWNatural ? `${dropW}px` : '';
+
             const dropH = dropdown.offsetHeight || dropdown.scrollHeight || 90;
 
             let left = rect.right - dropW;
@@ -2232,7 +2408,20 @@
             if (left + dropW > window.innerWidth - 8) left = window.innerWidth - dropW - 8;
 
             const espacoAbaixo = window.innerHeight - rect.bottom;
-            let top = (espacoAbaixo < dropH + 12) ? (rect.top - dropH - 4) : (rect.bottom + 4);
+            const espacoAcima = rect.top;
+            let top;
+            if (espacoAbaixo >= dropH + 12) {
+                // Cabe abaixo do botão — comportamento padrão.
+                top = rect.bottom + 4;
+            } else if (espacoAcima >= dropH + 12) {
+                // Não cabe abaixo, mas cabe acima — inverte.
+                top = rect.top - dropH - 4;
+            } else {
+                // Não cabe em nenhum dos dois (tela muito curta,
+                // comum em mobile) — cola no espaço que sobrar sem
+                // cortar, preferindo ficar visível por completo.
+                top = Math.max(8, Math.min(rect.bottom + 4, window.innerHeight - dropH - 8));
+            }
 
             dropdown.style.left = `${left}px`;
             dropdown.style.top = `${top}px`;

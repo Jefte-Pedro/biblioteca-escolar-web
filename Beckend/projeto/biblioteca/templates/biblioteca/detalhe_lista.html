@@ -16,30 +16,142 @@
         z-index: 99999;
         background: var(--sidebar-bg);
         border: 1px solid var(--border);
-        border-radius: var(--r-md);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        border-top: none;
+        border-radius: 0 0 var(--r-md) var(--r-md);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
         max-height: 260px;
         overflow-y: auto;
         min-width: 200px;
+        padding: 6px;
+    }
+
+    /* Faz o campo perder o arredondamento de baixo quando o dropdown
+       está aberto, para o conjunto parecer uma peça só em vez de duas
+       caixas soltas empilhadas. */
+    #input-busca-livro.dropdown-aberto {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    #dropdown-busca-livro .emp-ac-item {
+        border-radius: 8px;
+        margin-bottom: 2px;
+    }
+
+    #dropdown-busca-livro .emp-ac-item:last-child {
+        margin-bottom: 0;
+    }
+
+    /* ── Evita o zoom automático do navegador mobile ao focar em
+       campos de texto. Safari/Chrome no celular dão zoom quando o
+       font-size do input é menor que 16px, e esse zoom às vezes não
+       volta sozinho depois, deixando a página "torta" e cortando
+       elementos posicionados dinamicamente (como o dropdown de busca). */
+    #input-busca-livro,
+    #editar-nome,
+    #editar-descricao,
+    .modal-input {
+        font-size: 16px !important;
+    }
+
+    /* ── Modal com rolagem interna ──
+       Em vez de tentar recalcular manualmente a altura do modal toda
+       vez que o teclado do celular abre (abordagem anterior, instável
+       por depender de timing exato), deixamos o overlay rolar
+       internamente e usamos scrollIntoView() no campo focado — o
+       navegador já sabe lidar com isso de forma confiável, pois é o
+       mesmo mecanismo nativo usado em qualquer formulário da web. */
+    .modal-overlay {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        align-items: flex-start !important;
+        padding: 40px 16px !important;
+    }
+
+    .modal-overlay .modal-box {
+        margin: auto;
+    }
+
+    /* ── Botão voltar padrão ── */
+    .dl-btn-voltar {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: none;
+        border: none;
+        color: var(--muted, #9aa8bd);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 6px 0;
+        margin-bottom: 16px;
+        transition: color .15s;
+    }
+
+    .dl-btn-voltar:hover {
+        color: var(--accent, #4f94d6);
+    }
+
+    /* ══════════════════════════════════════════
+       RESPONSIVO — cabeçalho da lista em mobile
+       (a grade de livros já colapsa bem sozinha,
+       aqui só ajustamos o bloco de cima)
+    ═══════════════════════════════════════════ */
+    @media (max-width: 768px) {
+        .dl-header {
+            flex-direction: column !important;
+            align-items: center !important;
+            text-align: center;
+            gap: 16px;
+        }
+
+        .dl-header-capa {
+            margin: 0 auto;
+        }
+
+        .dl-header-info {
+            width: 100%;
+            align-items: center;
+        }
+
+        .dl-titulo {
+            text-align: center;
+        }
+
+        .dl-descricao {
+            text-align: center;
+        }
+
+        .dl-meta {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .dl-acoes {
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .dl-acoes button {
+            flex: 1 1 auto;
+            min-width: 110px;
+            justify-content: center;
+        }
     }
 </style>
 
 <div class="dl-wrap">
 
-    <!-- BREADCRUMB -->
-    <div class="dl-breadcrumb">
-        <a href="{% url 'inicio' %}">Acervo</a>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+    <!-- BOTÃO VOLTAR -->
+    <button class="dl-btn-voltar" onclick="window.history.back()" title="Voltar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6" />
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
         </svg>
-        <a href="{% url 'minha_lista' %}">Minha Lista</a>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-        </svg>
-        <span>{{ lista.nome }}</span>
-    </div>
+        Voltar
+    </button>
 
     <!-- HEADER DA LISTA -->
     <div class="dl-header">
@@ -283,6 +395,26 @@
     let livroParaRemoverId = null;
 
     /* ─────────────────────────────
+       AJUSTE DO MODAL QUANDO O TECLADO ABRE (MOBILE)
+       Em vez de recalcular manualmente a altura/posição do overlay
+       (abordagem anterior, que dependia de timing exato do navegador
+       e por isso funcionava de forma inconsistente), usamos o
+       scrollIntoView nativo no campo que recebeu foco. Como o overlay
+       agora tem overflow-y:auto, o navegador consegue rolar até o
+       campo ficar visível acima do teclado de forma confiável, do
+       mesmo jeito que já faz em qualquer formulário comum da web.
+    ───────────────────────────── */
+    document.addEventListener('focusin', (e) => {
+        if (!e.target.matches('input, textarea')) return;
+        const overlay = e.target.closest('.modal-overlay');
+        if (!overlay) return;
+
+        setTimeout(() => {
+            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300); // dá tempo da animação do teclado começar
+    });
+
+    /* ─────────────────────────────
        CSRF
     ───────────────────────────── */
     function getCookie(name) {
@@ -361,6 +493,7 @@
 
         dropdown.style.display = 'none';
         dropdown.innerHTML = '';
+        getInput()?.classList.remove('dropdown-aberto');
     }
 
     /* ─────────────────────────────
@@ -418,6 +551,12 @@
             posicionarDropdown();
         }
 
+    });
+    
+    document.getElementById('modal-add-livro').addEventListener('scroll', () => {
+        if (getDropdown().style.display === 'block') {
+            posicionarDropdown();
+        }
     });
 
     window.addEventListener('resize', () => {
@@ -519,6 +658,7 @@
             posicionarDropdown();
 
             dropdown.style.display = 'block';
+            getInput().classList.add('dropdown-aberto');
 
         } catch (err) {
 

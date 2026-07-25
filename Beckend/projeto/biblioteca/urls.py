@@ -94,7 +94,9 @@ urlpatterns = [
     path('exportar/acervo/', views.exportar_acervo,      name='exportar_acervo'),
     path('exportar/emprestimos/', views.exportar_emprestimos,  name='exportar_emprestimos'),
     path('exportar/alunos/', views.exportar_alunos,      name='exportar_alunos'),
-    
+    path('configuracoes/enviar-codigo/', views.cfg_enviar_codigo, name='cfg_enviar_codigo'),
+    path('configuracoes/verificar-codigo/', views.cfg_verificar_codigo, name='cfg_verificar_codigo'),
+    path('configuracoes/alterar-email/', views.alterar_email_via_token, name='alterar_email_via_token'),            
     path('login/recuperar-buscar-contato/', views.recuperar_buscar_contato, name='recuperar_buscar_contato'),
     path('login/redefinir-senha/', views.redefinir_senha_recuperacao, name='redefinir_senha_recuperacao'),
     path('login/nova-senha/', views.nova_senha_page, name='nova_senha_page'),

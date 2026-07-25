@@ -535,8 +535,96 @@ def prazos(request):
 
 
 def configuracoes(request):
-    return render(request, 'biblioteca/configuracoes.html')
+    email_mascarado = None
+    if request.user.is_authenticated and request.user.email:
+        email_mascarado = _mascarar_email(request.user.email)
+    return render(request, 'biblioteca/configuracoes.html', {
+        'email_mascarado': email_mascarado,
+    })
+    
+@require_POST
+@login_required
+def cfg_enviar_codigo(request):
+    """
+    Envia código de 6 dígitos por e-mail. Usado em dois contextos:
+    - 'senha' / 'email_atual': confirma identidade usando o e-mail já cadastrado.
+    - 'email_novo': confirma o novo e-mail (exige token da etapa anterior).
+    """
+    data = json.loads(request.body)
+    contexto = data.get('contexto', '').strip()
 
+    if contexto == 'email_novo':
+        token_anterior = data.get('token_anterior', '').strip()
+        token_salvo = cache.get(f"token_cfg_{request.user.pk}_email_atual")
+        if not token_salvo or token_salvo != token_anterior:
+            return JsonResponse({'erro': 'Confirme primeiro seu e-mail atual.'}, status=400)
+
+        email = data.get('email', '').strip()
+        if not email:
+            return JsonResponse({'erro': 'Informe o novo e-mail.'}, status=400)
+        if Usuario.objects.filter(email=email).exclude(pk=request.user.pk).exists():
+            return JsonResponse({'erro': 'Esse e-mail já está em uso por outra conta.'}, status=400)
+    else:
+        email = request.user.email
+        if not email:
+            return JsonResponse({'erro': 'Você não tem e-mail cadastrado. Fale com a bibliotecária.'}, status=400)
+
+    codigo = str(random.randint(100000, 999999))
+    cache.set(f"codigo_cfg_{request.user.pk}_{contexto}", codigo, timeout=600)
+
+    from .gmail import enviar_codigo_verificacao
+    enviar_codigo_verificacao(email, codigo)
+
+    return JsonResponse({'sucesso': True, 'email_mascarado': _mascarar_email(email)})
+
+
+@require_POST
+@login_required
+def cfg_verificar_codigo(request):
+    data = json.loads(request.body)
+    contexto = data.get('contexto', '').strip()
+    codigo_digitado = data.get('codigo', '').strip()
+
+    cache_key = f"codigo_cfg_{request.user.pk}_{contexto}"
+    codigo_salvo = cache.get(cache_key)
+
+    if not codigo_salvo:
+        return JsonResponse({'erro': 'Código expirado. Solicite um novo.'}, status=400)
+    if codigo_digitado != codigo_salvo:
+        return JsonResponse({'erro': 'Código incorreto.'}, status=400)
+
+    cache.delete(cache_key)
+
+    token = secrets.token_urlsafe(32)
+    cache.set(f"token_cfg_{request.user.pk}_{contexto}", token, timeout=600)
+
+    return JsonResponse({'sucesso': True, 'token': token})
+
+
+@require_POST
+@login_required
+def alterar_email_via_token(request):
+    data = json.loads(request.body)
+    token = data.get('token', '').strip()
+    novo_email = data.get('email', '').strip()
+
+    if not novo_email:
+        return JsonResponse({'erro': 'Informe o novo e-mail.'}, status=400)
+
+    cache_key = f"token_cfg_{request.user.pk}_email_novo"
+    token_salvo = cache.get(cache_key)
+    if not token_salvo or token_salvo != token:
+        return JsonResponse({'erro': 'Verificação expirada. Peça um novo código.'}, status=400)
+
+    if Usuario.objects.filter(email=novo_email).exclude(pk=request.user.pk).exists():
+        return JsonResponse({'erro': 'Esse e-mail já está em uso por outra conta.'}, status=400)
+
+    request.user.email = novo_email
+    request.user.save()
+    cache.delete(cache_key)
+    cache.delete(f"token_cfg_{request.user.pk}_email_atual")
+
+    return JsonResponse({'sucesso': True, 'novo_email': novo_email})
 
 # ──────────────────────────────────────────
 # ACERVO / ABAS
