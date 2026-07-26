@@ -1,6 +1,8 @@
-/* ===== TEMA ===== */
-// Única fonte de verdade para tema em todo o projeto.
-// Chave localStorage: "theme"  |  Valores: "dark" | "light" | "auto"
+/* ══════════════════════════════════════════
+   TEMA
+   Única fonte de verdade para tema em todo o projeto.
+   Chave localStorage: "theme"  |  Valores: "dark" | "light" | "auto"
+══════════════════════════════════════════ */
 
 const BASE_URL = "/biblioteca";
 
@@ -55,8 +57,10 @@ function toggleTheme() {
   _applyTheme(saved);
 })();
 
-/* ===== IDIOMA ===== */
-// Funções no escopo global para que os onclick do HTML funcionem.
+/* ══════════════════════════════════════════
+   IDIOMA
+   Funções no escopo global para os onclick do HTML funcionarem.
+══════════════════════════════════════════ */
 
 const _langLabels = { pt: "PT", en: "EN", es: "ES" };
 
@@ -84,7 +88,6 @@ function setLang(lang) {
   if (el) el.textContent = _langLabels[lang] || "PT";
   document.getElementById("lang-menu")?.classList.remove("open");
 
-  // Aplica traduções
   if (typeof traducoes !== "undefined" && traducoes[lang]) {
     document.querySelectorAll("[data-i18n]").forEach((elT) => {
       if (traducoes[lang][elT.dataset.i18n]) {
@@ -101,8 +104,9 @@ function setLang(lang) {
   window.dispatchEvent(new CustomEvent("langChanged", { detail: lang }));
 }
 
-
-/* ===== CSRF ===== */
+/* ══════════════════════════════════════════
+   CSRF
+══════════════════════════════════════════ */
 
 function getCookie(name) {
   let cookieValue = null;
@@ -120,10 +124,47 @@ function getCookie(name) {
   return cookieValue;
 }
 
-/* ===== DOM READY ===== */
+/* ══════════════════════════════════════════
+   ZOOM DE FOCO (mobile)
+   Navegadores mobile dão zoom automático ao focar um input/textarea/select
+   com font-size menor que 16px. Esse zoom NÃO volta sozinho quando o campo
+   perde o foco — o usuário precisa fazer o gesto de pinça manualmente.
+   Aqui a gente força a volta: ao sair do campo, trava o zoom por um
+   instante (obrigando o navegador a resetar a escala) e libera de novo
+   logo em seguida, sem travar o pinça-zoom manual do usuário.
+══════════════════════════════════════════ */
+
+(function () {
+  const viewport = document.querySelector('meta[name="viewport"]');
+  if (!viewport) return;
+
+  const conteudoOriginal = viewport.getAttribute("content");
+
+  function resetarZoomDeFoco() {
+    viewport.setAttribute("content", conteudoOriginal + ", maximum-scale=1.0");
+
+    setTimeout(() => {
+      viewport.setAttribute("content", conteudoOriginal);
+    }, 300);
+  }
+
+  // "focusout" (em vez de "blur") borbulha no DOM, então funciona pra
+  // qualquer input/textarea/select da página — inclusive os que aparecem
+  // depois, dentro de modais carregados dinamicamente.
+  document.addEventListener("focusout", (e) => {
+    const tag = e.target.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+      resetarZoomDeFoco();
+    }
+  });
+})();
+
+/* ══════════════════════════════════════════
+   DOM READY
+══════════════════════════════════════════ */
 
 document.addEventListener("DOMContentLoaded", () => {
-  /* ===== TRANSIÇÃO ENTRE PÁGINAS ===== */
+  /* ── Transição entre páginas ── */
 
   const mainEl = document.querySelector("main");
 
@@ -154,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ===== IDIOMA — fechar ao clicar fora ===== */
+  /* ── Idioma — fechar ao clicar fora ── */
 
   document.addEventListener("click", function (e) {
     if (!e.target.closest("#lang-container")) {
@@ -162,7 +203,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* ===== IDIOMA — restaurar ao carregar ===== */
+  /* ── Idioma — restaurar ao carregar ── */
+
   const salvoIdioma = localStorage.getItem("idioma") || "pt";
   const elLang = document.getElementById("lang-texto");
   if (elLang) elLang.textContent = _langLabels[salvoIdioma] || "PT";
@@ -173,7 +215,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-  /* ===== SIDEBAR ===== */
+
+  /* ── Sidebar ── */
 
   const sidebar = document.querySelector(".sidebar");
   const menuBtn = document.getElementById("menu-toggle");
@@ -233,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ===== FONTE ===== */
+  /* ── Fonte ── */
 
   const btnAumentar = document.getElementById("aumentar-fonte");
   const btnDiminuir = document.getElementById("diminuir-fonte");
@@ -297,7 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ===== CARROSSEL ===== */
+  /* ── Carrossel ── */
 
   const listaCarrossel = document.getElementById("lista-livros");
 
@@ -329,7 +372,7 @@ document.addEventListener("DOMContentLoaded", () => {
     carregarLivros();
   }
 
-  /* ===== BUSCA ===== */
+  /* ── Busca ── */
 
   const inputBusca = document.getElementById("busca-texto");
 
@@ -351,7 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  /* ===== MODAIS ===== */
+  /* ── Modais ── */
 
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
@@ -392,7 +435,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-/* ===== CARROSSEL ===== */
+/* ══════════════════════════════════════════
+   CARROSSEL
+══════════════════════════════════════════ */
 
 let autoPlayInterval;
 let inatividadeTimer;
@@ -478,7 +523,9 @@ function iniciarAutoPlay() {
   }, tempoEspera);
 }
 
-/* ===== LIVROS ===== */
+/* ══════════════════════════════════════════
+   LIVROS
+══════════════════════════════════════════ */
 
 async function carregarLivros() {
   const lista = document.getElementById("lista-livros");
@@ -581,66 +628,18 @@ function criarCardLivro(livro) {
     <span>${livro.autor || "Autor desconhecido"}</span>
   `;
 
-  card.addEventListener("click", () => abrirLivro(livro.id));
+  // A página de detalhe do livro é renderizada pelo Django (server-side),
+  // então aqui é só navegar direto pra URL — sem SPA, sem fetch extra.
+  card.addEventListener("click", () => {
+    window.location.href = `${BASE_URL}/livro/${livro.id}/`;
+  });
 
   return card;
 }
 
-/* ===== DETALHE LIVRO ===== */
-
-async function abrirLivro(id) {
-  const pagina = document.getElementById("pag-livro");
-
-  if (!pagina) {
-    window.location.href = `${BASE_URL}/livro/${id}/`;
-
-    return;
-  }
-
-  try {
-    const response = await fetch(`${BASE_URL}/api/livros/${id}/`);
-
-    if (!response.ok) {
-      throw new Error("Livro não encontrado");
-    }
-
-    const livro = await response.json();
-
-    document.getElementById("livro-titulo").textContent = livro.titulo;
-
-    document.getElementById("livro-autor").textContent = livro.autor;
-
-    document.getElementById("livro-genero").textContent = livro.genero;
-
-    document.getElementById("livro-editora").textContent = livro.editora;
-
-    document.getElementById("livro-sinopse").textContent = livro.sinopse;
-
-    document.getElementById("livro-prateleira").textContent =
-      `Prateleira: ${livro.endereco_prateleira}`;
-
-    document.getElementById("livro-unidades").textContent =
-      `Unidades disponíveis: ${livro.quantidade}`;
-
-    document.getElementById("livro-codigo").textContent =
-      `Edição: ${livro.edicao}`;
-
-    const capa = document.getElementById("livro-capa");
-
-    if (livro.capa) {
-      capa.src = livro.capa;
-      capa.style.display = "block";
-    } else {
-      capa.style.display = "none";
-    }
-  } catch (err) {
-    console.error(err);
-
-    alert("Erro ao carregar detalhes do livro.");
-  }
-}
-
-/* ===== EMPRÉSTIMOS ===== */
+/* ══════════════════════════════════════════
+   EMPRÉSTIMOS
+══════════════════════════════════════════ */
 
 window.renovarEmprestimo =
   window.renovarEmprestimo ||

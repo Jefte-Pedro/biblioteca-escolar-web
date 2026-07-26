@@ -1,6 +1,36 @@
 /* ══════════════════════════════════════════
-   THEME
+   ZOOM DE FOCO (mobile)
+   Navegadores mobile dão zoom automático ao focar um campo com font-size
+   menor que 16px, e não desfazem esse zoom sozinhos. Aqui a gente força
+   a volta ao sair do campo, sem travar o pinça-zoom manual do usuário.
 ══════════════════════════════════════════ */
+
+(function () {
+  const viewport = document.querySelector('meta[name="viewport"]');
+  if (!viewport) return;
+
+  const conteudoOriginal = viewport.getAttribute("content");
+
+  function resetarZoomDeFoco() {
+    viewport.setAttribute("content", conteudoOriginal + ", maximum-scale=1.0");
+
+    setTimeout(() => {
+      viewport.setAttribute("content", conteudoOriginal);
+    }, 300);
+  }
+
+  document.addEventListener("focusout", (e) => {
+    const tag = e.target.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+      resetarZoomDeFoco();
+    }
+  });
+})();
+
+/* ══════════════════════════════════════════
+   TEMA
+══════════════════════════════════════════ */
+
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.getAttribute("data-theme") === "dark";
@@ -12,7 +42,7 @@ function toggleTheme() {
   localStorage.setItem("theme", isDark ? "light" : "dark");
 }
 
-/* Restore saved theme on load */
+/* Restaurar tema salvo ao carregar */
 (function () {
   const saved = localStorage.getItem("theme");
   if (saved) {
@@ -25,8 +55,9 @@ function toggleTheme() {
 })();
 
 /* ══════════════════════════════════════════
-   LOGIN — role toggle
+   LOGIN — alternar tipo de usuário (aluno / funcionário)
 ══════════════════════════════════════════ */
+
 function setRole(role) {
   const btnAluno = document.getElementById("btn-aluno");
   const btnFunc = document.getElementById("btn-func");
@@ -43,8 +74,9 @@ function setRole(role) {
 }
 
 /* ══════════════════════════════════════════
-   LOGIN — password eye toggle
+   LOGIN — mostrar/ocultar senha
 ══════════════════════════════════════════ */
+
 function togglePwd(inputId, eyeOffId, eyeOnId) {
   inputId = inputId || "senha";
   eyeOffId = eyeOffId || "eye-off";
@@ -60,16 +92,23 @@ function togglePwd(inputId, eyeOffId, eyeOnId) {
 }
 
 /* ══════════════════════════════════════════
-   CADASTRO — state
+   CADASTRO — estado das etapas
+   OBS: a identidade (nome, série, matrícula) já vem pronta do Django —
+   o campo de matrícula no cadastro.html é "readonly" e não dispara
+   nenhuma verificação por JS. Por isso não existe mais uma função de
+   "buscar identidade" aqui: isso é resolvido 100% no backend antes da
+   página carregar. Esse objeto CAD cuida só da navegação entre as
+   3 etapas visuais (identidade → senha → canais).
 ══════════════════════════════════════════ */
+
 const CAD = {
-  step: 1, // current step (1|2|3)
-  identity: null, // { name, turma, matricula } when found
+  step: 1, // etapa atual (1|2|3)
   pwdOk: false,
   channelOk: false,
 };
 
-/* ── Step navigation ── */
+/* ── Navegação entre etapas ── */
+
 function cadGoStep(n) {
   CAD.step = n;
   _cadRenderStepper();
@@ -133,51 +172,8 @@ function _checkSVG() {
   return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 }
 
-/* ── Etapa 1: identity lookup ── */
-function cadCheckIdentity() {
-  const val = (document.getElementById("cad-matricula") || {}).value || "";
-  const mat = val.trim();
-  const resultEl = document.getElementById("cad-id-result");
-  if (!mat || mat.length < 4) return;
+/* ── Etapa 2: validação de senha ── */
 
-  /* Simula busca — em produção isso vira um fetch ao Django */
-  /* Substitua esta lógica pelo retorno real do backend       */
-  const mockDB = [
-    {
-      matricula: "2024089",
-      name: "Maria Silva Costa",
-      turma: "3º A",
-      initials: "MS",
-    },
-  ];
-  const found = mockDB.find((u) => u.matricula === mat);
-
-  if (found) {
-    CAD.identity = found;
-    resultEl.innerHTML = `
-      <div class="id-result-card found">
-        <div class="id-avatar">${found.initials}</div>
-        <div>
-          <div class="id-result-name">${found.name}</div>
-          <div class="id-result-meta">${found.turma} · Matrícula ${found.matricula}</div>
-        </div>
-        <div class="id-check">${_checkSVG()}</div>
-      </div>
-      <div class="id-not-me">Se não for você, fale com a bibliotecária</div>`;
-    document.getElementById("cad-next-1").disabled = false;
-    document.getElementById("cad-next-1").classList.remove("submit-btn");
-    document.getElementById("cad-next-1").className = "submit-btn";
-  } else {
-    CAD.identity = null;
-    resultEl.innerHTML = `
-      <div class="id-result-card not-found">
-        <div style="font-size:12px;color:#EF4444">Matrícula não encontrada. Verifique o número ou fale com a bibliotecária.</div>
-      </div>`;
-    document.getElementById("cad-next-1").disabled = true;
-  }
-}
-
-/* ── Etapa 2: password validation ── */
 function cadCheckPwd() {
   const pwd = (document.getElementById("cad-pwd") || {}).value || "";
   const conf = (document.getElementById("cad-conf") || {}).value || "";
@@ -191,7 +187,6 @@ function cadCheckPwd() {
   _setPwdCheck("chk-letter", hasLetter && hasNumber);
   _setPwdCheck("chk-match", matches);
 
-  /* Strength bar */
   const score = [hasMin, hasLetter, hasNumber, pwd.length >= 12].filter(
     Boolean,
   ).length;
@@ -243,7 +238,8 @@ function _setPwdCheck(id, ok) {
   if (dot) dot.innerHTML = ok ? _checkSVG() : "";
 }
 
-/* ── Etapa 3: channels ── */
+/* ── Etapa 3: canais de contato ── */
+
 function cadToggleChannel(name) {
   const card = document.getElementById("ch-card-" + name);
   const wrap = document.getElementById("ch-input-" + name);

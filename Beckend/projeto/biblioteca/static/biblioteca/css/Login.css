@@ -1148,3 +1148,59 @@ svg {
     padding: 16px;
   }
 }
+
+/* ══════════════════════════════════════════
+   PATCH — cabeçalho/stepper quebrando no mobile
+   (adicionar ao final do login.css, dentro ou
+   depois do bloco RESPONSIVE que já existe)
+══════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .cad-topbar {
+    padding: 0 14px;
+  }
+  .cad-topbar-spacer {
+    width: 36px;
+  }
+  .cad-back {
+    font-size: 11px;
+  }
+  .cad-topbar-title {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cad-stepper {
+    padding: 14px 10px 10px;
+    overflow: hidden;
+    align-items: flex-start;
+  }
+  .step-item {
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+  .step-info {
+    display: block;
+  }
+  .step-sub {
+    display: none;
+  }
+  .step-label {
+    font-size: 9px;
+    line-height: 1.15;
+    max-width: 52px;
+  }
+  .step-circle {
+    width: 26px;
+    height: 26px;
+    font-size: 10px;
+  }
+  .step-line {
+    margin: 13px 4px 0;
+    min-width: 12px;
+  }
+}

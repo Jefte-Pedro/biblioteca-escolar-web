@@ -98,7 +98,8 @@
                         <span id="label-marcar-lido" data-i18n="btn_lido">Marcar Como Lido</span>
                     </button>
                     {% if not disponivel %}
-                    <button class="btn-secundario" id="btn-reservar" onclick="reservarLivro()" data-i18n="btn_reservar">🔖 Reservar</button>
+                    <button class="btn-secundario" id="btn-reservar" onclick="reservarLivro()"
+                        data-i18n="btn_reservar">🔖 Reservar</button>
                     {% endif %}
                 </div>
             </div>
@@ -318,7 +319,7 @@
     box-shadow:0 8px 32px rgba(0,0,0,0.35);
     transition:transform 0.35s cubic-bezier(.34,1.56,.64,1),opacity 0.3s;
     opacity:0;z-index:200;white-space:nowrap;pointer-events:none;">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"
+    <svg id="toast-lido-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"
         stroke-linecap="round" stroke-linejoin="round">
         <polyline points="20 6 9 17 4 12" />
     </svg>
@@ -888,6 +889,15 @@
         color: var(--badge-txt);
     }
 
+    /* ── TOAST: variações de estado ─────────────────────────── */
+    #toast-lido.toast-erro {
+        border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    #toast-lido.toast-aviso {
+        border-color: rgba(250, 170, 20, 0.4);
+    }
+
     /* ── RESPONSIVO DESKTOP ─────────────────────────────────── */
     @media (max-width: 1280px) {
         .detalhe-wrap {
@@ -1012,19 +1022,40 @@
         }
     }
 
-    function mostrarToast(msg) {
+    /* ── TOAST GENÉRICO (substitui todos os alert() nativos) ─── */
+    const ICONES_TOAST = {
+        sucesso: '<polyline points="20 6 9 17 4 12"/>',
+        erro: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+        aviso: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'
+    };
+    const CORES_TOAST = { sucesso: '#22c55e', erro: '#ef4444', aviso: '#f0a020' };
+    let toastTimeoutId = null;
+
+    function mostrarToast(msg, tipo = 'sucesso') {
         const toast = document.getElementById('toast-lido');
-        document.getElementById('toast-lido-msg').textContent = msg;
+        const msgEl = document.getElementById('toast-lido-msg');
+        const iconEl = document.getElementById('toast-lido-icon');
+
+        msgEl.textContent = msg;
+        iconEl.innerHTML = ICONES_TOAST[tipo] || ICONES_TOAST.sucesso;
+        iconEl.setAttribute('stroke', CORES_TOAST[tipo] || CORES_TOAST.sucesso);
+
+        toast.classList.remove('toast-erro', 'toast-aviso');
+        if (tipo === 'erro') toast.classList.add('toast-erro');
+        if (tipo === 'aviso') toast.classList.add('toast-aviso');
+
         toast.style.opacity = '1';
         toast.style.transform = 'translateX(-50%) translateY(0)';
-        setTimeout(() => {
+
+        if (toastTimeoutId) clearTimeout(toastTimeoutId);
+        toastTimeoutId = setTimeout(() => {
             toast.style.opacity = '0';
             toast.style.transform = 'translateX(-50%) translateY(80px)';
         }, 2800);
     }
 
     async function toggleMarcarLido() {
-        if (!USUARIO_LOGADO) { alert('Faça login para marcar livros como lidos.'); return; }
+        if (!USUARIO_LOGADO) { mostrarToast('Faça login para marcar livros como lidos.', 'aviso'); return; }
         const btn = document.getElementById('btn-marcar-lido');
         btn.disabled = true;
         btn.style.opacity = '0.6';
@@ -1039,43 +1070,43 @@
             if (res.ok) {
                 jaEstaLido = !jaEstaLido;
                 atualizarBotaoLido();
-                mostrarToast(jaEstaLido ? 'Livro marcado como lido!' : 'Livro removido dos lidos.');
+                mostrarToast(jaEstaLido ? 'Livro marcado como lido!' : 'Livro removido dos lidos.', 'sucesso');
             } else {
                 const data = await res.json().catch(() => ({}));
-                alert(data.erro || 'Erro ao atualizar. Tente novamente.');
+                mostrarToast(data.erro || 'Erro ao atualizar. Tente novamente.', 'erro');
             }
         } catch (err) {
-            alert('Erro de conexão. Verifique sua rede.');
+            mostrarToast('Erro de conexão. Verifique sua rede.', 'erro');
         } finally {
             btn.disabled = false;
             btn.style.opacity = '1';
         }
     }
     async function reservarLivro() {
-            if (!USUARIO_LOGADO) { alert('Faça login para reservar livros.'); return; }
-            const btn = document.getElementById('btn-reservar');
-            btn.disabled = true;
-            try {
-                const res = await fetch(`/biblioteca/livro/${LIVRO_ID}/reservar/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    alert(data.mensagem);
-                    btn.textContent = data.fila ? `Na fila (posição ${data.posicao_fila})` : 'Reserva enviada ✓';
-                } else {
-                    alert(data.erro || 'Não foi possível reservar este livro.');
-                    btn.disabled = false;
-                }
-            } catch (err) {
-                alert('Erro de conexão.');
+        if (!USUARIO_LOGADO) { mostrarToast('Faça login para reservar livros.', 'aviso'); return; }
+        const btn = document.getElementById('btn-reservar');
+        btn.disabled = true;
+        try {
+            const res = await fetch(`/biblioteca/livro/${LIVRO_ID}/reservar/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                mostrarToast(data.mensagem, 'sucesso');
+                btn.textContent = data.fila ? `Na fila (posição ${data.posicao_fila})` : 'Reserva enviada ✓';
+            } else {
+                mostrarToast(data.erro || 'Não foi possível reservar este livro.', 'erro');
                 btn.disabled = false;
             }
+        } catch (err) {
+            mostrarToast('Erro de conexão.', 'erro');
+            btn.disabled = false;
         }
+    }
 
     function abrirModalLista() {
-        if (!USUARIO_LOGADO) { alert('Faça login para adicionar livros às suas listas.'); return; }
+        if (!USUARIO_LOGADO) { mostrarToast('Faça login para adicionar livros às suas listas.', 'aviso'); return; }
         document.getElementById('modal-add-lista').style.display = 'flex';
         carregarListas();
     }
@@ -1136,9 +1167,13 @@
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
                 body: JSON.stringify({ livro_id: LIVRO_ID })
             });
-            if (res.ok) carregarListas();
+            if (res.ok) {
+                carregarListas();
+            } else {
+                mostrarToast('Não foi possível atualizar a lista.', 'erro');
+            }
         } catch (err) {
-            alert('Erro ao atualizar lista.');
+            mostrarToast('Erro ao atualizar lista.', 'erro');
         }
     }
 
@@ -1156,7 +1191,7 @@
 
     async function criarEAdicionarLista() {
         const nome = document.getElementById('nova-lista-nome').value.trim();
-        if (!nome) { alert('Digite um nome para a lista.'); return; }
+        if (!nome) { mostrarToast('Digite um nome para a lista.', 'aviso'); return; }
         try {
             const resCriar = await fetch('/biblioteca/acervo/lista/criar/', {
                 method: 'POST',
@@ -1172,7 +1207,7 @@
             cancelarCriarLista();
             carregarListas();
         } catch (err) {
-            alert('Erro ao criar lista.');
+            mostrarToast('Erro ao criar lista.', 'erro');
         }
     }
 
