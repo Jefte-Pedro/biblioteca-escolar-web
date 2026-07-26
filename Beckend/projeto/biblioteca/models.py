@@ -148,12 +148,106 @@ class Livro(models.Model):
     def __str__(self):
         return self.titulo
 
+    def save(self, *args, **kwargs):
+        if self.categoria:
+            self.categoria = self._normalizar_categoria(self.categoria)
+            mapeamento, _ = CategoriaGrupo.objects.get_or_create(
+                categoria=self.categoria,
+                defaults={'grupo': self.categoria, 'criado_automaticamente': True},
+            )
+            self.categoria_grupo = mapeamento.grupo
+        else:
+            self.categoria_grupo = None
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def _normalizar_categoria(texto):
+        """
+        Remove espaços extras e padroniza capitalização, pra que
+        'romance ', 'ROMANCE' e 'Romance' sejam sempre a mesma categoria
+        — evita duplicatas criadas só por diferença de digitação.
+        Aplica-se apenas a cadastros/edições feitos a partir de agora;
+        não reprocessa categorias já existentes no banco.
+        """
+        texto = ' '.join(texto.split())  # remove espaços duplicados/nas pontas
+
+        conectores = {'de', 'da', 'do', 'das', 'dos', 'e', 'em'}
+        palavras = texto.split(' ')
+        resultado = [
+            palavra.lower() if i > 0 and palavra.lower() in conectores
+            else palavra.capitalize()
+            for i, palavra in enumerate(palavras)
+        ]
+        return ' '.join(resultado)
+    
+    
+    @staticmethod
+    def _normalizar_categoria(texto):
+        """
+        Remove espaços extras e padroniza capitalização, pra que
+        'romance ', 'ROMANCE' e 'Romance' sejam sempre a mesma categoria
+        — evita duplicatas criadas só por diferença de digitação.
+        Aplica-se apenas a cadastros/edições feitos a partir de agora;
+        não reprocessa categorias já existentes no banco.
+        """
+        texto = ' '.join(texto.split())  # remove espaços duplicados/nas pontas
+
+        conectores = {'de', 'da', 'do', 'das', 'dos', 'e', 'em'}
+        palavras = texto.split(' ')
+        resultado = [
+            palavra.lower() if i > 0 and palavra.lower() in conectores
+            else palavra.capitalize()
+            for i, palavra in enumerate(palavras)
+        ]
+        return ' '.join(resultado)
+
     def esta_disponivel(self):
         return Exemplar.objects.filter(livro=self, status='disponivel').exists()
 
     @property
     def unidades_disponiveis(self):
         return Exemplar.objects.filter(livro=self, status='disponivel').count()
+
+
+# ──────────────────────────────────────────
+# CATEGORIA GRUPO (mapeamento vivo)
+# ──────────────────────────────────────────
+
+class CategoriaGrupo(models.Model):
+    """
+    Tabela viva de mapeamento: cada 'categoria' (texto exato do livro)
+    aponta pra um 'grupo' (o filtro principal mostrado no Explorar).
+
+    Alimentada automaticamente: toda vez que um livro é salvo com uma
+    categoria nova (sem entrada aqui ainda), uma linha é criada na hora,
+    com grupo = a própria categoria — o livro nunca fica escondido.
+
+    Pra juntar essa categoria nova a um grupo já existente, edite o campo
+    'grupo' desta linha no Django Admin. Todos os livros com essa
+    categoria são atualizados sozinhos.
+    """
+    categoria = models.CharField(max_length=100, unique=True)
+    grupo = models.CharField(max_length=100, db_index=True)
+    criado_automaticamente = models.BooleanField(default=False)
+    revisado = models.BooleanField(
+        default=False,
+        help_text="Marque quando já tiver conferido se o grupo está correto."
+    )
+
+    class Meta:
+        db_table = 'biblioteca_categoria_grupo'
+        ordering = ['grupo', 'categoria']
+        verbose_name = 'Mapeamento de Categoria'
+        verbose_name_plural = 'Mapeamentos de Categoria'
+
+    def __str__(self):
+        return f'{self.categoria} → {self.grupo}'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        Livro.objects.filter(categoria=self.categoria).exclude(
+            categoria_grupo=self.grupo
+        ).update(categoria_grupo=self.grupo)    
 
 
 # ──────────────────────────────────────────
