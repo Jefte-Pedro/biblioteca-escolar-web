@@ -140,7 +140,7 @@ class Livro(models.Model):
     isbn          = models.CharField(max_length=20, blank=True, null=True)
     capa_url      = models.TextField(blank=True, null=True)
     sinopse       = models.TextField(blank=True, null=True)
-
+    categoria_grupo = models.CharField(max_length=100, blank=True, null=True, db_index=True)
     class Meta:
         db_table = 'livro'
         managed  = True

@@ -93,21 +93,41 @@
             </div>
 
             <!-- Categoria -->
+            <!-- Categoria (grupo) -->
             <div class="filtro-grupo">
                 <span class="filtro-label">Categoria</span>
-                <div class="filtro-pills" id="filtro-cat">
-                    <a class="pill {% if not filtro_cat %}ativo{% endif %}"
+                <div class="filtro-pills" id="filtro-grupo-pills">
+                    <a class="pill {% if not filtro_grupo %}ativo{% endif %}"
                         href="?prat={{ filtro_prat }}&disp={{ filtro_disp }}&ordem={{ filtro_ordem }}&page=1">
                         Todas
                     </a>
-                    {% for cat in categorias %}
+                    {% for grupo in grupos %}
+                    <a class="pill {% if filtro_grupo == grupo %}ativo{% endif %}"
+                        href="?grupo={{ grupo }}&prat={{ filtro_prat }}&disp={{ filtro_disp }}&ordem={{ filtro_ordem }}&page=1">
+                        {{ grupo }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Subcategoria: só aparece quando um grupo foi escolhido -->
+            {% if filtro_grupo and subcategorias %}
+            <div class="filtro-grupo">
+                <span class="filtro-label">Subcategoria de {{ filtro_grupo }}</span>
+                <div class="filtro-pills" id="filtro-cat">
+                    <a class="pill {% if not filtro_cat %}ativo{% endif %}"
+                        href="?grupo={{ filtro_grupo }}&prat={{ filtro_prat }}&disp={{ filtro_disp }}&ordem={{ filtro_ordem }}&page=1">
+                        Todas
+                    </a>
+                    {% for cat in subcategorias %}
                     <a class="pill {% if filtro_cat == cat %}ativo{% endif %}"
-                        href="?cat={{ cat }}&prat={{ filtro_prat }}&disp={{ filtro_disp }}&ordem={{ filtro_ordem }}&page=1">
+                        href="?grupo={{ filtro_grupo }}&cat={{ cat }}&prat={{ filtro_prat }}&disp={{ filtro_disp }}&ordem={{ filtro_ordem }}&page=1">
                         {{ cat }}
                     </a>
                     {% endfor %}
                 </div>
             </div>
+            {% endif %}
 
             <!-- Prateleira -->
             <div class="filtro-grupo">
@@ -134,7 +154,7 @@
                     Mostrando todos os {{ total_livros }} livros
                     {% endif %}
                 </span>
-                {% if filtro_cat or filtro_prat or filtro_disp or filtro_ordem != 'az' %}
+                {% if filtro_grupo or filtro_cat or filtro_prat or filtro_disp or filtro_ordem != 'az' %}
                 <a href="?" class="btn-limpar-filtros">✕ Limpar filtros</a>
                 {% endif %}
             </div>
@@ -698,11 +718,12 @@
 
     /* ── Badge de filtros ativos ───────────────────────────────── */
     const filtrosAtivos = [
-        '{{ filtro_cat }}',
-        '{{ filtro_prat }}',
-        '{{ filtro_disp }}',
-        '{{ filtro_ordem }}' !== 'az' ? '{{ filtro_ordem }}' : '',
-    ].filter(Boolean).length;
+            '{{ filtro_grupo }}',
+            '{{ filtro_cat }}',
+            '{{ filtro_prat }}',
+            '{{ filtro_disp }}',
+            '{{ filtro_ordem }}' !== 'az' ? '{{ filtro_ordem }}' : '',
+        ].filter(Boolean).length;
 
     const badge = document.getElementById('filtros-badge');
     if (filtrosAtivos > 0) {
