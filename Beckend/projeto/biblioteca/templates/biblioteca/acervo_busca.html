@@ -10,7 +10,7 @@
         <h1 class="acervo-titulo">
             {% if q %}Resultados para "{{ q }}"{% else %}Acervo completo{% endif %}
         </h1>
-        <p class="acervo-sub">{{ livros|length }} livro(s) encontrado(s)</p>
+        <p class="acervo-sub">{{ total_livros }} livro(s) encontrado(s)</p>
     </div>
 </div>
 
@@ -46,5 +46,5 @@
         {% endfor %}
     </div>
 </div>
-
+{% include 'biblioteca/_paginacao.html' %}
 {% endblock %}

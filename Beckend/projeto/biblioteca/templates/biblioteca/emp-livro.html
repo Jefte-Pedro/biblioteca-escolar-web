@@ -461,6 +461,48 @@
             </div>
         </div>
 
+        <!-- ── REGISTRO HISTÓRICO ── -->
+        <div class="emp-modal-secao">
+            <label class="emp-modal-check-historico">
+                <input type="checkbox" id="emp-historico-toggle" onchange="onHistoricoToggle()">
+                <span>Registro histórico — este empréstimo já foi devolvido</span>
+            </label>
+
+            <div id="wrap-data-dev-real" style="display:none; margin-top:10px;">
+                <label class="emp-modal-label">
+                    <i class="fa-solid fa-check-double"></i> DEVOLVIDO EM <span class="obrigatorio">*</span>
+                </label>
+                <div class="dp-wrap" id="wrap-data-devreal">
+                    <div class="dp-campo">
+                        <i class="fa-solid fa-check-double"></i>
+                        <span class="dp-valor" id="valor-data-devreal">Selecionar data</span>
+                    </div>
+                    <input type="hidden" id="emp-data-devreal" value="">
+
+                    <div class="dp-dropdown" id="dp-dropdown-data-devreal">
+                        <div class="dp-header">
+                            <button type="button" class="dp-nav" data-nav="-1"><i
+                                    class="fa-solid fa-chevron-left"></i></button>
+                            <span id="dp-mes-ano-devreal"></span>
+                            <button type="button" class="dp-nav" data-nav="1"><i
+                                    class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                        <div class="dp-dias-semana">
+                            <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+                        </div>
+                        <div class="dp-grid-dias" id="dp-grid-data-devreal"></div>
+                        <div class="dp-footer">
+                            <button type="button" class="dp-link" data-acao="hoje">Hoje</button>
+                            <button type="button" class="dp-link" data-acao="limpar">Limpar</button>
+                        </div>
+                    </div>
+                </div>
+                <span class="emp-modal-data-hint" style="display:block;margin-top:6px;">
+                    Esse empréstimo entrará direto no Histórico — o exemplar e o aluno não são afetados no presente.
+                </span>
+            </div>
+        </div>
+
         <!-- ── OBSERVAÇÕES ── -->
         <div class="emp-modal-secao emp-modal-secao-obs">
             <input type="text" id="emp-obs" class="emp-modal-input" placeholder="Observações (opcional)">
@@ -857,6 +899,36 @@
 
     .dp-link:hover {
         opacity: .8;
+    }
+
+    /* ── Checkbox de registro histórico ── */
+    .emp-modal-check-historico {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 10px 14px;
+        border-radius: var(--r-md, 10px);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        transition: border-color .15s, background .15s, color .15s;
+    }
+
+    .emp-modal-check-historico:has(input:checked) {
+        border-color: var(--accent);
+        background: rgba(79, 148, 214, .07);
+        color: var(--text);
+    }
+
+    .emp-modal-check-historico input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--accent);
+        cursor: pointer;
+        flex-shrink: 0;
     }
 
     /* ══════════════════════════════════════════
@@ -1256,6 +1328,21 @@
         dropdownId: 'dp-dropdown-data-dev', gridId: 'dp-grid-data-dev', mesAnoId: 'dp-mes-ano-dev',
         onChange: () => onDataDevChange()
     });
+    const dpDevReal = criarDatePicker({
+        wrapId: 'wrap-data-devreal', inputId: 'emp-data-devreal', valorId: 'valor-data-devreal',
+        dropdownId: 'dp-dropdown-data-devreal', gridId: 'dp-grid-data-devreal', mesAnoId: 'dp-mes-ano-devreal',
+        onChange: () => { }
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    // REGISTRO HISTÓRICO — toggle "já foi devolvido"
+    // ═══════════════════════════════════════════════════════════
+    function onHistoricoToggle() {
+        const marcado = document.getElementById('emp-historico-toggle').checked;
+        document.getElementById('wrap-data-dev-real').style.display = marcado ? 'block' : 'none';
+        if (!marcado) dpDevReal.setValor('');
+        checkFormStatus();
+    }
 
     // ═══════════════════════════════════════════════════════════
     // MODAL NOVO EMPRÉSTIMO
@@ -1286,6 +1373,9 @@
         document.getElementById('emp-nome').style.display = '';
         document.getElementById('emp-obs').value = '';
         dpDev.setValor('');
+        document.getElementById('emp-historico-toggle').checked = false;
+        dpDevReal.setValor('');
+        document.getElementById('wrap-data-dev-real').style.display = 'none';
         document.getElementById('hint-dev-data').textContent = '+15d automático';
         document.getElementById('hint-dev-data').style.color = '';
         document.getElementById('preview-livro').style.display = 'none';
@@ -1514,9 +1604,10 @@
     function checkFormStatus() {
         const statusWrap = document.getElementById('emp-modal-status-wrap');
         const statusMsg = document.getElementById('emp-modal-status-msg');
+        const ehHistorico = document.getElementById('emp-historico-toggle').checked;
         const livroOk = livroSelecionado && (livroSelecionado.exemplares_disponiveis.length === 0 || exemplarSelecionado !== null);
-        const alunoOk = alunoSelecionado && alunoSelecionado.pode_emprestar;
-        if (livroSelecionado && alunoSelecionado && !alunoSelecionado.pode_emprestar) {
+        const alunoOk = alunoSelecionado && (ehHistorico || alunoSelecionado.pode_emprestar);
+        if (!ehHistorico && livroSelecionado && alunoSelecionado && !alunoSelecionado.pode_emprestar) {
             statusWrap.style.display = 'flex';
             statusWrap.style.background = 'rgba(239,68,68,.08)';
             statusWrap.style.borderColor = 'rgba(239,68,68,.25)';
@@ -1545,7 +1636,15 @@
         if (!livroSelecionado) { alert('Selecione um livro.'); return; }
         if (!exemplarSelecionado && livroSelecionado.exemplares_disponiveis.length > 0) { alert('Selecione o exemplar do livro.'); return; }
         if (!alunoSelecionado) { alert('Selecione um aluno.'); return; }
-        if (!alunoSelecionado.pode_emprestar) { alert('Este aluno já atingiu o limite de 2 empréstimos.'); return; }
+
+        const ehHistorico = document.getElementById('emp-historico-toggle').checked;
+        const dataDevReal = document.getElementById('emp-data-devreal').value;
+
+        // O limite de 2 empréstimos só se aplica a empréstimos ativos —
+        // um registro histórico (já devolvido) não conta nesse limite.
+        if (!ehHistorico && !alunoSelecionado.pode_emprestar) { alert('Este aluno já atingiu o limite de 2 empréstimos.'); return; }
+        if (ehHistorico && !dataDevReal) { alert('Informe a data em que o livro foi devolvido.'); return; }
+
         const dataEmp = document.getElementById('emp-data-emp').value;
         const dataDev = document.getElementById('emp-data-dev').value;
         const obs = document.getElementById('emp-obs').value.trim();
@@ -1556,6 +1655,7 @@
             turma: alunoSelecionado.serie || '',
             data_emprestimo: dataEmp,
             data_devolucao_prevista: dataDev || '',
+            data_devolucao_real: ehHistorico ? dataDevReal : '',
             observacoes: obs,
             usuario_id: alunoSelecionado.id,
         };
@@ -1576,8 +1676,14 @@
                     return;
                 }
                 fecharModalEmp();
-                inserirLinhaEmprestimo(data);
-                atualizarContadores();
+                if (data.data_devolucao_real) {
+                    // Registro histórico: recarrega a página para que ele
+                    // apareça corretamente já na aba Histórico.
+                    window.location.reload();
+                } else {
+                    inserirLinhaEmprestimo(data);
+                    atualizarContadores();
+                }
             })
             .catch(() => {
                 alert('Erro de conexão. Tente novamente.');

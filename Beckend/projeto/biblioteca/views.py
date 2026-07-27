@@ -413,11 +413,10 @@ def explorar(request):
 
     # ── Parâmetros da URL ──────────────────────────────────────
     page_number  = request.GET.get('page', 1)
-    filtro_grupo = request.GET.get('grupo', '')     # ex: ?grupo=Romance
-    filtro_cat   = request.GET.get('cat', '')       # ex: ?cat=Romance Alemão
-    filtro_prat  = request.GET.get('prat', '')
-    filtro_disp  = request.GET.get('disp', '')
-    filtro_ordem = request.GET.get('ordem', 'az')
+    filtro_cat   = request.GET.get('cat', '')       # ex: ?cat=Romance
+    filtro_prat  = request.GET.get('prat', '')      # ex: ?prat=A
+    filtro_disp  = request.GET.get('disp', '')      # ex: ?disp=disponivel
+    filtro_ordem = request.GET.get('ordem', 'az')   # ex: ?ordem=za
 
     # ── Subquery de disponibilidade ────────────────────────────
     tem_disponivel = Exemplar.objects.filter(
@@ -429,9 +428,6 @@ def explorar(request):
     livros = Livro.objects.annotate(disponivel=Exists(tem_disponivel))
 
     # ── Filtros opcionais ──────────────────────────────────────
-    if filtro_grupo:
-        livros = livros.filter(categoria_grupo=filtro_grupo)
-
     if filtro_cat:
         livros = livros.filter(categoria=filtro_cat)
 
@@ -455,34 +451,22 @@ def explorar(request):
     paginator = Paginator(livros, 24)
     page_obj  = paginator.get_page(page_number)
 
-    # ── Janela de páginas para o template ─────────────────────
-    page_num    = page_obj.number
-    total_pages = paginator.num_pages
-    vizinhos    = 2
+     # ── Janela de páginas para o template ─────────────────────
+    page_num      = page_obj.number
+    total_pages   = paginator.num_pages
+    vizinhos      = 2
 
     inicio = max(page_num - vizinhos, 2)
     fim    = min(page_num + vizinhos, total_pages - 1)
     pag_janela = list(range(inicio, fim + 1))
 
-    # ── Grupos (nível 1 do filtro, sempre completo) ────────────
-    grupos = (
+    # ── Listas para os filtros (sempre completas, sem filtro) ──
+    categorias = (
         Livro.objects
-        .exclude(categoria_grupo__isnull=True).exclude(categoria_grupo='')
-        .values_list('categoria_grupo', flat=True)
-        .distinct().order_by('categoria_grupo')
+        .exclude(categoria__isnull=True).exclude(categoria='')
+        .values_list('categoria', flat=True)
+        .distinct().order_by('categoria')
     )
-
-    # ── Subcategorias (nível 2, só quando um grupo foi escolhido) ──
-    subcategorias = []
-    if filtro_grupo:
-        subcategorias = (
-            Livro.objects
-            .filter(categoria_grupo=filtro_grupo)
-            .exclude(categoria__isnull=True).exclude(categoria='')
-            .values_list('categoria', flat=True)
-            .distinct().order_by('categoria')
-        )
-
     prateleiras = (
         Livro.objects
         .exclude(prateleira__isnull=True).exclude(prateleira='')
@@ -491,17 +475,15 @@ def explorar(request):
     )
 
     return render(request, 'biblioteca/explorar.html', {
-        'page_obj':      page_obj,
-        'grupos':        grupos,
-        'subcategorias': subcategorias,
-        'prateleiras':   prateleiras,
-        'total_livros':  paginator.count,
-        'filtro_grupo':  filtro_grupo,
-        'filtro_cat':    filtro_cat,
-        'filtro_prat':   filtro_prat,
-        'filtro_disp':   filtro_disp,
-        'filtro_ordem':  filtro_ordem,
-        'pag_janela':    pag_janela,
+        'page_obj':     page_obj,
+        'categorias':   categorias,
+        'prateleiras':  prateleiras,
+        'total_livros': paginator.count,
+        'filtro_cat':   filtro_cat,
+        'filtro_prat':  filtro_prat,
+        'filtro_disp':  filtro_disp,
+        'filtro_ordem': filtro_ordem,
+        'pag_janela':   pag_janela,
     })
 @login_required
 def prazos(request):
@@ -559,7 +541,8 @@ def configuracoes(request):
     return render(request, 'biblioteca/configuracoes.html', {
         'email_mascarado': email_mascarado,
     })
-    
+
+
 @require_POST
 @login_required
 def cfg_enviar_codigo(request):
@@ -643,18 +626,52 @@ def alterar_email_via_token(request):
     cache.delete(f"token_cfg_{request.user.pk}_email_atual")
 
     return JsonResponse({'sucesso': True, 'novo_email': novo_email})
+    return render(request, 'biblioteca/configuracoes.html')
+
 
 # ──────────────────────────────────────────
 # ACERVO / ABAS
 # ──────────────────────────────────────────
 
 def acervo(request):
-    q = request.GET.get('q', '')
+    q = request.GET.get('q', '').strip()
+    page_number = request.GET.get('page', 1)
+
     if q:
-        livros = Livro.objects.filter(titulo__icontains=q) | Livro.objects.filter(autor__icontains=q)
+        livros = Livro.objects.all()
+
+        for palavra in q.split():
+            livros = livros.filter(
+                Q(titulo__icontains=palavra) |
+                Q(autor__icontains=palavra) |
+                Q(categoria__icontains=palavra) |
+                Q(editora__icontains=palavra) |
+                Q(colecao__icontains=palavra) |
+                Q(isbn__icontains=palavra) |
+                Q(codigo_base__icontains=palavra) |
+                Q(exemplar__codigo_completo__icontains=palavra)
+            )
+        livros = livros.distinct().order_by('titulo')
     else:
-        livros = Livro.objects.all()[:50]
-    return render(request, 'biblioteca/acervo_busca.html', {'livros': livros, 'q': q})
+        livros = Livro.objects.all().order_by('titulo')
+
+    paginator = Paginator(livros, 24)
+    page_obj = paginator.get_page(page_number)
+
+    page_num = page_obj.number
+    total_pages = paginator.num_pages
+    vizinhos = 2
+    inicio = max(page_num - vizinhos, 2)
+    fim = min(page_num + vizinhos, total_pages - 1)
+    pag_janela = list(range(inicio, fim + 1))
+
+    return render(request, 'biblioteca/acervo_busca.html', {
+        'livros':       page_obj,
+        'page_obj':     page_obj,
+        'q':            q,
+        'total_livros': paginator.count,
+        'pag_janela':   pag_janela,
+    })
 
 def _acervo_counts(user):
     if not user.is_authenticated:
@@ -1221,6 +1238,7 @@ def criar_emprestimo(request):
     usuario_id      = data.get('usuario_id')
     data_emp        = data.get('data_emprestimo', '').strip()
     data_dev        = data.get('data_devolucao_prevista', '').strip()
+    data_dev_real   = data.get('data_devolucao_real', '').strip()  # registro histórico
 
     if not all([codigo_completo, nome_aluno, data_emp]):
         return JsonResponse({'erro': 'Preencha todos os campos obrigatórios.'}, status=400)
@@ -1228,7 +1246,12 @@ def criar_emprestimo(request):
     exemplar = Exemplar.objects.filter(codigo_completo=codigo_completo).first()
     if not exemplar:
         return JsonResponse({'erro': 'Exemplar não encontrado.'}, status=404)
-    if exemplar.status != 'disponivel':
+
+    # A checagem de disponibilidade só faz sentido para empréstimos ATIVOS.
+    # Um registro histórico (já devolvido) não muda a disponibilidade atual
+    # do exemplar — ele pode até estar emprestado a outra pessoa agora, e
+    # isso não tem relação nenhuma com o que aconteceu no passado.
+    if not data_dev_real and exemplar.status != 'disponivel':
         return JsonResponse({'erro': 'Exemplar não está disponível.'}, status=400)
 
     usuario = None
@@ -1246,28 +1269,37 @@ def criar_emprestimo(request):
     if not usuario:
         return JsonResponse({'erro': f'Aluno "{nome_aluno}" não encontrado. Verifique o nome.'}, status=404)
 
-    emprestimos_ativos = Emprestimo.objects.filter(
-        usuario=usuario,
-        data_devolucao_real__isnull=True
-    ).count()
-    if emprestimos_ativos >= 2:
-        return JsonResponse({
-            'erro': f'{usuario.get_full_name()} já possui 2 empréstimos ativos (limite máximo).'
-        }, status=400)
+    # O limite de 2 empréstimos ativos só vale para empréstimos em aberto —
+    # um registro histórico já devolvido não deve contar nesse limite.
+    if not data_dev_real:
+        emprestimos_ativos = Emprestimo.objects.filter(
+            usuario=usuario,
+            data_devolucao_real__isnull=True
+        ).count()
+        if emprestimos_ativos >= 2:
+            return JsonResponse({
+                'erro': f'{usuario.get_full_name()} já possui 2 empréstimos ativos (limite máximo).'
+            }, status=400)
 
     data_emprestimo = date.fromisoformat(data_emp)
     data_devolucao  = date.fromisoformat(data_dev) if data_dev else data_emprestimo + timezone.timedelta(days=15)
+    data_devolucao_real = date.fromisoformat(data_dev_real) if data_dev_real else None
 
     emp = Emprestimo.objects.create(
         exemplar=exemplar,
         usuario=usuario,
         data_emprestimo=data_emprestimo,
         data_devolucao_prevista=data_devolucao,
+        data_devolucao_real=data_devolucao_real,
         observacoes=data.get('observacoes', '')
     )
 
-    exemplar.status = 'emprestado'
-    exemplar.save()
+    # Só marca o exemplar como "emprestado" se for um empréstimo ATIVO de
+    # verdade. Um registro histórico (já devolvido) não deve alterar o
+    # status atual do exemplar.
+    if not data_devolucao_real:
+        exemplar.status = 'emprestado'
+        exemplar.save()
 
     return JsonResponse({
         'id':                      emp.pk,
@@ -1277,6 +1309,7 @@ def criar_emprestimo(request):
         'turma':                   usuario.serie or turma,
         'data_emprestimo':         str(emp.data_emprestimo),
         'data_devolucao_prevista': str(emp.data_devolucao_prevista),
+        'data_devolucao_real':     str(emp.data_devolucao_real) if emp.data_devolucao_real else None,
         'atrasado':                emp.esta_atrasado(),
         'observacoes':             emp.observacoes,
     })
@@ -1333,7 +1366,8 @@ def cancelar_reserva(request, pk):
         cancelar_reserva_usuario(reserva, request.user)
     except ReservaError as e:
         return JsonResponse({'erro': str(e)}, status=403)
-    return JsonResponse({'sucesso': 'Reserva cancelada com sucesso.'})  
+    return JsonResponse({'sucesso': 'Reserva cancelada com sucesso.'})
+
 
 @require_POST
 @login_required
@@ -1347,13 +1381,28 @@ def notificar_atraso(request, pk):
     if not emprestimo.esta_atrasado():
         return JsonResponse({'erro': 'Este empréstimo não está atrasado.'}, status=400)
 
-    if not emprestimo.usuario:
+    usuario = emprestimo.usuario
+    if not usuario:
         return JsonResponse({'erro': 'Empréstimo sem aluno vinculado.'}, status=400)
 
-    from .notifications import notificar_atraso_avulso
-    notificar_atraso_avulso(emprestimo)
+    titulo_livro = emprestimo.exemplar.livro.titulo if emprestimo.exemplar and emprestimo.exemplar.livro else 'o livro'
+    dias_atraso = abs((emprestimo.data_devolucao_prevista - date.today()).days)
 
-    return JsonResponse({'sucesso': True, 'enviado_email': bool(emprestimo.usuario.email)})
+    from .notifications import criar_notificacao
+    criar_notificacao(
+        destinatario=usuario,
+        tipo='atraso',
+        titulo=f'"{titulo_livro}" está atrasado',
+        mensagem=(
+            f'O livro "{titulo_livro}" está atrasado há {dias_atraso} '
+            f'dia{"s" if dias_atraso != 1 else ""}. Devolva o quanto antes '
+            f'para regularizar sua situação na biblioteca.'
+        ),
+        emprestimo=emprestimo,
+    )
+
+    return JsonResponse({'sucesso': True, 'enviado_email': bool(usuario.email)})
+
 
 # ──────────────────────────────────────────
 # ALUNOS
@@ -1463,7 +1512,18 @@ def buscar_livro(request):
     if len(q) < 2:
         return JsonResponse({'livros': []})
 
-    livros = Livro.objects.filter(titulo__icontains=q)[:8]
+    livros = Livro.objects.all()
+    for palavra in q.split():
+        livros = livros.filter(
+            Q(titulo__icontains=palavra) |
+            Q(autor__icontains=palavra) |
+            Q(categoria__icontains=palavra) |
+            Q(codigo_base__icontains=palavra) |
+            Q(isbn__icontains=palavra) |
+            Q(exemplar__codigo_completo__icontains=palavra)
+        )
+    livros = livros.distinct()[:8]
+
     resultado = []
     for livro in livros:
         exemplares_list = list(
@@ -1481,7 +1541,7 @@ def buscar_livro(request):
             'qtd_disponivel':         len(exemplares_list),
         })
 
-    return JsonResponse({'livros': resultado})
+    return JsonResponse({'livros': resultado})  
 
 
 def buscar_usuario(request):

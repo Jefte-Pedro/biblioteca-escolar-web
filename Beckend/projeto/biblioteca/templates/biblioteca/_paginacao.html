@@ -10,7 +10,7 @@
         <!-- Anterior -->
         {% if page_obj.has_previous %}
         <a class="pag-btn"
-            href="?page={{ page_obj.previous_page_number }}&cat={{ filtro_cat }}&prat={{ filtro_prat }}&disp={{ filtro_disp }}&ordem={{ filtro_ordem }}"
+            href="?page={{ page_obj.previous_page_number }}&cat={{ filtro_cat }}&prat={{ filtro_prat }}&disp={{ filtro_disp }}&ordem={{ filtro_ordem }}&q={{ q|urlencode }}"
             aria-label="Página anterior">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
                 stroke-linecap="round" stroke-linejoin="round">
