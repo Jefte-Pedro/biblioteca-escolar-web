@@ -75,6 +75,14 @@
                     <input type="hidden" id="filtro-periodo" value="">
                     <div class="cs-dropdown" id="dropdown-filtro-periodo"></div>
                 </div>
+
+                <!-- ── Intervalo personalizado (aparece apenas quando "Personalizado..." é escolhido) ──
+                     Permite consultar históricos antigos, sem limitação a hoje/semana/mês. -->
+                <div class="emp-periodo-custom" id="wrap-periodo-custom" style="display:none;">
+                    <input type="date" id="filtro-periodo-de" class="emp-periodo-input" title="De">
+                    <span class="emp-periodo-sep">até</span>
+                    <input type="date" id="filtro-periodo-ate" class="emp-periodo-input" title="Até">
+                </div>
             </div>
         </div>
 
@@ -93,7 +101,8 @@
                 {% for emp in emprestimos %}
                 <div class="emp-linha" id="emp-{{ emp.pk }}" data-turma="{{ emp.turma }}"
                     data-atrasado="{% if emp.esta_atrasado %}1{% else %}0{% endif %}"
-                    data-nome="{{ emp.nome_aluno|lower }}" data-titulo="{{ emp.livro_obj.titulo|lower }}">
+                    data-nome="{{ emp.nome_aluno|lower }}" data-titulo="{{ emp.livro_obj.titulo|lower }}"
+                    data-data-emp="{{ emp.data_emprestimo|date:'Y-m-d' }}">
 
                     <!-- LIVRO -->
                     <div class="emp-cell-livro">
@@ -218,7 +227,8 @@
                 {% for emp in historico %}
                 <div class="emp-linha emp-linha-historico" id="emp-hist-{{ emp.pk }}" data-turma="{{ emp.turma }}"
                     data-nome="{{ emp.nome_aluno|lower }}" data-titulo="{{ emp.livro_obj.titulo|lower }}"
-                    data-atrasado="0" style="display:none; opacity:.75;">
+                    data-atrasado="0" data-data-dev="{{ emp.data_devolucao_real|date:'Y-m-d' }}"
+                    style="display:none; opacity:.75;">
 
                     <!-- LIVRO -->
                     <div class="emp-cell-livro">
@@ -481,11 +491,9 @@
 
                     <div class="dp-dropdown" id="dp-dropdown-data-devreal">
                         <div class="dp-header">
-                            <button type="button" class="dp-nav" data-nav="-1"><i
-                                    class="fa-solid fa-chevron-left"></i></button>
+                            <button type="button" class="dp-nav" data-nav="-1"><i class="fa-solid fa-chevron-left"></i></button>
                             <span id="dp-mes-ano-devreal"></span>
-                            <button type="button" class="dp-nav" data-nav="1"><i
-                                    class="fa-solid fa-chevron-right"></i></button>
+                            <button type="button" class="dp-nav" data-nav="1"><i class="fa-solid fa-chevron-right"></i></button>
                         </div>
                         <div class="dp-dias-semana">
                             <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
@@ -497,8 +505,11 @@
                         </div>
                     </div>
                 </div>
-                <span class="emp-modal-data-hint" style="display:block;margin-top:6px;">
-                    Esse empréstimo entrará direto no Histórico — o exemplar e o aluno não são afetados no presente.
+
+                <span class="emp-modal-data-hint" style="display:block; margin-top:6px;white-space:normal; word-wrap:break-word; overflow-wrap:break-word; max-width:100%;">
+                    Informe a data de devolução ou a quantidade de dias que o aluno ficou com o livro — um campo
+                    calcula o outro automaticamente. Esse empréstimo entrará direto no Histórico — o exemplar e o
+                    aluno não são afetados no presente.
                 </span>
             </div>
         </div>
@@ -738,6 +749,29 @@
         color: #fff;
     }
 
+    /* ── Intervalo personalizado de período ── */
+    .emp-periodo-custom {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .emp-periodo-input {
+        height: 38px;
+        padding: 0 10px;
+        border-radius: var(--r-md, 10px);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .emp-periodo-sep {
+        font-size: 12px;
+        color: var(--faint);
+    }
+
     /* ── Date picker customizado ──
        position: fixed (não mais absolute) para que o calendário escape
        de qualquer overflow:hidden do modal/container pai e possa ser
@@ -755,8 +789,7 @@
     .dp-campo {
         display: flex;
         align-items: center;
-        gap: 8px;
-        flex: 1;
+        gap: 8px;   
         height: 42px;
         padding: 0 14px;
         border-radius: var(--r-md, 10px);
@@ -836,6 +869,18 @@
         color: var(--text);
     }
 
+    /* Nome do mês/ano agora é clicável — abre o seletor rápido de mês/ano */
+    .dp-mes-ano-clicavel {
+        cursor: pointer;
+        border-radius: 6px;
+        padding: 2px 6px;
+        transition: background .15s;
+    }
+
+    .dp-mes-ano-clicavel:hover {
+        background: rgba(148, 163, 184, .15);
+    }
+
     .dp-dias-semana {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
@@ -849,6 +894,7 @@
     .dp-grid-dias {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
+        grid-template-rows: repeat(6, 1fr);
         gap: 2px;
     }
 
@@ -901,6 +947,57 @@
         opacity: .8;
     }
 
+    /* ── Painel de seleção rápida de mês/ano ──
+       Substitui a grade de dias enquanto o usuário escolhe o mês/ano
+       diretamente, sem precisar navegar mês a mês. */
+    .dp-ma-painel {
+        min-height: 214px;
+    }
+
+    .dp-ma-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 10px;
+    }
+
+    .dp-ma-ano {
+        font-size: 14px;
+    }
+
+    .dp-ma-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    .dp-ma-mes {
+        padding: 9px 4px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--text);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+        cursor: pointer;
+        transition: background .15s, color .15s, border-color .15s;
+    }
+
+    .dp-ma-mes:hover {
+        border-color: var(--accent);
+    }
+
+    .dp-ma-mes.selecionado {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+    }
+
     /* ── Checkbox de registro histórico ── */
     .emp-modal-check-historico {
         display: flex;
@@ -929,6 +1026,25 @@
         accent-color: var(--accent);
         cursor: pointer;
         flex-shrink: 0;
+    }
+
+    /* ── Scroll no modal de Novo Empréstimo ──
+       Evita que os botões de ação fiquem cortados/inacessíveis quando
+       o conteúdo do formulário (campos + histórico) não cabe na tela. */
+    #modal-emprestimo .emp-modal-box {
+        max-height: 90vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #modal-emprestimo .emp-modal-box::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #modal-emprestimo .emp-modal-box::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
     }
 
     /* ══════════════════════════════════════════
@@ -1010,6 +1126,10 @@
         /* No mobile o calendário fica mais estreito para nunca estourar a tela */
         .dp-dropdown {
             width: min(260px, calc(100vw - 24px));
+        }
+
+        #modal-emprestimo .emp-modal-box {
+            max-height: 95vh;
         }
     }
 </style>
@@ -1176,15 +1296,22 @@
     renderTurmaDropdown();
 
     // ── Filtro de período ──
+    // Além das opções rápidas (hoje/semana/mês), existe a opção "Personalizado..."
+    // que libera dois campos de data (De / Até) para consultar qualquer intervalo,
+    // inclusive históricos antigos de meses ou anos atrás.
     initCustomSelect('wrap-filtro-periodo');
     const dropdownPeriodo = document.getElementById('dropdown-filtro-periodo');
     const inputPeriodoFiltro = document.getElementById('filtro-periodo');
     const labelPeriodo = document.getElementById('label-filtro-periodo');
+    const wrapPeriodoCustom = document.getElementById('wrap-periodo-custom');
+    const inputPeriodoDe = document.getElementById('filtro-periodo-de');
+    const inputPeriodoAte = document.getElementById('filtro-periodo-ate');
     const OPCOES_PERIODO = [
         { valor: '', texto: 'Período' },
         { valor: 'hoje', texto: 'Hoje' },
         { valor: 'semana', texto: 'Esta semana' },
         { valor: 'mes', texto: 'Este mês' },
+        { valor: 'personalizado', texto: 'Personalizado...' },
     ];
 
     function renderPeriodoDropdown() {
@@ -1193,12 +1320,49 @@
             item.addEventListener('click', () => {
                 inputPeriodoFiltro.value = item.dataset.valor;
                 labelPeriodo.textContent = item.textContent;
+                wrapPeriodoCustom.style.display = item.dataset.valor === 'personalizado' ? 'flex' : 'none';
                 renderPeriodoDropdown();
                 fecharTodosDropdownsCustom();
+                filtrarLinhas();
             });
         });
     }
     renderPeriodoDropdown();
+
+    // Qualquer alteração no intervalo "De/Até" já refiltra a lista na hora
+    inputPeriodoDe.addEventListener('change', filtrarLinhas);
+    inputPeriodoAte.addEventListener('change', filtrarLinhas);
+
+    // Verifica se uma data (ISO "AAAA-MM-DD") passa no filtro de período escolhido
+    function passaFiltroPeriodo(dataIso) {
+        const valor = inputPeriodoFiltro.value;
+        if (!valor) return true;
+        if (!dataIso) return false;
+
+        const hojeZero = new Date();
+        hojeZero.setHours(0, 0, 0, 0);
+        const data = new Date(dataIso + 'T00:00:00');
+
+        if (valor === 'hoje') {
+            return data.getTime() === hojeZero.getTime();
+        }
+        if (valor === 'semana') {
+            const inicioSemana = new Date(hojeZero);
+            inicioSemana.setDate(hojeZero.getDate() - 6);
+            return data >= inicioSemana && data <= hojeZero;
+        }
+        if (valor === 'mes') {
+            return data.getFullYear() === hojeZero.getFullYear() && data.getMonth() === hojeZero.getMonth();
+        }
+        if (valor === 'personalizado') {
+            const de = inputPeriodoDe.value;
+            const ate = inputPeriodoAte.value;
+            if (de && dataIso < de) return false;
+            if (ate && dataIso > ate) return false;
+            return true;
+        }
+        return true;
+    }
 
     // ── Exemplar (volume) ──
     initCustomSelect('wrap-emp-volume');
@@ -1230,10 +1394,13 @@
         const dropdown = document.getElementById(dropdownId);
         const grid = document.getElementById(gridId);
         const mesAnoEl = document.getElementById(mesAnoId);
+        const diasSemanaEl = dropdown.querySelector('.dp-dias-semana');
+        const footerEl = dropdown.querySelector('.dp-footer');
 
         const hoje = new Date();
         let mesExibido = hoje.getMonth();
         let anoExibido = hoje.getFullYear();
+        let anoSelecaoMA = anoExibido;
 
         const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -1246,11 +1413,17 @@
             }
         }
 
+        // Sempre desenha 6 semanas (42 células), preenchendo os espaços vazios
+        // do início e do fim com células em branco. Isso garante que a altura
+        // do calendário NUNCA muda entre meses — é essa variação de altura que
+        // fazia o dropdown "pular" de posição ao trocar de mês.
         function render() {
             mesAnoEl.textContent = `${MESES[mesExibido]} ${anoExibido}`;
             grid.innerHTML = '';
             const primeiroDia = new Date(anoExibido, mesExibido, 1).getDay();
             const totalDias = new Date(anoExibido, mesExibido + 1, 0).getDate();
+            const TOTAL_CELULAS = 42;
+
             for (let i = 0; i < primeiroDia; i++) {
                 grid.appendChild(document.createElement('span'));
             }
@@ -1270,15 +1443,20 @@
                 });
                 grid.appendChild(btn);
             }
+            const preenchidas = primeiroDia + totalDias;
+            for (let i = preenchidas; i < TOTAL_CELULAS; i++) {
+                grid.appendChild(document.createElement('span'));
+            }
         }
 
+        // Navegação mês a mês — sem reposicionar o dropdown: como a altura do
+        // calendário agora é sempre a mesma (42 células fixas), não há motivo
+        // para recalcular a posição, o que elimina o "pulo" visual.
         dropdown.querySelector('[data-nav="-1"]').addEventListener('click', () => {
             mesExibido--; if (mesExibido < 0) { mesExibido = 11; anoExibido--; } render();
-            posicionarDropdown(wrap, dropdown);
         });
         dropdown.querySelector('[data-nav="1"]').addEventListener('click', () => {
             mesExibido++; if (mesExibido > 11) { mesExibido = 0; anoExibido++; } render();
-            posicionarDropdown(wrap, dropdown);
         });
         dropdown.querySelector('[data-acao="hoje"]').addEventListener('click', () => {
             const iso = hoje.toISOString().split('T')[0];
@@ -1295,6 +1473,73 @@
             if (onChange) onChange();
         });
 
+        // ── Seletor rápido de mês/ano ──
+        // Clicar no nome do mês/ano abre um painel para escolher diretamente
+        // o mês e o ano desejados (com navegação por ano), sem precisar clicar
+        // em "próximo mês" repetidas vezes até chegar lá.
+        mesAnoEl.classList.add('dp-mes-ano-clicavel');
+
+        const painelMA = document.createElement('div');
+        painelMA.className = 'dp-ma-painel';
+        painelMA.style.display = 'none';
+        painelMA.innerHTML = `
+            <div class="dp-ma-header">
+                <button type="button" class="dp-nav" data-ma-nav="-1"><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="dp-ma-ano"></span>
+                <button type="button" class="dp-nav" data-ma-nav="1"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="dp-ma-grid"></div>`;
+        dropdown.appendChild(painelMA);
+        painelMA.addEventListener('click', e => e.stopPropagation());
+
+        function renderPainelMA() {
+            painelMA.querySelector('.dp-ma-ano').textContent = anoSelecaoMA;
+            const gridMA = painelMA.querySelector('.dp-ma-grid');
+            gridMA.innerHTML = '';
+            MESES.forEach((nome, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'dp-ma-mes' + (idx === mesExibido && anoSelecaoMA === anoExibido ? ' selecionado' : '');
+                btn.textContent = nome.slice(0, 3);
+                btn.addEventListener('click', () => {
+                    mesExibido = idx;
+                    anoExibido = anoSelecaoMA;
+                    render();
+                    fecharPainelMA();
+                });
+                gridMA.appendChild(btn);
+            });
+        }
+
+        painelMA.querySelectorAll('[data-ma-nav]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                anoSelecaoMA += parseInt(btn.dataset.maNav);
+                renderPainelMA();
+            });
+        });
+
+        function abrirPainelMA() {
+            anoSelecaoMA = anoExibido;
+            renderPainelMA();
+            painelMA.style.display = 'block';
+            diasSemanaEl.style.display = 'none';
+            grid.style.display = 'none';
+            if (footerEl) footerEl.style.display = 'none';
+        }
+
+        function fecharPainelMA() {
+            painelMA.style.display = 'none';
+            diasSemanaEl.style.display = '';
+            grid.style.display = '';
+            if (footerEl) footerEl.style.display = '';
+        }
+
+        mesAnoEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (painelMA.style.display === 'none') abrirPainelMA();
+            else fecharPainelMA();
+        });
+
         wrap.addEventListener('click', (e) => {
             e.stopPropagation();
             const abrindo = !wrap.classList.contains('aberto');
@@ -1302,6 +1547,7 @@
             if (abrindo) {
                 if (input.value) { const [y, m] = input.value.split('-').map(Number); anoExibido = y; mesExibido = m - 1; }
                 else { anoExibido = hoje.getFullYear(); mesExibido = hoje.getMonth(); }
+                fecharPainelMA();
                 render();
                 wrap.classList.add('aberto');
                 // Posiciona o calendário conforme o espaço disponível na tela
@@ -1334,13 +1580,41 @@
         onChange: () => { }
     });
 
+    // Calcula "dias com o livro" a partir da data de empréstimo + data de devolução real
+    function atualizarDiasLivroPelaData() {
+        const dataEmp = document.getElementById('emp-data-emp').value;
+        const dataDevReal = document.getElementById('emp-data-devreal').value;
+        const campoDias = document.getElementById('emp-dias-livro');
+        if (!dataEmp || !dataDevReal) return;
+        const d1 = new Date(dataEmp + 'T12:00:00');
+        const d2 = new Date(dataDevReal + 'T12:00:00');
+        const dias = Math.round((d2 - d1) / (1000 * 60 * 60 * 24));
+        campoDias.value = dias >= 0 ? dias : '';
+    }
+
+    // Calcula a data de devolução real a partir da data de empréstimo + nº de dias
+    // informado — permite registrar o histórico dizendo apenas "ficou 15 dias com
+    // o livro" em vez de precisar calcular e escolher a data exata no calendário.
+    function onDiasLivroInput(valor) {
+        const dias = parseInt(valor);
+        const dataEmp = document.getElementById('emp-data-emp').value;
+        if (!dias || dias < 1 || !dataEmp) return;
+        const d = new Date(dataEmp + 'T12:00:00');
+        d.setDate(d.getDate() + dias);
+        const iso = d.toISOString().split('T')[0];
+        dpDevReal.setValor(iso);
+    }
+
     // ═══════════════════════════════════════════════════════════
     // REGISTRO HISTÓRICO — toggle "já foi devolvido"
     // ═══════════════════════════════════════════════════════════
     function onHistoricoToggle() {
         const marcado = document.getElementById('emp-historico-toggle').checked;
         document.getElementById('wrap-data-dev-real').style.display = marcado ? 'block' : 'none';
-        if (!marcado) dpDevReal.setValor('');
+        if (!marcado) {
+            dpDevReal.setValor('');
+            document.getElementById('emp-dias-livro').value = '';
+        }
         checkFormStatus();
     }
 
@@ -1375,6 +1649,7 @@
         dpDev.setValor('');
         document.getElementById('emp-historico-toggle').checked = false;
         dpDevReal.setValor('');
+        document.getElementById('emp-dias-livro').value = '';
         document.getElementById('wrap-data-dev-real').style.display = 'none';
         document.getElementById('hint-dev-data').textContent = '+15d automático';
         document.getElementById('hint-dev-data').style.color = '';
@@ -1643,7 +1918,7 @@
         // O limite de 2 empréstimos só se aplica a empréstimos ativos —
         // um registro histórico (já devolvido) não conta nesse limite.
         if (!ehHistorico && !alunoSelecionado.pode_emprestar) { alert('Este aluno já atingiu o limite de 2 empréstimos.'); return; }
-        if (ehHistorico && !dataDevReal) { alert('Informe a data em que o livro foi devolvido.'); return; }
+        if (ehHistorico && !dataDevReal) { alert('Informe a data em que o livro foi devolvido (ou a quantidade de dias com o livro).'); return; }
 
         const dataEmp = document.getElementById('emp-data-emp').value;
         const dataDev = document.getElementById('emp-data-dev').value;
@@ -1705,6 +1980,7 @@
         linha.dataset.nome = (data.usuario || '').toLowerCase();
         linha.dataset.titulo = (data.titulo || '').toLowerCase();
         linha.dataset.turma = (data.turma || '').toLowerCase();
+        linha.dataset.dataEmp = data.data_emprestimo || '';
         linha.style.gridTemplateColumns = GRID_ATIVO;
         linha.innerHTML = `
             <div class="emp-cell-livro">
@@ -2013,7 +2289,7 @@
             header.classList.remove('modo-historico');
         }
 
-        // Linhas ATIVAS
+        // Linhas ATIVAS — período filtra pela data do empréstimo
         document.querySelectorAll(
             '#conteudo-dinamico-emprestimo .emp-linha:not(.emp-linha-historico)'
         ).forEach(linha => {
@@ -2026,6 +2302,7 @@
 
             if (show && busca && !linha.dataset.nome?.includes(busca) && !linha.dataset.titulo?.includes(busca)) show = false;
             if (show && turma && !(linha.dataset.turma || '').toLowerCase().includes(turma)) show = false;
+            if (show && !passaFiltroPeriodo(linha.dataset.dataEmp)) show = false;
 
             linha.classList.remove('modo-historico');
             linha.style.display = show ? '' : 'none';
@@ -2037,7 +2314,7 @@
             if (show) visiveis++;
         });
 
-        // Linhas HISTÓRICO
+        // Linhas HISTÓRICO — período filtra pela data de devolução real
         document.querySelectorAll(
             '#conteudo-dinamico-emprestimo .emp-linha-historico'
         ).forEach(linha => {
@@ -2045,6 +2322,7 @@
 
             if (show && busca && !linha.dataset.nome?.includes(busca) && !linha.dataset.titulo?.includes(busca)) show = false;
             if (show && turma && !(linha.dataset.turma || '').toLowerCase().includes(turma)) show = false;
+            if (show && !passaFiltroPeriodo(linha.dataset.dataDev)) show = false;
 
             linha.classList.toggle('modo-historico', abaAtiva === 'historico');
             linha.style.display = show ? '' : 'none';

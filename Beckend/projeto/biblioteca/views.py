@@ -37,7 +37,7 @@ from rest_framework import filters, viewsets
 from .models import Emprestimo, Exemplar, Lista, Livro, LivroLido, Reserva, Usuario
 from .serializers import LivroSerializer
 from django.core.paginator import Paginator
-from .models import Emprestimo, Exemplar, Lista, Livro, LivroLido, Reserva, Usuario, Turma, Cargo, ABAS_DISPONIVEIS
+from .models import Emprestimo, Exemplar, Lista, Livro, LivroLido, Reserva, Usuario, Turma, Cargo, ABAS_DISPONIVEIS, CategoriaGrupo
 
 from calendar import monthrange
 from django.db.models import Count
@@ -413,7 +413,8 @@ def explorar(request):
 
     # ── Parâmetros da URL ──────────────────────────────────────
     page_number  = request.GET.get('page', 1)
-    filtro_cat   = request.GET.get('cat', '')       # ex: ?cat=Romance
+    filtro_grupo = request.GET.get('grupo', '')     # ex: ?grupo=Contos
+    filtro_cat   = request.GET.get('cat', '')       # ex: ?cat=Contos Brasileiros (subcategoria)
     filtro_prat  = request.GET.get('prat', '')      # ex: ?prat=A
     filtro_disp  = request.GET.get('disp', '')      # ex: ?disp=disponivel
     filtro_ordem = request.GET.get('ordem', 'az')   # ex: ?ordem=za
@@ -428,6 +429,9 @@ def explorar(request):
     livros = Livro.objects.annotate(disponivel=Exists(tem_disponivel))
 
     # ── Filtros opcionais ──────────────────────────────────────
+    if filtro_grupo:
+        livros = livros.filter(categoria_grupo=filtro_grupo)
+
     if filtro_cat:
         livros = livros.filter(categoria=filtro_cat)
 
@@ -451,22 +455,31 @@ def explorar(request):
     paginator = Paginator(livros, 24)
     page_obj  = paginator.get_page(page_number)
 
-     # ── Janela de páginas para o template ─────────────────────
-    page_num      = page_obj.number
-    total_pages   = paginator.num_pages
-    vizinhos      = 2
+    # ── Janela de páginas para o template ─────────────────────
+    page_num    = page_obj.number
+    total_pages = paginator.num_pages
+    vizinhos    = 2
 
     inicio = max(page_num - vizinhos, 2)
     fim    = min(page_num + vizinhos, total_pages - 1)
     pag_janela = list(range(inicio, fim + 1))
 
     # ── Listas para os filtros (sempre completas, sem filtro) ──
-    categorias = (
-        Livro.objects
-        .exclude(categoria__isnull=True).exclude(categoria='')
-        .values_list('categoria', flat=True)
-        .distinct().order_by('categoria')
+    grupos = (
+        CategoriaGrupo.objects
+        .values_list('grupo', flat=True)
+        .distinct().order_by('grupo')
     )
+
+    subcategorias = []
+    if filtro_grupo:
+        subcategorias = (
+            CategoriaGrupo.objects
+            .filter(grupo=filtro_grupo)
+            .values_list('categoria', flat=True)
+            .distinct().order_by('categoria')
+        )
+
     prateleiras = (
         Livro.objects
         .exclude(prateleira__isnull=True).exclude(prateleira='')
@@ -475,16 +488,19 @@ def explorar(request):
     )
 
     return render(request, 'biblioteca/explorar.html', {
-        'page_obj':     page_obj,
-        'categorias':   categorias,
-        'prateleiras':  prateleiras,
-        'total_livros': paginator.count,
-        'filtro_cat':   filtro_cat,
-        'filtro_prat':  filtro_prat,
-        'filtro_disp':  filtro_disp,
-        'filtro_ordem': filtro_ordem,
-        'pag_janela':   pag_janela,
+        'page_obj':      page_obj,
+        'grupos':        grupos,
+        'subcategorias': subcategorias,
+        'prateleiras':   prateleiras,
+        'total_livros':  paginator.count,
+        'filtro_grupo':  filtro_grupo,
+        'filtro_cat':    filtro_cat,
+        'filtro_prat':   filtro_prat,
+        'filtro_disp':   filtro_disp,
+        'filtro_ordem':  filtro_ordem,
+        'pag_janela':    pag_janela,
     })
+    
 @login_required
 def prazos(request):
     hoje = date.today()
@@ -1078,7 +1094,12 @@ def notificacoes_excluir_todas(request):
 
 def cadastrar_livro(request):
     if request.method == 'GET':
-        return render(request, 'biblioteca/cad-livro.html')
+        total_livros = Livro.objects.count()
+        ultimo_livro = Livro.objects.order_by('-data_cadastro').first()
+        return render(request, 'biblioteca/cad-livro.html', {
+            'total_livros': total_livros,
+            'ultimo_livro': ultimo_livro,
+        })
 
     data = json.loads(request.body)
     titulo      = data.get('titulo', '').strip()
@@ -1088,6 +1109,7 @@ def cadastrar_livro(request):
     colecao     = data.get('colecao', '').strip()
     prateleira  = data.get('prateleira', '').strip()
     codigo_base = data.get('codigo_base', '').strip()
+    capa_url    = data.get('capa_url', '').strip()   # ✅ adicionado
     quantidade  = int(data.get('quantidade', 1))
     observacoes = data.get('observacoes', '').strip()
 
@@ -1102,6 +1124,7 @@ def cadastrar_livro(request):
         colecao=colecao or None,
         prateleira=prateleira,
         codigo_base=codigo_base or None,
+        capa_url=capa_url or None,   # ✅ adicionado
         quantidade=quantidade,
         observacoes=observacoes or None,
     )
