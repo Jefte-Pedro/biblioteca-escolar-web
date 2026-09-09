@@ -36,14 +36,18 @@ def verificar_prazos():
         if chave in notificacoes_enviadas:
             continue
 
-        # E-mail
         if usuario.email:
-            if tipo == "prazo":
-                enviar_aviso_prazo(usuario.email, nome, titulo, dias_restantes=2)
-            else:
-                enviar_aviso_atraso(usuario.email, nome, titulo, dias_atraso=abs(dias))
-
-        notificacoes_enviadas.add(chave)
+            try:
+                if tipo == "prazo":
+                    enviar_aviso_prazo(usuario.email, nome, titulo, dias_restantes=2)
+                else:
+                    enviar_aviso_atraso(usuario.email, nome, titulo, dias_atraso=abs(dias))
+                notificacoes_enviadas.add(chave)
+            except Exception as exc:
+                print(f"Erro ao notificar emprestimo {e.pk}: {exc}")
+                continue
+        else:
+            notificacoes_enviadas.add(chave)
 
 
 def iniciar_scheduler():
@@ -52,11 +56,11 @@ def iniciar_scheduler():
     if scheduler and scheduler.running:
         return
 
-    scheduler = BackgroundScheduler()
+    scheduler = BackgroundScheduler(timezone='America/Recife')
     scheduler.add_job(
         verificar_prazos,
-        'interval',
-        minutes=30,
+        'cron',
+        hour='8,20',
         id='verificar_prazos',
         max_instances=1,
         coalesce=True,
