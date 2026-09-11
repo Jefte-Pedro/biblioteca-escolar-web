@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'exemplar',
-                'managed': False,
+                'managed': True,
             },
         ),
         migrations.CreateModel(
@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'livro',
-                'managed': False,
+                'managed': True,
             },
         ),
         migrations.CreateModel(
