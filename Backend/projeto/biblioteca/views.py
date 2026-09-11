@@ -1636,7 +1636,7 @@ def exportar_acervo(request):
 
     # Linha 2 — título
     ws.merge_cells('A2:I2')
-    escola = 'ACERVO DE LIVROS - EREM DR. JAIME MONTEIRO'
+    escola = 'ACERVO DE LIVROS - Colégio Referência'
     ws['A2'] = escola
     ws['A2'].font      = Font(name='Arial', bold=True, size=13, color=BRANCO)
     ws['A2'].fill      = PatternFill('solid', fgColor=AZUL_ESCURO)
@@ -1715,7 +1715,7 @@ def exportar_emprestimos(request):
 
     # Linha 1 — título + prazo padrão
     ws.merge_cells('A1:F1')
-    ws['A1'] = 'Planilha de retirada de livros da biblioteca - EREM DR. JAIME MONTEIRO'
+    ws['A1'] = 'Planilha de retirada de livros da biblioteca - Colégio Referência'
     ws['A1'].font      = Font(name='Arial', bold=True, size=12, color=BRANCO)
     ws['A1'].fill      = PatternFill('solid', fgColor=AZUL_ESCURO)
     ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
@@ -1797,7 +1797,7 @@ def exportar_alunos(request):
 
     # Linha 1 — título
     ws.merge_cells('A1:E1')
-    ws['A1'] = f'LISTA DE ALUNOS - EREM DR. JAIME MONTEIRO — {date.today().year}'
+    ws['A1'] = f'LISTA DE ALUNOS - Colégio Referência — {date.today().year}'
     ws['A1'].font      = Font(name='Arial', bold=True, size=13, color=BRANCO)
     ws['A1'].fill      = PatternFill('solid', fgColor=AZUL_ESCURO)
     ws['A1'].alignment = Alignment(horizontal='center', vertical='center')

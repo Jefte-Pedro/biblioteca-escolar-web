@@ -123,7 +123,7 @@ def verificar_prazos():
                     f'Caso ainda precise do livro por mais tempo, procure a biblioteca para verificar a possibilidade de renovação do empréstimo antes do vencimento.\n\n'
                     f'Se a devolução ou renovação já foi realizada recentemente, desconsidere esta mensagem, pois a atualização do sistema pode levar algum tempo.\n\n'
                     f'Atenciosamente,\n'
-                    f'Biblioteca da EREM Dr. Jaime Monteiro'
+                    f'Biblioteca da Colégio Referência'
                 ),
             )
 
@@ -139,7 +139,7 @@ def verificar_prazos():
                     f'Caso ainda precise do livro por mais tempo, procure a biblioteca para verificar a possibilidade de renovação do empréstimo antes do vencimento.\n\n'
                     f'Se a devolução já foi realizada recentemente, desconsidere esta mensagem, pois a atualização do sistema pode levar algum tempo.\n\n'
                     f'Atenciosamente,\n'
-                    f'Biblioteca da EREM Dr. Jaime Monteiro'
+                    f'Biblioteca da Colégio Referência'
                 ),
             )
 
@@ -155,7 +155,7 @@ def verificar_prazos():
                     f'Pedimos, por gentileza, que realize a devolução do exemplar ou procure a biblioteca para verificar a possibilidade de renovação do empréstimo.\n\n'
                     f'Se a devolução já foi realizada recentemente, desconsidere esta mensagem, pois a atualização do sistema pode levar algum tempo.\n\n'
                     f'Atenciosamente,\n'
-                    f'Biblioteca da EREM Dr. Jaime Monteiro'
+                    f'Biblioteca da Colégio Referência'
                 ),
             )
 
@@ -173,7 +173,7 @@ def verificar_prazos():
                     f'Caso o livro já tenha sido devolvido recentemente, desconsidere este e-mail. Em algumas situações, pode haver um intervalo entre a devolução do material e a atualização do sistema pela equipe da biblioteca.\n\n'
                     f'Em caso de dúvidas, entre em contato com a bibliotecária.\n\n'
                     f'Atenciosamente,\n'
-                    f'Biblioteca da EREM Dr. Jaime Monteiro'
+                    f'Biblioteca da Colégio Referência'
                 ),
             )
 
@@ -226,7 +226,7 @@ def notificar_atraso_avulso(emprestimo):
             f'Caso o livro já tenha sido devolvido recentemente, desconsidere este e-mail. Em algumas situações, pode haver um intervalo entre a devolução do material e a atualização do sistema pela equipe da biblioteca.\n\n'
             f'Em caso de dúvidas, entre em contato com a bibliotecária.\n\n'
             f'Atenciosamente,\n'
-            f'<b>Biblioteca da EREM Dr. Jaime Monteiro</b>'
+            f'<b>Biblioteca da Colégio Referência</b>'
         ),
         emprestimo=emprestimo,
     )

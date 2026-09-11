@@ -22,13 +22,13 @@ def enviar_codigo_verificacao(endereco, codigo):
     assunto = "Seu Código de Verificação para Acessar sua Conta"
     mensagem = (
         f"Olá!\n\n"
-        f"Recebemos uma solicitação para acessar sua conta na Biblioteca da EREM Dr. Jaime Monteiro.\n\n"
+        f"Recebemos uma solicitação para acessar sua conta na Biblioteca da Colégio Referência.\n\n"
         f"Utilize o código abaixo para concluir o acesso:\n\n"
         f"🔑  {codigo}\n\n"
         f"Este código é válido por 10 minutos e pode ser utilizado apenas uma vez.\n"
         f"Se você não solicitou este código, desconsidere este e-mail. Nenhuma ação adicional será necessária.\n\n"
         f"Atenciosamente,\n"
-        f"Biblioteca da EREM Dr. Jaime Monteiro"
+        f"Biblioteca da Colégio Referência"
     )
     return enviar_email(endereco, assunto, mensagem)
 
@@ -89,7 +89,7 @@ def _template_html(assunto, mensagem):
             <span style="font-size: 32px;">📚</span>
             <h2 style="color: #1e5aa8; margin: 8px 0 0;">Biblioteca</h2>
             <p style="color: #666; font-size: 13px; margin: 4px 0 0;">
-              EREM Dr. Jaime Monteiro
+              Colégio Referência
             </p>
           </div>
 
