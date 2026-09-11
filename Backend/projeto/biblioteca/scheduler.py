@@ -1,53 +1,33 @@
-from datetime import date
 from apscheduler.schedulers.background import BackgroundScheduler
 
 scheduler = None
-notificacoes_enviadas = set()
 
 
-def verificar_prazos():
-    from .models import Emprestimo
-    from .gmail import enviar_aviso_atraso, enviar_aviso_prazo
+def executar_tarefas():
+    """
+    Executa as tarefas automáticas do sistema.
 
-    print("Verificando prazos...")
-    hoje = date.today()
+    As regras de negócio permanecem centralizadas nos respectivos módulos:
+    - notifications.py → verificação de prazos e notificações
+    - reservas.py → expiração de reservas vencidas
+    """
 
-    emprestimos = Emprestimo.objects.filter(
-        data_devolucao_real__isnull=True
-    ).select_related('usuario', 'exemplar__livro')
+    from .notifications import verificar_prazos
+    from .reservas import expirar_reservas_vencidas
 
-    for e in emprestimos:
-        if not e.data_devolucao_prevista:
-            continue
+    print("Executando tarefas automáticas...")
 
-        dias = (e.data_devolucao_prevista - hoje).days
-        usuario = e.usuario
-        nome = usuario.first_name
-        titulo = e.exemplar.livro.titulo if e.exemplar and e.exemplar.livro else "livro"
+    try:
+        verificar_prazos()
+        print("Verificação de prazos concluída.")
+    except Exception as exc:
+        print(f"Erro ao verificar prazos: {exc}")
 
-        if dias == 2:
-            tipo = "prazo"
-        elif dias < 0:
-            tipo = "atraso"
-        else:
-            continue
-
-        chave = (e.pk, tipo, str(e.data_devolucao_prevista))
-        if chave in notificacoes_enviadas:
-            continue
-
-        if usuario.email:
-            try:
-                if tipo == "prazo":
-                    enviar_aviso_prazo(usuario.email, nome, titulo, dias_restantes=2)
-                else:
-                    enviar_aviso_atraso(usuario.email, nome, titulo, dias_atraso=abs(dias))
-                notificacoes_enviadas.add(chave)
-            except Exception as exc:
-                print(f"Erro ao notificar emprestimo {e.pk}: {exc}")
-                continue
-        else:
-            notificacoes_enviadas.add(chave)
+    try:
+        expirar_reservas_vencidas()
+        print("Verificação de reservas concluída.")
+    except Exception as exc:
+        print(f"Erro ao verificar reservas: {exc}")
 
 
 def iniciar_scheduler():
@@ -57,14 +37,16 @@ def iniciar_scheduler():
         return
 
     scheduler = BackgroundScheduler(timezone='America/Recife')
+
     scheduler.add_job(
-        verificar_prazos,
+        executar_tarefas,
         'cron',
         hour='8,20',
-        id='verificar_prazos',
+        id='executar_tarefas',
         max_instances=1,
         coalesce=True,
         replace_existing=True,
     )
+
     scheduler.start()
     print("Scheduler iniciado.")
