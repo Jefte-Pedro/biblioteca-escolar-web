@@ -1,32 +1,61 @@
 # 📚 Web School Library
 
-Sistema completo de gerenciamento de biblioteca escolar desenvolvido como projeto full stack, unindo interface moderna, API robusta e banco de dados relacional.
+Sistema web de gerenciamento de biblioteca escolar, desenvolvido como projeto full stack com **Django, Django REST Framework, MySQL, JavaScript e APScheduler**.
 
-> **Nota sobre esta versão:** este repositório é uma versão de portfólio, adaptada a partir de um sistema desenvolvido originalmente para uma instituição de ensino real. Nomes, identidade visual e dados de usuários foram substituídos por versões fictícias antes da publicação.
+O projeto nasceu a partir de uma necessidade real de uma instituição de ensino e foi posteriormente adaptado para publicação como portfólio, com substituição de nomes, identidade visual e dados sensíveis.
 
----
-
-## 📋 Sobre o Projeto
-
-O **Web School Library** é uma aplicação web desenvolvida para simular o funcionamento de um sistema real de biblioteca escolar. O projeto foi construído com foco em segurança, organização de código e experiência do usuário, aplicando conhecimentos de desenvolvimento full stack com tecnologias modernas.
-
-A aplicação oferece funcionalidades como gerenciamento de livros e alunos, controle de empréstimos, devoluções e reservas, autenticação segura de usuários e sistema de notificações automáticas.
-
-O projeto está **em fase de desenvolvimento contínuo** e ainda não foi colocado em produção.
+> **Status:** projeto em desenvolvimento contínuo e ainda não disponibilizado em produção.
 
 ---
 
-## 🖼️ Screenshots
+## 📋 Sobre o projeto
 
-| Login | Home (visitante) |
+O **Web School Library** é uma aplicação web voltada ao gerenciamento de uma biblioteca escolar, reunindo em um único sistema recursos para organização do acervo, usuários, empréstimos, devoluções, reservas e notificações.
+
+A aplicação foi desenvolvida utilizando **Django no back-end**, com renderização tradicional das páginas e integração com **Django REST Framework** para recursos que podem ser acessados de forma programática.
+
+Durante o desenvolvimento, o projeto envolveu não apenas a implementação de funcionalidades, mas também integração entre diferentes partes do sistema, correção de problemas, refatoração, definição de regras de negócio e preocupação com segurança e manutenção.
+
+### Principais recursos
+
+- Autenticação e cadastro de usuários
+- Recuperação de senha
+- Verificação de e-mail
+- Controle de perfis e permissões
+- Catálogo de livros com busca e filtros
+- Cadastro e gerenciamento de livros
+- Gerenciamento de alunos
+- Controle de empréstimos e devoluções
+- Cálculo automático do prazo de devolução
+- Renovação de empréstimos
+- Sistema de reservas
+- Fila de espera para reservas
+- Expiração automática de reservas
+- Verificação de disponibilidade dos livros
+- Notificações no sistema
+- Envio de notificações por e-mail
+- Rotinas automatizadas para acompanhamento de prazos
+- Testes automatizados para regras de negócio centrais
+
+---
+
+## 🖼️ Demonstração da interface
+
+### Login e acesso
+
+| Login | Home — visitante |
 |---|---|
 | ![Tela de login](docs/screenshots/login.png) | ![Home deslogado](docs/screenshots/home-deslogado.png) |
 
-| Home (usuário logado) | Catálogo de livros |
+### Área do usuário
+
+| Home — usuário logado | Catálogo de livros |
 |---|---|
 | ![Home logado](docs/screenshots/home-logado.png) | ![Catálogo](docs/screenshots/catalogo.png) |
 
-| Painel de empréstimos (bibliotecária) |
+### Área administrativa
+
+| Painel de empréstimos |
 |---|
 | ![Empréstimos](docs/screenshots/emprestimos.png) |
 
@@ -34,130 +63,376 @@ O projeto está **em fase de desenvolvimento contínuo** e ainda não foi coloca
 
 ## 🚀 Funcionalidades
 
-- ✅ Login e cadastro de usuários
-- ✅ Recuperação de senha
-- ✅ Verificação de e-mail
-- ✅ Criptografia de senhas (via Django Auth)
-- ✅ Catálogo de livros com busca e filtros
-- ✅ Cadastro de livros e alunos
-- ✅ Registro e controle de empréstimos
-- ✅ Prazo automático de devolução (15 dias)
-- ✅ Renovação de empréstimos
-- ✅ Sistema de reservas, com expiração automática e fila de espera
-- ✅ Verificação de disponibilidade dos livros
-- ✅ Controle de permissões e níveis de acesso (aluno, ex-aluno, funcionário, administrador)
-- ✅ Sistema de notificações automáticas (no sininho e por e-mail)
-- ✅ Testes automatizados cobrindo regras de negócio centrais
-- 🔜 Integração com WhatsApp (tentada e descontinuada — ver seção de decisões técnicas abaixo)
+### 👤 Usuários e autenticação
 
----
+- Cadastro de usuários
+- Login e logout
+- Recuperação de senha
+- Verificação de e-mail
+- Autenticação baseada no Django Auth
+- Hash seguro de senhas
+- Perfis de acesso com permissões específicas
 
-## 🛠️ Tecnologias Utilizadas
+### 📚 Acervo
 
-| Camada | Tecnologia |
-|---|---|
-| Front-end | HTML5, CSS3, JavaScript |
-| Back-end | Python, Django, Django REST Framework |
-| Banco de Dados | MySQL |
-| Autenticação | Django Auth (sessões, permissões, hash de senha) |
-| Agendamento de tarefas | APScheduler |
+- Cadastro e gerenciamento de livros
+- Cadastro e gerenciamento de alunos
+- Busca no catálogo
+- Filtros
+- Controle de disponibilidade
+- Gerenciamento de exemplares
 
----
+### 📖 Empréstimos
 
-## 🗂️ Estrutura do Projeto
+- Registro de empréstimos
+- Registro de devoluções
+- Prazo automático de devolução de **15 dias**
+- Renovação de empréstimos
+- Identificação de empréstimos em atraso
 
-```
-web-school-library/
-├── Backend/
-│   └── projeto/
-│       ├── biblioteca/      # App principal (models, views, API, notificações, reservas)
-│       ├── projeto/         # Configurações do Django
-│       ├── manage.py
-│       └── requirements.txt
-├── docs/
-│   └── screenshots/         # Imagens usadas neste README
-└── README.md
-```
+### 📌 Reservas
+
+- Criação de reservas
+- Controle de disponibilidade
+- Expiração automática de reservas
+- Liberação do exemplar após expiração
+- Fila de espera
+- Notificação do próximo usuário da fila
+
+### 🔔 Notificações
+
+O sistema possui uma camada centralizada de notificações responsável por registrar eventos no sistema e enviar comunicações por e-mail.
+
+Entre os eventos tratados estão:
+
+- empréstimos próximos do vencimento;
+- empréstimos vencidos;
+- reservas expiradas;
+- disponibilidade para o próximo usuário da fila.
 
 ---
 
 ## 🏗️ Arquitetura
 
-O projeto usa Django com renderização tradicional (SSR) no front-end, com uma API REST (Django REST Framework) disponível em paralelo para os recursos que precisam de acesso programático.
+O projeto utiliza **Django com renderização tradicional no servidor (SSR)**, mantendo os templates responsáveis pela interface da aplicação.
 
-O sistema de notificações e reservas roda de forma independente da aplicação web, através do **APScheduler**, que executa automaticamente duas vezes ao dia (08:00 e 20:00, horário de Recife) e centraliza duas responsabilidades:
+Em paralelo, o projeto utiliza **Django REST Framework** para disponibilizar recursos por meio de uma API REST.
 
-- verificação de prazos de devolução (2 dias antes, véspera, no dia e em atraso)
-- expiração de reservas vencidas, liberação do exemplar e notificação do próximo da fila
+A organização geral pode ser representada da seguinte forma:
 
-A lógica de negócio permanece isolada nos módulos correspondentes (`notifications.py`, `reservas.py`); o scheduler só orquestra a execução. Os mesmos comandos também podem ser executados manualmente via `manage.py`, o que facilita testes e depuração.
-
----
-
-## 🔒 Autenticação e Segurança
-
-O sistema diferencia quatro perfis de acesso:
-
-- **Aluno** — acesso ao catálogo e aos próprios empréstimos/reservas
-- **Ex-aluno** — acesso limitado
-- **Funcionário** — gerenciamento de empréstimos
-- **Administrador** — acesso completo ao sistema
-
-Toda a autenticação usa o Django Auth padrão — senhas nunca são armazenadas em texto puro, sempre via hash (`set_password` / `check_password`). Antes da publicação deste repositório, foi feita uma auditoria de segurança que removeu chaves de API expostas em commits anteriores (revogadas junto ao provedor) e reescreveu o histórico do Git para eliminar esse conteúdo por completo.
-
----
-
-## 🧭 Decisões técnicas e integrações abandonadas
-
-Nem toda tentativa de automação deu certo — e isso faz parte do processo. Documentar essas decisões aqui é mais útil do que escondê-las:
-
-**Google Books API** — usada inicialmente para preencher capas e sinopses automaticamente. Apresentou instabilidade recorrente e foi abandonada; o preenchimento desses dados hoje é manual.
-
-**Integração com WhatsApp (Evolution API)** — a ideia era enviar notificações de prazo diretamente pelo WhatsApp. A integração exigia um número institucional dedicado, que não estava disponível, e usar um número pessoal não era uma opção adequada. A comunicação foi consolidada por e-mail, que atende bem à necessidade.
-
-**SerpApi** — segunda tentativa de automatizar sinopses. O script de teste nunca funcionou de forma confiável; o código foi removido e a chave de API exposta durante os testes foi revogada e reportada ao suporte do provedor.
-
----
-
-## ✅ Testes Automatizados
-
-O projeto conta com testes automatizados cobrindo as regras de negócio centrais:
-
-- normalização de categoria ao salvar um livro
-- disponibilidade de um livro conforme seus exemplares
-- cálculo do prazo automático de devolução (15 dias)
-- verificação de atraso de empréstimo antes, no dia e depois do vencimento
-- empréstimos devolvidos não são contabilizados como atrasados
-
+```text
+Interface Web
+     │
+     ▼
+Django Views / Regras de negócio
+     │
+ ┌───┴───────────────┐
+ ▼                   ▼
+Django ORM       Django REST Framework
+ │
+ ▼
+MySQL
 ```
-python manage.py test biblioteca
 
+As rotinas automatizadas utilizam **APScheduler**, responsável apenas por iniciar as tarefas programadas.
+
+A lógica de negócio permanece nos módulos responsáveis por cada domínio:
+
+```text
+APScheduler
+    │
+    ├──► notifications.py
+    │       └── Verificação e criação de notificações
+    │
+    └──► reservas.py
+            └── Expiração e processamento de reservas
+```
+
+O scheduler é executado automaticamente duas vezes ao dia:
+
+```text
+08:00
+20:00
+```
+
+utilizando o fuso horário de **America/Recife**.
+
+As mesmas rotinas também podem ser executadas manualmente por meio dos comandos de gerenciamento do Django, facilitando testes, manutenção e depuração.
+
+---
+
+## 🧠 Regras de negócio
+
+O sistema possui diversas regras implementadas diretamente no domínio da aplicação.
+
+Alguns exemplos:
+
+### Prazo de empréstimo
+
+Ao registrar um novo empréstimo, o sistema calcula automaticamente a data prevista de devolução com base em um prazo de **15 dias**.
+
+### Controle de atraso
+
+Os empréstimos são classificados de acordo com sua situação:
+
+- ainda dentro do prazo;
+- vencendo;
+- vencido;
+- devolvido.
+
+Empréstimos já devolvidos não são considerados atrasados.
+
+### Reservas
+
+Quando uma reserva expira:
+
+1. A reserva é marcada como expirada.
+2. O exemplar é liberado.
+3. O usuário é notificado.
+4. O próximo usuário da fila pode ser processado.
+
+Essa separação permite manter as regras de empréstimos, reservas e notificações em seus respectivos módulos.
+
+---
+
+## 🔒 Autenticação e segurança
+
+A autenticação utiliza os recursos nativos do **Django Auth**, incluindo o armazenamento de senhas por hash em vez de texto puro.
+
+O sistema trabalha com quatro perfis principais:
+
+| Perfil | Acesso |
+|---|---|
+| **Aluno** | Catálogo e recursos relacionados aos próprios empréstimos e reservas |
+| **Ex-aluno** | Acesso limitado |
+| **Funcionário** | Recursos de gerenciamento de empréstimos |
+| **Administrador** | Acesso completo ao sistema |
+
+Também foram utilizadas permissões e regras específicas para controlar quais áreas da aplicação podem ser acessadas por cada tipo de usuário.
+
+### Auditoria de segurança
+
+Antes da publicação do projeto, foi realizada uma revisão de segurança do repositório.
+
+Durante esse processo:
+
+- chaves de APIs que haviam sido expostas durante testes foram removidas;
+- as respectivas credenciais foram revogadas junto aos provedores;
+- o histórico do Git foi reescrito para remover os segredos expostos;
+- arquivos e integrações de teste que não faziam parte da versão final foram removidos.
+
+Essa etapa foi importante para garantir que o repositório público não carregasse credenciais ou experimentos descartados.
+
+---
+
+## 🧪 Testes automatizados
+
+O projeto possui testes automatizados utilizando o sistema de testes do Django.
+
+Atualmente são cobertas regras de negócio centrais relacionadas a:
+
+- normalização de categorias de livros;
+- disponibilidade de livros de acordo com seus exemplares;
+- cálculo automático do prazo de devolução;
+- identificação de empréstimos atrasados;
+- comportamento de empréstimos antes do vencimento;
+- comportamento no dia do vencimento;
+- comportamento após o vencimento;
+- empréstimos devolvidos não são contabilizados como atrasados.
+
+Execução:
+
+```bash
+python manage.py test biblioteca
+```
+
+Resultado atual:
+
+```text
 Ran 7 tests
 OK
 ```
 
 ---
 
-## 👥 Equipe e Responsabilidades
+## 🛠️ Tecnologias utilizadas
 
-| Integrante | Área |
+| Área | Tecnologia |
 |---|---|
-| **Jefté Pedro** | Front-end, Back-end (API) & Documentação |
-| **Alesson Passos** | Banco de Dados |
-| **Luiz Alexandre** | Back-end (API) & Documentação |
-| **João Erick** | Back-end (API) |
-| **Lázaro Antonio** | Back-end (API) & Documentação |
-| **Daniel Santos** | Autenticação |
-| **Matheus da Silva** | Notificações & Documentação |
+| Front-end | HTML5, CSS3, JavaScript |
+| Back-end | Python, Django |
+| API | Django REST Framework |
+| Banco de dados | MySQL |
+| Autenticação | Django Auth |
+| Agendamento | APScheduler |
+| Controle de versão | Git / GitHub |
 
-Projeto acadêmico desenvolvido em equipe. Este repositório reflete principalmente a participação de Jefté Pedro na integração e evolução do sistema — front-end, back-end, regras de negócio, autenticação, permissões, integração banco/API e refatorações — construída sobre a base inicial estabelecida pelo restante da equipe.
+---
+
+## 🗂️ Estrutura do projeto
+
+```text
+web-school-library/
+├── Backend/
+│   └── projeto/
+│       ├── biblioteca/
+│       │   ├── migrations/
+│       │   ├── templates/
+│       │   ├── management/
+│       │   ├── models.py
+│       │   ├── views.py
+│       │   ├── serializers.py
+│       │   ├── notifications.py
+│       │   ├── reservas.py
+│       │   ├── scheduler.py
+│       │   └── ...
+│       │
+│       ├── projeto/
+│       │   └── settings.py
+│       │
+│       ├── manage.py
+│       └── requirements.txt
+│
+├── docs/
+│   └── screenshots/
+│
+└── README.md
+```
+
+---
+
+## ⚙️ Principais decisões técnicas
+
+Durante o desenvolvimento, algumas decisões foram tomadas a partir de problemas encontrados durante a implementação.
+
+### Centralização das notificações
+
+Inicialmente existiam responsabilidades relacionadas a notificações distribuídas entre diferentes partes do projeto.
+
+A estrutura foi reorganizada para centralizar a criação das notificações e manter o envio de e-mail integrado à mesma lógica.
+
+Com isso, uma notificação pode ser registrada no sistema e enviada por e-mail sem precisar duplicar a mesma implementação em cada funcionalidade.
+
+### Separação entre scheduler e regra de negócio
+
+O **APScheduler** ficou responsável somente pelo agendamento das rotinas.
+
+As regras permanecem nos módulos específicos:
+
+```text
+scheduler.py
+    │
+    ├── notifications.py
+    └── reservas.py
+```
+
+Essa separação facilita manutenção, testes e execução manual das mesmas rotinas.
+
+### Comandos de gerenciamento
+
+As tarefas automatizadas também possuem comandos próprios do Django, permitindo executar processos manualmente durante desenvolvimento e depuração.
+
+---
+
+## 🧩 Integrações avaliadas e descontinuadas
+
+Nem todas as tentativas de automação foram mantidas na versão final do projeto.
+
+Essas experiências ajudaram a identificar limitações técnicas e operacionais e também influenciaram as decisões posteriores da arquitetura.
+
+### Google Books API
+
+Foi avaliada uma integração para automatizar informações como capas e sinopses dos livros.
+
+Durante os testes, foram observadas inconsistências nos resultados e problemas de confiabilidade para o acervo utilizado.
+
+A integração foi descontinuada e o preenchimento dessas informações passou a ser tratado manualmente.
+
+### WhatsApp / Evolution API
+
+Foi estudada uma integração para envio de notificações de prazo pelo WhatsApp.
+
+A solução dependia de um número institucional dedicado. Como esse recurso não estava disponível e a utilização de um número pessoal não era adequada para o projeto, a integração foi abandonada.
+
+O sistema passou a utilizar o **e-mail** como principal canal externo de comunicação.
+
+### SerpApi
+
+Também foi realizado um experimento separado para automatizar informações de livros.
+
+O teste não apresentou resultados confiáveis para o projeto e o código foi removido da versão final.
+
+Durante a limpeza do repositório, a credencial utilizada no experimento também foi revogada.
+
+---
+
+## 👥 Equipe
+
+O projeto foi desenvolvido originalmente como um trabalho acadêmico em equipe.
+
+| Integrante | Área de contribuição |
+|---|---|
+| **Jefté Pedro** | Front-end, back-end, integração e documentação |
+| **Alesson Passos** | Banco de dados |
+| **Luiz Alexandre** | Back-end e documentação |
+| **João Erick** | Back-end |
+| **Lázaro Antonio** | Back-end e documentação |
+| **Daniel Santos** | Autenticação |
+| **Matheus da Silva** | Notificações e documentação |
+
+### Minha contribuição
+
+Minha principal participação no projeto esteve relacionada à **integração e evolução do sistema**.
+
+Ao longo do desenvolvimento, atuei na implementação e adaptação de funcionalidades do front-end e back-end, integração entre componentes, aplicação das regras de negócio, integração com banco de dados e API, correção de erros, refatorações e organização do projeto.
+
+O desenvolvimento foi colaborativo, e diferentes partes da base inicial foram construídas por outros integrantes da equipe. A versão publicada representa principalmente a evolução e integração dessas partes ao longo do projeto.
+
+---
+
+## 📈 Aprendizados
+
+O desenvolvimento do projeto proporcionou experiência prática em diferentes áreas do desenvolvimento de software, principalmente:
+
+- desenvolvimento web com Django;
+- modelagem e integração com banco de dados relacional;
+- criação e consumo de APIs;
+- autenticação e controle de permissões;
+- implementação de regras de negócio;
+- automação de tarefas;
+- envio de notificações;
+- testes automatizados;
+- depuração e correção de problemas;
+- refatoração;
+- controle de versão com Git;
+- trabalho colaborativo em equipe.
+
+Além da implementação das funcionalidades, o projeto também trouxe experiência com decisões que fazem parte do desenvolvimento real, como lidar com integrações que não funcionaram como esperado, remover soluções desnecessárias e revisar o projeto antes de sua publicação.
+
+---
+
+## 📌 Status do projeto
+
+**Em desenvolvimento contínuo.**
+
+O projeto ainda não está em produção e pode receber novas melhorias, correções, testes e funcionalidades futuramente.
+
+A versão disponibilizada neste repositório tem como objetivo demonstrar a evolução técnica do projeto e servir como parte do meu portfólio de desenvolvimento de software.
 
 ---
 
 ## 📄 Licença
 
-Este é um projeto de portfólio pessoal, adaptado a partir de um sistema desenvolvido originalmente para uma instituição de ensino real (nomes e identidade visual foram substituídos por versões fictícias nesta versão pública).
+Este repositório foi publicado para fins de **portfólio e avaliação técnica**.
 
-Todos os direitos reservados. O código-fonte, a estrutura e os recursos deste sistema não são de uso livre. É proibido copiar, redistribuir, modificar ou utilizar qualquer parte deste projeto sem autorização prévia e expressa do autor.
+O código não é disponibilizado como software livre e sua utilização, redistribuição ou modificação para outros fins depende de autorização do autor.
 
-Para dúvidas, parcerias ou autorizações, entre em contato com o autor.
+---
+
+## 👨‍💻 Autor
+
+**Jefté Pedro**
+
+Estudante de Ciência da Computação e desenvolvedor Full Stack em formação, com foco em desenvolvimento web e construção de aplicações utilizando JavaScript, React.js, Node.js, Python e Django.
+
+🔗 **GitHub:** [Jefte-Pedro](https://github.com/Jefte-Pedro)    
